@@ -43,7 +43,7 @@ export default function Dashboard() {
     try {
       const res = await api.post('/reminders/trigger-cron');
       const d = res.data.data;
-      toast.success(`Reminders processed: ${d.sent || 0} sent, ${d.skipped || 0} skipped, ${d.failed || 0} failed`);
+      toast.success(`Reminders: ${d.emailSent || 0} emails, ${d.smsSent || 0} SMS sent | ${d.skipped || 0} skipped`);
       fetchDashboard(); // Refresh after sending
     } catch (error) {
       toast.error('Failed to trigger reminders');
