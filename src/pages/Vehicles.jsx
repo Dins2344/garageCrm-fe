@@ -7,8 +7,15 @@ import {
   HiOutlineSearch,
   HiOutlinePencil,
   HiOutlineTrash,
-  HiOutlineX
+  HiOutlineTruck
 } from 'react-icons/hi';
+import PageHeader from '../components/PageHeader';
+import Button from '../components/Button';
+import { Input, Select } from '../components/Form';
+import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
+import EmptyState from '../components/EmptyState';
+import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
+import Badge from '../components/Badge';
 
 export default function Vehicles() {
   const [vehicles, setVehicles] = useState([]);
@@ -100,121 +107,109 @@ export default function Vehicles() {
     }
   };
 
-  const fuelColors = {
-    petrol: '#3b82f6',
-    diesel: '#10b981',
-    cng: '#f59e0b',
-    electric: '#7c3aed',
-    hybrid: '#06b6d4'
+  const fuelBadges = {
+    petrol: 'bg-blue-100 text-blue-700',
+    diesel: 'bg-emerald-100 text-emerald-700',
+    cng: 'bg-amber-100 text-amber-700',
+    electric: 'bg-purple-100 text-purple-700',
+    hybrid: 'bg-cyan-100 text-cyan-700'
   };
 
   return (
-    <div>
-      <div className="page-header">
-        <h1>Vehicles</h1>
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Vehicles">
         {hasRole('owner', 'admin', 'service_advisor', 'receptionist') && (
-          <button className="btn btn-primary" onClick={openAdd} id="add-vehicle-btn">
-            <HiOutlinePlus /> Add Vehicle
-          </button>
+          <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>
+            Add Vehicle
+          </Button>
         )}
-      </div>
+      </PageHeader>
 
-      <div className="search-filter-bar">
-        <div className="search-input-wrapper">
-          <HiOutlineSearch />
-          <input
-            className="form-input"
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[250px]">
+          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <Input
             type="text"
             placeholder="Search by plate number, make, or model..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            className="pl-10"
           />
         </div>
       </div>
 
       {loading ? (
-        <div className="loading-screen"><div className="spinner" /></div>
+        <div className="min-h-[300px] flex justify-center items-center">
+          <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
+        </div>
       ) : vehicles.length === 0 ? (
-        <div className="empty-state">
-          <h3>No vehicles found</h3>
-          <p>Add your first vehicle to start tracking</p>
-        </div>
+        <EmptyState 
+          icon={HiOutlineTruck} 
+          title="No vehicles found" 
+          message="Add your first vehicle to start tracking" 
+        />
       ) : (
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>License Plate</th>
-                <th>Make</th>
-                <th>Model</th>
-                <th>Year</th>
-                <th>Fuel</th>
-                <th>Color</th>
-                <th>Owner</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vehicles.map(v => (
-                <tr key={v._id}>
-                  <td>
-                    <span className="font-bold" style={{
-                      backgroundColor: 'var(--gray-100)',
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      letterSpacing: '0.05em',
-                      fontSize: '0.875rem'
-                    }}>
-                      {v.licensePlate}
-                    </span>
-                  </td>
-                  <td className="font-semibold">{v.make}</td>
-                  <td>{v.model}</td>
-                  <td>{v.year || '—'}</td>
-                  <td>
-                    <span className="badge" style={{
-                      background: `${fuelColors[v.fuelType] || '#64748b'}20`,
-                      color: fuelColors[v.fuelType] || '#64748b'
-                    }}>
-                      {v.fuelType}
-                    </span>
-                  </td>
-                  <td>{v.color || '—'}</td>
-                  <td>{v.customer?.name || '—'}</td>
-                  <td>
-                    <div className="flex gap-1">
-                      <button className="btn btn-ghost btn-sm" onClick={() => openEdit(v)}>
-                        <HiOutlinePencil />
-                      </button>
-                      {hasRole('owner', 'admin') && (
-                        <button className="btn btn-ghost btn-sm text-danger" onClick={() => handleDelete(v._id)}>
-                          <HiOutlineTrash />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>License Plate</Th>
+              <Th>Make</Th>
+              <Th>Model</Th>
+              <Th>Year</Th>
+              <Th>Fuel</Th>
+              <Th>Color</Th>
+              <Th>Owner</Th>
+              <Th>Actions</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {vehicles.map(v => (
+              <Tr key={v._id}>
+                <Td>
+                  <span className="font-bold bg-gray-100 px-2.5 py-1 rounded-md tracking-wider text-sm text-gray-800">
+                    {v.licensePlate}
+                  </span>
+                </Td>
+                <Td className="font-semibold text-gray-900">{v.make}</Td>
+                <Td className="text-gray-700">{v.model}</Td>
+                <Td className="text-gray-700">{v.year || '—'}</Td>
+                <Td>
+                  <Badge className={fuelBadges[v.fuelType] || 'bg-gray-100 text-gray-600'}>
+                    {v.fuelType}
+                  </Badge>
+                </Td>
+                <Td className="text-gray-700">{v.color || '—'}</Td>
+                <Td className="text-gray-900 font-medium">{v.customer?.name || '—'}</Td>
+                <Td>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(v)} title="Edit">
+                      <HiOutlinePencil />
+                    </Button>
+                    {hasRole('owner', 'admin') && (
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(v._id)} className="text-danger hover:text-danger hover:bg-danger-light" title="Delete">
+                        <HiOutlineTrash />
+                      </Button>
+                    )}
+                  </div>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
       )}
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}</h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>
-                <HiOutlineX />
-              </button>
-            </div>
+        <ModalOverlay onClose={() => setShowModal(false)}>
+          <Modal>
             <form onSubmit={handleSubmit}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">Customer Owner *</label>
-                  <select
-                    className="form-select"
+              <ModalHeader 
+                title={editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'} 
+                onClose={() => setShowModal(false)} 
+              />
+              <ModalBody>
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Customer Owner *</label>
+                  <Select
                     value={form.customer}
                     onChange={e => setForm({ ...form, customer: e.target.value })}
                     required
@@ -223,24 +218,22 @@ export default function Vehicles() {
                     {customers.map(c => (
                       <option key={c._id} value={c._id}>{c.name} ({c.phone})</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">License Plate *</label>
-                    <input
-                      className="form-input"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">License Plate *</label>
+                    <Input
                       value={form.licensePlate}
                       onChange={e => setForm({ ...form, licensePlate: e.target.value.toUpperCase() })}
                       placeholder="KA01AB1234"
                       required
-                      style={{ textTransform: 'uppercase' }}
+                      className="uppercase"
                     />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Fuel Type</label>
-                    <select
-                      className="form-select"
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Fuel Type</label>
+                    <Select
                       value={form.fuelType}
                       onChange={e => setForm({ ...form, fuelType: e.target.value })}
                     >
@@ -249,24 +242,22 @@ export default function Vehicles() {
                       <option value="cng">CNG</option>
                       <option value="electric">Electric</option>
                       <option value="hybrid">Hybrid</option>
-                    </select>
+                    </Select>
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Make *</label>
-                    <input
-                      className="form-input"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Make *</label>
+                    <Input
                       value={form.make}
                       onChange={e => setForm({ ...form, make: e.target.value })}
                       placeholder="Maruti, Honda, Hyundai..."
                       required
                     />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Model *</label>
-                    <input
-                      className="form-input"
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Model *</label>
+                    <Input
                       value={form.model}
                       onChange={e => setForm({ ...form, model: e.target.value })}
                       placeholder="Swift, City, Creta..."
@@ -274,11 +265,10 @@ export default function Vehicles() {
                     />
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Year</label>
-                    <input
-                      className="form-input"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Year</label>
+                    <Input
                       type="number"
                       value={form.year}
                       onChange={e => setForm({ ...form, year: e.target.value })}
@@ -287,28 +277,27 @@ export default function Vehicles() {
                       max="2030"
                     />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Color</label>
-                    <input
-                      className="form-input"
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Color</label>
+                    <Input
                       value={form.color}
                       onChange={e => setForm({ ...form, color: e.target.value })}
                       placeholder="White, Silver, Black..."
                     />
                   </div>
                 </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="secondary" type="button" onClick={() => setShowModal(false)}>
                   Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
+                </Button>
+                <Button variant="primary" type="submit">
                   {editingVehicle ? 'Update Vehicle' : 'Add Vehicle'}
-                </button>
-              </div>
+                </Button>
+              </ModalFooter>
             </form>
-          </div>
-        </div>
+          </Modal>
+        </ModalOverlay>
       )}
     </div>
   );

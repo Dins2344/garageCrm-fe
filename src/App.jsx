@@ -18,8 +18,8 @@ function ProtectedRoute({ children, roles }) {
 
   if (loading) {
     return (
-      <div className="loading-screen" style={{ minHeight: '100vh' }}>
-        <div className="spinner" />
+      <div className="flex flex-col items-center justify-center min-h-[400px] h-screen gap-4 text-gray-500">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
         <p>Loading GarageFlow...</p>
       </div>
     );
@@ -47,7 +47,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Toaster
-          position="top-right"
+          position="bottom-right"
           toastOptions={{
             duration: 3000,
             style: {

@@ -6,8 +6,17 @@ import {
   HiOutlinePlus,
   HiOutlineTrash,
   HiOutlinePencil,
-  HiOutlineX
+  HiOutlineX,
+  HiOutlineOfficeBuilding,
+  HiOutlineUserGroup
 } from 'react-icons/hi';
+import PageHeader from '../components/PageHeader';
+import { Card } from '../components/Card';
+import Button from '../components/Button';
+import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
+import Badge from '../components/Badge';
+import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
+import { Input, Select } from '../components/Form';
 
 export default function Settings() {
   const { user, hasRole } = useAuth();
@@ -77,158 +86,179 @@ export default function Settings() {
   };
 
   return (
-    <div>
-      <div className="page-header">
-        <h1>Settings</h1>
-      </div>
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-10">
+      <PageHeader 
+        title="Settings" 
+        subtitle="Manage your garage profile and staff members"
+      />
 
       {/* Garage Info Card */}
-      <div className="card mb-3">
-        <div className="card-header">
-          <h3>Garage Information</h3>
-        </div>
-        <div className="card-body">
-          <div className="form-row">
-            <div className="info-item">
-              <span className="info-label">Garage Name</span>
-              <span className="info-value font-bold">{user?.garage?.name || '—'}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">GST Number</span>
-              <span className="info-value">{user?.garage?.gstNumber || 'Not set'}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Default Tax Rate</span>
-              <span className="info-value">{user?.garage?.settings?.taxRate || 18}%</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Labor Rate/Hour</span>
-              <span className="info-value">₹{user?.garage?.settings?.laborRatePerHour || 500}</span>
-            </div>
+      <Card title="Garage Information" icon={HiOutlineOfficeBuilding}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div>
+            <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Garage Name</span>
+            <span className="font-bold text-gray-900 text-lg">{user?.garage?.name || '—'}</span>
+          </div>
+          <div>
+            <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">GST Number</span>
+            <span className="font-medium text-gray-900">{user?.garage?.gstNumber || 'Not set'}</span>
+          </div>
+          <div>
+            <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Default Tax Rate</span>
+            <span className="font-medium text-gray-900">{user?.garage?.settings?.taxRate || 18}%</span>
+          </div>
+          <div>
+            <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Labor Rate/Hour</span>
+            <span className="font-medium text-gray-900">₹{user?.garage?.settings?.laborRatePerHour || 500}</span>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Staff Management */}
-      <div className="card">
-        <div className="card-header">
-          <h3>Staff Management</h3>
-          <button className="btn btn-primary btn-sm" onClick={openAddUser}>
-            <HiOutlinePlus /> Add Staff
-          </button>
-        </div>
-        <div className="card-body" style={{ padding: 0 }}>
-          {loading ? (
-            <div className="loading-screen" style={{ minHeight: '200px' }}><div className="spinner" /></div>
-          ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <tr key={u._id}>
-                    <td className="font-semibold">{u.name}</td>
-                    <td>{u.email}</td>
-                    <td>{u.phone}</td>
-                    <td>
-                      <span className="badge" style={{
+      <Card 
+        title="Staff Management" 
+        icon={HiOutlineUserGroup}
+        action={
+          <Button variant="primary" size="sm" onClick={openAddUser} icon={HiOutlinePlus}>
+            Add Staff
+          </Button>
+        }
+        noPadding
+      >
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Email</Th>
+                <Th>Phone</Th>
+                <Th>Role</Th>
+                <Th>Status</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {users.map(u => (
+                <Tr key={u._id}>
+                  <Td className="font-semibold text-gray-900">{u.name}</Td>
+                  <Td>{u.email}</Td>
+                  <Td>{u.phone}</Td>
+                  <Td>
+                    <span 
+                      className="px-2.5 py-1 rounded-full text-xs font-semibold"
+                      style={{
                         background: `${roleColors[u.role]}15`,
                         color: roleColors[u.role]
-                      }}>
-                        {u.role?.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${u.isActive ? 'badge-approved' : 'badge-cancelled'}`}>
-                        {u.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td>
-                      {u.role !== 'owner' && (
-                        <div className="flex gap-1">
-                          <button
-                            className={`btn btn-sm ${u.isActive ? 'btn-ghost text-danger' : 'btn-ghost'}`}
-                            onClick={() => toggleUserActive(u._id, u.isActive)}
-                          >
-                            {u.isActive ? 'Deactivate' : 'Activate'}
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+                      }}
+                    >
+                      {u.role?.replace(/_/g, ' ')}
+                    </span>
+                  </Td>
+                  <Td>
+                    <Badge intent={u.isActive ? 'approved' : 'cancelled'}>
+                      {u.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </Td>
+                  <Td>
+                    {u.role !== 'owner' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={u.isActive ? 'text-danger hover:text-danger hover:bg-danger-light' : 'text-primary-600 hover:bg-primary-50'}
+                        onClick={() => toggleUserActive(u._id, u.isActive)}
+                      >
+                        {u.isActive ? 'Deactivate' : 'Activate'}
+                      </Button>
+                    )}
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        )}
+      </Card>
 
       {/* Add User Modal */}
       {showUserModal && (
-        <div className="modal-overlay" onClick={() => setShowUserModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Add Staff Member</h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowUserModal(false)}>
-                <HiOutlineX />
-              </button>
-            </div>
+        <ModalOverlay onClose={() => setShowUserModal(false)}>
+          <Modal className="max-w-xl">
+            <ModalHeader title="Add Staff Member" onClose={() => setShowUserModal(false)} />
             <form onSubmit={handleSubmitUser}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">Full Name *</label>
-                  <input className="form-input" value={form.name}
-                    onChange={e => setForm({ ...form, name: e.target.value })}
-                    placeholder="Staff member name" required />
+              <ModalBody>
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name *</label>
+                    <Input 
+                      value={form.name}
+                      onChange={e => setForm({ ...form, name: e.target.value })}
+                      placeholder="Staff member name" 
+                      required 
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email *</label>
+                      <Input 
+                        type="email" 
+                        value={form.email}
+                        onChange={e => setForm({ ...form, email: e.target.value })}
+                        placeholder="email@example.com" 
+                        required 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone *</label>
+                      <Input 
+                        type="tel" 
+                        value={form.phone}
+                        onChange={e => setForm({ ...form, phone: e.target.value })}
+                        placeholder="9876543210" 
+                        required 
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Password *</label>
+                      <Input 
+                        type="password" 
+                        value={form.password}
+                        onChange={e => setForm({ ...form, password: e.target.value })}
+                        placeholder="Min 6 characters" 
+                        required 
+                        minLength={6} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Role *</label>
+                      <Select 
+                        value={form.role}
+                        onChange={e => setForm({ ...form, role: e.target.value })}
+                      >
+                        <option value="mechanic">Mechanic</option>
+                        <option value="service_advisor">Service Advisor</option>
+                        <option value="receptionist">Receptionist</option>
+                        {hasRole('owner') && <option value="admin">Admin</option>}
+                      </Select>
+                    </div>
+                  </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Email *</label>
-                    <input className="form-input" type="email" value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
-                      placeholder="email@example.com" required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Phone *</label>
-                    <input className="form-input" type="tel" value={form.phone}
-                      onChange={e => setForm({ ...form, phone: e.target.value })}
-                      placeholder="9876543210" required />
-                  </div>
+              </ModalBody>
+              <ModalFooter>
+                <div className="flex justify-end gap-3 w-full">
+                  <Button type="button" variant="ghost" onClick={() => setShowUserModal(false)}>Cancel</Button>
+                  <Button type="submit" variant="primary">Add Staff Member</Button>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Password *</label>
-                    <input className="form-input" type="password" value={form.password}
-                      onChange={e => setForm({ ...form, password: e.target.value })}
-                      placeholder="Min 6 characters" required minLength={6} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Role *</label>
-                    <select className="form-select" value={form.role}
-                      onChange={e => setForm({ ...form, role: e.target.value })}>
-                      <option value="mechanic">Mechanic</option>
-                      <option value="service_advisor">Service Advisor</option>
-                      <option value="receptionist">Receptionist</option>
-                      {hasRole('owner') && <option value="admin">Admin</option>}
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowUserModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Add Staff Member</button>
-              </div>
+              </ModalFooter>
             </form>
-          </div>
-        </div>
+          </Modal>
+        </ModalOverlay>
       )}
     </div>
   );
