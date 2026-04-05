@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import api from '../services/api';
+import { getInvoice, updateInvoicePayment, downloadInvoicePdf, deleteInvoice } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
   HiOutlineCurrencyRupee,
   HiOutlineCheckCircle,
   HiOutlineDownload,
-  HiOutlineX
+  HiOutlineX,
+  HiOutlineTrash
 } from 'react-icons/hi';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
 import Button from './Button';
@@ -33,8 +34,8 @@ export function useInvoiceViewer(onPaymentUpdate) {
     setViewerOpen(true);
     setViewerLoading(true);
     try {
-      const res = await api.get(`/invoices/${invoiceId}`);
-      setViewerInvoice(res.data.data);
+      const { data } = await getInvoice(invoiceId);
+      setViewerInvoice(data);
     } catch (error) {
       toast.error('Failed to load invoice details');
       setViewerOpen(false);
@@ -51,11 +52,11 @@ export function useInvoiceViewer(onPaymentUpdate) {
   const markAsPaid = async (invoiceId) => {
     if (!viewerInvoice) return;
     try {
-      await api.put(`/invoices/${invoiceId}/payment`, {
+      await updateInvoicePayment(invoiceId, {
         amountPaid: viewerInvoice.grandTotal,
         paymentMethod: 'cash'
       });
-      toast.success('Payment recorded! 💰');
+      toast.success('Payment recorded!');
       // Refresh the viewer
       openInvoice(invoiceId);
       // Callback to parent to refresh lists
@@ -65,13 +66,26 @@ export function useInvoiceViewer(onPaymentUpdate) {
     }
   };
 
+  const handleCancelInvoice = async (invoiceId) => {
+    if (!window.confirm('Cancelling this invoice will reopen the job card for editing and restore inventory. Proceed?')) return;
+    try {
+      await deleteInvoice(invoiceId);
+      toast.success('Invoice cancelled and Job reopened!');
+      closeViewer();
+      // Callback to parent to refresh (important to see Job reopened)
+      if (onPaymentUpdate) onPaymentUpdate();
+    } catch (error) {
+      toast.error('Failed to cancel invoice');
+    }
+  };
+
   const downloadPDF = async (invoiceId, invoiceNumber) => {
     try {
-      const res = await api.get(`/invoices/${invoiceId}/pdf`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const { data } = await downloadInvoicePdf(invoiceId);
+      const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${invoiceNumber || 'invoice'}.pdf`;
+      link.setAttribute('download', `Invoice-${invoiceNumber}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -134,6 +148,17 @@ export function useInvoiceViewer(onPaymentUpdate) {
                       className="bg-green-600 hover:bg-green-700"
                     >
                       Mark Paid
+                    </Button>
+                  )}
+                  {hasRole('owner', 'admin') && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCancelInvoice(inv._id)}
+                      icon={HiOutlineTrash}
+                      className="text-danger hover:bg-danger-light"
+                    >
+                      Cancel Bill
                     </Button>
                   )}
                 </>

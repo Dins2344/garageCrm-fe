@@ -30,13 +30,20 @@ Input.displayName = 'Input';
 
 export const Select = React.forwardRef(({ className = '', error, children, ...props }, ref) => {
   return (
-    <select
-      ref={ref}
-      className={`${baseInputStyles} appearance-none ${error ? errorStyles : ''} ${className}`}
-      {...props}
-    >
-      {children}
-    </select>
+    <div className={`relative group ${className}`}>
+      <select
+        ref={ref}
+        className={`${baseInputStyles} appearance-none pr-10 ${error ? errorStyles : ''}`}
+        {...props}
+      >
+        {children}
+      </select>
+      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-primary-500 transition-colors duration-150">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
   );
 });
 Select.displayName = 'Select';

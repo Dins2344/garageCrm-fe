@@ -24,8 +24,8 @@ export function Card({ children, className = '', title, icon: Icon, action, noPa
 
 export function CardHeader({ title, icon: Icon, action, children, className = '' }) {
   return (
-    <div className={`px-6 py-5 border-b border-gray-100 flex items-center justify-between ${className}`}>
-      <div className="flex items-center gap-3">
+    <div className={`px-6 py-5 border-b border-gray-100 flex items-center justify-between w-full ${className}`}>
+      <div className="flex items-center gap-3 w-full">
         {Icon && <Icon className="w-6 h-6 text-gray-500" />}
         {title ? <h3 className="text-xl font-bold text-gray-900">{title}</h3> : children}
       </div>

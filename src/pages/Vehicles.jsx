@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { getVehicles, createVehicle, updateVehicle, deleteVehicle } from '../services/apiServices/vehicleService';
+import { getCustomers } from '../services/apiServices/customerService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -16,6 +17,7 @@ import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
 import EmptyState from '../components/EmptyState';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import Badge from '../components/Badge';
+import Pagination from '../components/Pagination';
 
 export default function Vehicles() {
   const [vehicles, setVehicles] = useState([]);
@@ -24,6 +26,7 @@ export default function Vehicles() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
 
   const [form, setForm] = useState({
@@ -34,12 +37,20 @@ export default function Vehicles() {
   useEffect(() => {
     fetchVehicles();
     fetchCustomers();
-  }, [search]);
+  }, [search, pagination.page]);
 
   const fetchVehicles = async () => {
     try {
-      const res = await api.get('/vehicles', { params: { search, limit: 50 } });
-      setVehicles(res.data.data);
+      const { data, total, pages } = await getVehicles({ 
+        search, 
+        page: pagination.page, 
+        limit: 15 
+      });
+      setVehicles(data);
+      setPagination(prev => ({
+        ...prev,
+        pages: pages || Math.ceil(total / 15) || 1
+      }));
     } catch (error) {
       toast.error('Failed to load vehicles');
     } finally {
@@ -49,9 +60,9 @@ export default function Vehicles() {
 
   const fetchCustomers = async () => {
     try {
-      const res = await api.get('/customers', { params: { limit: 200 } });
-      setCustomers(res.data.data);
-    } catch (error) {
+      const { data } = await getCustomers({ limit: 200 });
+      setCustomers(data);
+    } catch (e) {
       console.error('Failed to load customers');
     }
   };
@@ -83,10 +94,10 @@ export default function Vehicles() {
       if (data.year) data.year = parseInt(data.year);
 
       if (editingVehicle) {
-        await api.put(`/vehicles/${editingVehicle._id}`, data);
+        await updateVehicle(editingVehicle._id, data);
         toast.success('Vehicle updated!');
       } else {
-        await api.post('/vehicles', data);
+        await createVehicle(data);
         toast.success('Vehicle added!');
       }
       setShowModal(false);
@@ -99,7 +110,7 @@ export default function Vehicles() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this vehicle?')) return;
     try {
-      await api.delete(`/vehicles/${id}`);
+      await deleteVehicle(id);
       toast.success('Vehicle deleted');
       fetchVehicles();
     } catch (error) {
@@ -197,6 +208,13 @@ export default function Vehicles() {
           </Tbody>
         </Table>
       )}
+
+      {/* Pagination */}
+      <Pagination 
+        page={pagination.page} 
+        pages={pagination.pages} 
+        onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
+      />
 
       {showModal && (
         <ModalOverlay onClose={() => setShowModal(false)}>

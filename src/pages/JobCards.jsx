@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import { getJobCards, createJobCard } from '../services/apiServices/jobCardService';
+import { getCustomers, createCustomer } from '../services/apiServices/customerService';
+import { getVehicles, createVehicle } from '../services/apiServices/vehicleService';
+import { getMechanics, getAdvisors } from '../services/apiServices/userService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -22,6 +25,7 @@ import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
 import EmptyState from '../components/EmptyState';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import Badge from '../components/Badge';
+import Pagination from '../components/Pagination';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All Status' },
@@ -42,6 +46,7 @@ export default function JobCards() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const [showModal, setShowModal] = useState(false);
   const { hasRole, user } = useAuth();
   const navigate = useNavigate();
@@ -53,6 +58,7 @@ export default function JobCards() {
   const [customers, setCustomers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [mechanics, setMechanics] = useState([]);
+  const [advisors, setAdvisors] = useState([]);
 
   // Step-1: Customer
   const [customerMode, setCustomerMode] = useState('existing'); // 'existing' | 'new'
@@ -84,7 +90,7 @@ export default function JobCards() {
   // ---- Data Fetching ----
   useEffect(() => {
     fetchJobCards();
-  }, [statusFilter, search]);
+  }, [statusFilter, search, pagination.page]);
 
   useEffect(() => {
     if (showModal) {
@@ -96,10 +102,17 @@ export default function JobCards() {
 
   const fetchJobCards = async () => {
     try {
-      const res = await api.get('/jobcards', {
-        params: { status: statusFilter, search, limit: 50 }
+      const { data, total, pages } = await getJobCards({ 
+        status: statusFilter, 
+        search, 
+        page: pagination.page, 
+        limit: 10 
       });
-      setJobCards(res.data.data);
+      setJobCards(data);
+      setPagination(prev => ({
+        ...prev,
+        pages: pages || Math.ceil(total / 10) || 1
+      }));
     } catch (error) {
       toast.error('Failed to load job cards');
     } finally {
@@ -109,22 +122,24 @@ export default function JobCards() {
 
   const fetchCustomers = async () => {
     try {
-      const res = await api.get('/customers', { params: { limit: 200 } });
-      setCustomers(res.data.data);
+      const { data } = await getCustomers({ limit: 200 });
+      setCustomers(data);
     } catch (e) { /* ignore */ }
   };
 
   const fetchVehicles = async () => {
     try {
-      const res = await api.get('/vehicles', { params: { limit: 200 } });
-      setVehicles(res.data.data);
+      const { data } = await getVehicles({ limit: 200 });
+      setVehicles(data);
     } catch (e) { /* ignore */ }
   };
 
   const fetchMechanics = async () => {
     try {
-      const res = await api.get('/users');
-      setMechanics(res.data.data.filter(u => u.role === 'mechanic'));
+      const mData = await getMechanics();
+      const aData = await getAdvisors();
+      setMechanics(mData);
+      setAdvisors(aData);
     } catch (e) { /* ignore */ }
   };
 
@@ -215,8 +230,8 @@ export default function JobCards() {
       if (customerMode === 'existing') {
         customerId = selectedCustomer._id;
       } else {
-        const res = await api.post('/customers', newCustomer);
-        customerId = res.data.data._id;
+        const { data } = await createCustomer(newCustomer);
+        customerId = data._id;
         toast.success(`Customer "${newCustomer.name}" added`);
       }
 
@@ -227,24 +242,25 @@ export default function JobCards() {
       } else {
         const vData = { ...newVehicle, customer: customerId };
         if (vData.year) vData.year = parseInt(vData.year);
-        const res = await api.post('/vehicles', vData);
-        vehicleId = res.data.data._id;
+        const { data } = await createVehicle(vData);
+        vehicleId = data._id;
         toast.success(`Vehicle "${newVehicle.licensePlate}" added`);
       }
 
       // 3. Create Job Card
-      const data = {
+      const jobCardData = {
         vehicle: vehicleId,
         customer: customerId,
         assignedMechanic: workForm.assignedMechanic || undefined,
+        assignedAdvisor: workForm.assignedAdvisor || undefined,
         odometerAtIntake: workForm.odometerAtIntake ? parseInt(workForm.odometerAtIntake) : 0,
         expectedDeliveryDate: workForm.expectedDeliveryDate || undefined,
         internalNotes: workForm.internalNotes,
         complaints: workForm.complaints.filter(c => c.description.trim())
       };
 
-      const res = await api.post('/jobcards', data);
-      toast.success(`Job Card ${res.data.data.jobCardNumber} created!`);
+      const { data } = await createJobCard(jobCardData);
+      toast.success(`Job Card ${data.jobCardNumber} created!`);
       setShowModal(false);
       fetchJobCards();
     } catch (error) {
@@ -300,10 +316,10 @@ export default function JobCards() {
           <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
         </div>
       ) : jobCards.length === 0 ? (
-        <EmptyState 
-          icon={HiOutlineClipboardList} 
-          title="No job cards found" 
-          message={statusFilter ? 'Try a different filter' : 'Create your first job card to get started'} 
+        <EmptyState
+          icon={HiOutlineClipboardList}
+          title="No job cards found"
+          message={statusFilter ? 'Try a different filter' : 'Create your first job card to get started'}
         />
       ) : (
         <Table>
@@ -370,6 +386,13 @@ export default function JobCards() {
         </Table>
       )}
 
+      {/* Pagination */}
+      <Pagination
+        page={pagination.page}
+        pages={pagination.pages}
+        onPageChange={(page) => setPagination(p => ({ ...p, page }))}
+      />
+
       {/* ============ STEPPER MODAL ============ */}
       {showModal && (
         <ModalOverlay onClose={() => setShowModal(false)}>
@@ -378,9 +401,8 @@ export default function JobCards() {
             <div className="flex items-center justify-center p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl">
               <div className={`flex items-center flex-1 ${step === 1 ? 'opacity-100' : 'opacity-60'}`}>
                 <div className="flex flex-col items-center flex-1">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    step === 1 ? 'bg-primary-500 text-white shadow-md' : 'bg-primary-100 text-primary-600'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${step === 1 ? 'bg-primary-500 text-white shadow-md' : 'bg-primary-100 text-primary-600'
+                    }`}>
                     {step > 1 ? <HiOutlineCheck className="text-xl" /> : <span className="font-bold">1</span>}
                   </div>
                   <span className={`text-sm font-semibold mt-2 ${step === 1 ? 'text-primary-700' : 'text-gray-500'}`}>
@@ -388,14 +410,13 @@ export default function JobCards() {
                   </span>
                 </div>
               </div>
-              
+
               <div className={`w-16 h-[2px] mx-2 ${step > 1 ? 'bg-primary-400' : 'bg-gray-200'}`} />
-              
+
               <div className={`flex items-center flex-1 ${step === 2 ? 'opacity-100' : 'opacity-60'}`}>
                 <div className="flex flex-col items-center flex-1">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    step === 2 ? 'bg-primary-500 text-white shadow-md' : 'bg-gray-200 text-gray-500'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${step === 2 ? 'bg-primary-500 text-white shadow-md' : 'bg-gray-200 text-gray-500'
+                    }`}>
                     <span className="font-bold">2</span>
                   </div>
                   <span className={`text-sm font-semibold mt-2 ${step === 2 ? 'text-primary-700' : 'text-gray-500'}`}>
@@ -405,8 +426,8 @@ export default function JobCards() {
               </div>
             </div>
 
-            <ModalHeader 
-              title={step === 1 ? 'Select Customer & Vehicle' : 'Service Details'} 
+            <ModalHeader
+              title={step === 1 ? 'Select Customer & Vehicle' : 'Service Details'}
               onClose={() => setShowModal(false)}
             />
 
@@ -742,6 +763,18 @@ export default function JobCards() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Assign Service Advisor</label>
+                      <Select
+                        value={workForm.assignedAdvisor}
+                        onChange={e => setWorkForm({ ...workForm, assignedAdvisor: e.target.value })}
+                      >
+                        <option value="">Unassigned</option>
+                        {advisors.map(a => (
+                          <option key={a._id} value={a._id}>{a.name}</option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5">Assign Mechanic</label>
                       <Select
                         value={workForm.assignedMechanic}
@@ -779,19 +812,20 @@ export default function JobCards() {
                       Customer Complaints / Service Requests *
                     </label>
                     {workForm.complaints.map((complaint, index) => (
-                      <div key={index} className="flex gap-2 mb-2 items-start">
-                        <div className="flex-1">
+                      <div key={index} className="flex gap-3 mb-3 items-center bg-gray-50/80 p-2.5 rounded-xl border border-gray-100/80">
+                        <div className="flex-1 min-w-0">
                           <Input
                             value={complaint.description}
                             onChange={e => updateComplaint(index, 'description', e.target.value)}
                             placeholder="Describe the complaint or service needed..."
                             required={index === 0}
+                            className="bg-white border-gray-200"
                           />
                         </div>
                         <Select
                           value={complaint.priority}
                           onChange={e => updateComplaint(index, 'priority', e.target.value)}
-                          className="w-[110px] shrink-0"
+                          className="w-[125px] shrink-0"
                         >
                           <option value="low">Low</option>
                           <option value="medium">Medium</option>
@@ -799,8 +833,14 @@ export default function JobCards() {
                           <option value="urgent">Urgent</option>
                         </Select>
                         {workForm.complaints.length > 1 && (
-                          <Button variant="ghost" size="icon" onClick={() => removeComplaint(index)} className="text-danger hover:text-danger hover:bg-danger-light shrink-0">
-                            <HiOutlineX />
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeComplaint(index)} 
+                            className="text-gray-400 hover:text-danger hover:bg-danger-light shrink-0"
+                            title="Remove complaint"
+                          >
+                            <HiOutlineX className="text-lg" />
                           </Button>
                         )}
                       </div>

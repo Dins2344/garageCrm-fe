@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import { getJobCard, updateJobCard, saveJobCardEstimation, approveJobCardEstimation, downloadEstimationPDF } from '../services/apiServices/jobCardService';
+import { getInventoryItems } from '../services/apiServices/inventoryService';
+import { getMechanics } from '../services/apiServices/userService';
+import { createInvoice as generateInvoice } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -14,6 +17,7 @@ import {
   HiOutlineX,
   HiOutlineDownload,
   HiOutlineCheck,
+  HiOutlineRefresh,
 } from 'react-icons/hi';
 import { HiOutlineWrench } from 'react-icons/hi2';
 import PageHeader from '../components/PageHeader';
@@ -37,8 +41,10 @@ export default function JobCardDetail() {
   const { hasRole, user } = useAuth();
   const [jobCard, setJobCard] = useState(null);
   const [inventory, setInventory] = useState([]);
+  const [mechanics, setMechanics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showEstimation, setShowEstimation] = useState(false);
+  const [updatingMechanic, setUpdatingMechanic] = useState(false);
 
   const [estimation, setEstimation] = useState({
     parts: [],
@@ -50,23 +56,23 @@ export default function JobCardDetail() {
   useEffect(() => {
     fetchJobCard();
     fetchInventory();
+    fetchMechanics();
   }, [id]);
 
   const fetchJobCard = async () => {
     try {
-      const res = await api.get(`/jobcards/${id}`);
-      setJobCard(res.data.data);
-      if (res.data.data.estimation) {
+      const { data } = await getJobCard(id);
+      setJobCard(data);
+      if (data.estimation) {
         setEstimation({
-          parts: res.data.data.estimation.parts || [],
-          labor: res.data.data.estimation.labor || [],
-          discount: res.data.data.estimation.discount || 0,
-          taxRate: res.data.data.estimation.taxRate || 18
+          parts: data.estimation.parts || [],
+          labor: data.estimation.labor || [],
+          discount: data.estimation.discount || 0,
+          taxRate: data.estimation.taxRate || 18
         });
       }
     } catch (error) {
-      toast.error('Job card not found');
-      navigate('/jobcards');
+      toast.error('Failed to load job card');
     } finally {
       setLoading(false);
     }
@@ -74,14 +80,34 @@ export default function JobCardDetail() {
 
   const fetchInventory = async () => {
     try {
-      const res = await api.get('/inventory', { params: { limit: 200 } });
-      setInventory(res.data.data);
-    } catch (error) { /* silent */ }
+      const { data } = await getInventoryItems({ limit: 1000 });
+      setInventory(data);
+    } catch (e) { /* ignore */ }
+  };
+
+  const fetchMechanics = async () => {
+    try {
+      const mData = await getMechanics();
+      setMechanics(mData);
+    } catch (e) { /* ignore */ }
+  };
+
+  const assignMechanic = async (mechanicId) => {
+    setUpdatingMechanic(mechanicId);
+    try {
+      await updateJobCard(id, { assignedMechanic: mechanicId });
+      toast.success('Mechanic assigned');
+      fetchJobCard();
+    } catch (error) {
+      toast.error('Failed to assign mechanic');
+    } finally {
+      setUpdatingMechanic(false);
+    }
   };
 
   const updateStatus = async (newStatus) => {
     try {
-      await api.put(`/jobcards/${id}`, { status: newStatus });
+      await updateJobCard(id, { status: newStatus });
       toast.success(`Status updated to "${newStatus.replace(/_/g, ' ')}"`);
       fetchJobCard();
     } catch (error) {
@@ -109,6 +135,23 @@ export default function JobCardDetail() {
       ...estimation,
       labor: [...estimation.labor, { description: '', hours: 1, ratePerHour: 500 }]
     });
+  };
+
+  const downloadEstimation = async () => {
+    try {
+      const response = await downloadEstimationPDF(id);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Estimation-${jobCard.jobCardNumber}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Estimation PDF downloaded');
+    } catch (error) {
+      toast.error('Failed to download estimation');
+    }
   };
 
   const updatePart = (index, field, value) => {
@@ -158,7 +201,7 @@ export default function JobCardDetail() {
 
   const saveEstimation = async () => {
     try {
-      await api.put(`/jobcards/${id}/estimation`, estimation);
+      await saveJobCardEstimation(id, estimation);
       toast.success('Estimation saved!');
       setShowEstimation(false);
       fetchJobCard();
@@ -169,8 +212,8 @@ export default function JobCardDetail() {
 
   const approveEstimation = async () => {
     try {
-      await api.put(`/jobcards/${id}/approve`);
-      toast.success('Estimation approved! ✅');
+      await approveJobCardEstimation(id);
+      toast.success('Estimation approved!');
       fetchJobCard();
     } catch (error) {
       toast.error('Failed to approve');
@@ -182,8 +225,8 @@ export default function JobCardDetail() {
 
   const createInvoice = async () => {
     try {
-      const res = await api.post('/invoices', { jobCardId: id });
-      toast.success(`Invoice ${res.data.data.invoiceNumber} created!`);
+      const { data } = await generateInvoice({ jobCardId: id });
+      toast.success(`Invoice ${data.invoiceNumber} created!`);
       fetchJobCard();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create invoice');
@@ -235,22 +278,20 @@ export default function JobCardDetail() {
         <div className="min-w-[600px] flex justify-between relative">
           {/* Connecting Line */}
           <div className="absolute top-5 left-8 right-8 h-[2px] bg-gray-200 -z-10" />
-          
+
           {STATUS_FLOW.map((status, index) => {
             const currentIndex = STATUS_FLOW.indexOf(jobCard.status);
             const isCompleted = index <= currentIndex;
             const isCurrent = index === currentIndex;
             return (
               <div key={status} className="flex flex-col items-center flex-1 z-10 relative">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${
-                  isCurrent ? 'bg-primary-500 text-white shadow-md ring-4 ring-primary-50' :
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${isCurrent ? 'bg-primary-500 text-white shadow-md ring-4 ring-primary-50' :
                   isCompleted ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400 border-2 border-white'
-                }`}>
+                  }`}>
                   {isCompleted && !isCurrent ? <HiOutlineCheck className="text-lg" /> : index + 1}
                 </div>
-                <span className={`mt-3 text-xs font-semibold uppercase tracking-wider text-center ${
-                  isCurrent ? 'text-primary-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
-                }`}>
+                <span className={`mt-3 text-xs font-semibold uppercase tracking-wider text-center ${isCurrent ? 'text-primary-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
+                  }`}>
                   {status.replace(/_/g, ' ')}
                 </span>
               </div>
@@ -289,8 +330,52 @@ export default function JobCardDetail() {
             </div>
             <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Mechanic</span>
-              <span className="font-medium text-gray-900">{jobCard.assignedMechanic?.name || 'Unassigned'}</span>
+              {hasRole('owner', 'admin', 'service_advisor') ? (
+                <Select
+                  value={jobCard.assignedMechanic?._id || ''}
+                  onChange={(e) => changeMechanic(e.target.value)}
+                  disabled={updatingMechanic}
+                  className="h-8 py-0 px-2 text-sm bg-gray-50/50 border-gray-200"
+                >
+                  <option value="">Unassigned</option>
+                  {mechanics.map(m => (
+                    <option key={m._id} value={m._id}>{m.name}</option>
+                  ))}
+                </Select>
+              ) : (
+                <span className="font-medium text-gray-900">{jobCard.assignedMechanic?.name || 'Unassigned'}</span>
+              )}
             </div>
+          </div>
+        </Card>
+
+        {/* Service History Timeline */}
+        <Card title="🕰️ Timeline" className="lg:col-span-1">
+          <div className="flex flex-col gap-6 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-gray-100 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
+            {(jobCard.statusHistory || []).slice().reverse().map((history, index) => (
+              <div key={index} className="flex gap-4 relative z-10">
+                <div className={`w-9 h-9 rounded-full bg-white border-2 flex items-center justify-center shrink-0 shadow-sm ${index === 0 ? 'border-primary-500 ring-4 ring-primary-50' : 'border-gray-200'
+                  }`}>
+                  <div className={`w-2 h-2 rounded-full ${index === 0 ? 'bg-primary-500 animate-pulse' : 'bg-gray-300'}`} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <Badge intent={history.status} size="sm">
+                      {history.status?.replace(/_/g, ' ')}
+                    </Badge>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">{new Date(history.changedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                  </div>
+                  <div className="text-[10px] text-gray-400 font-medium mb-1.5 uppercase tracking-tighter">
+                    {new Date(history.changedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {history.changedBy?.name || 'Staff'}
+                  </div>
+                  {history.notes && (
+                    <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded-lg border-l-2 border-primary-200">
+                      {history.notes}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
 
@@ -313,19 +398,24 @@ export default function JobCardDetail() {
         </Card>
 
         {/* Estimation Summary */}
-        <Card title="💰 Estimation" className="md:col-span-2 lg:col-span-3">
-          <div className="flex flex-wrap gap-2 mb-6 -mt-10 justify-end">
-            {hasRole('owner', 'admin', 'service_advisor') && (
+        <Card title="Estimation" className="md:col-span-2 lg:col-span-3">
+          <div className="flex flex-wrap gap-2 mb-6 -mt-20 justify-end">
+            {hasRole('owner', 'admin', 'service_advisor') && !jobCard.invoice && (
               <Button variant="secondary" size="sm" onClick={() => setShowEstimation(true)} icon={HiOutlinePencil}>
                 Edit Estimation
               </Button>
             )}
-            {jobCard.estimation?.grandTotal > 0 && !jobCard.estimation?.approvedByCustomer && hasRole('owner', 'admin', 'service_advisor') && (
+            {jobCard.estimation?.grandTotal > 0 && (
+              <Button variant="ghost" size="sm" onClick={downloadEstimation} icon={HiOutlineDownload}>
+                Export Estimation
+              </Button>
+            )}
+            {jobCard.estimation?.grandTotal > 0 && !jobCard.estimation?.approvedByCustomer && (jobCard.status !== 'cancelled' && jobCard.status !== 'delivered') && hasRole('owner', 'admin', 'service_advisor') && (
               <Button variant="primary" size="sm" onClick={approveEstimation} icon={HiOutlineCheckCircle} className="bg-green-600 hover:bg-green-700">
                 Approve
               </Button>
             )}
-            {jobCard.estimation?.approvedByCustomer && !jobCard.invoice && hasRole('owner', 'admin', 'service_advisor') && (
+            {jobCard.estimation?.approvedByCustomer && !jobCard.invoice && (jobCard.status !== 'cancelled' && jobCard.status !== 'delivered') && hasRole('owner', 'admin', 'service_advisor') && (
               <Button variant="accent" size="sm" onClick={createInvoice} icon={HiOutlineDocumentText}>
                 Generate Invoice
               </Button>
@@ -400,27 +490,27 @@ export default function JobCardDetail() {
                 <div>
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 lg:sticky lg:top-6">
                     <h4 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-6 border-b border-gray-200 pb-2">Summary</h4>
-                    
+
                     <div className="flex flex-col gap-4">
                       <div className="flex justify-between items-center text-gray-600">
                         <span>Subtotal</span>
                         <span className="font-semibold text-gray-900">₹{jobCard.estimation.subtotal?.toLocaleString('en-IN')}</span>
                       </div>
-                      
+
                       {jobCard.estimation.discount > 0 && (
                         <div className="flex justify-between items-center text-green-600">
                           <span>Discount</span>
                           <span className="font-semibold">-₹{jobCard.estimation.discount?.toLocaleString('en-IN')}</span>
                         </div>
                       )}
-                      
+
                       <div className="flex justify-between items-center text-gray-600">
                         <span>Tax ({jobCard.estimation.taxRate}%)</span>
                         <span className="font-semibold text-gray-900">₹{jobCard.estimation.taxAmount?.toLocaleString('en-IN')}</span>
                       </div>
-                      
+
                       <div className="h-px bg-gray-200 my-2" />
-                      
+
                       <div className="flex justify-between items-center text-xl font-bold">
                         <span className="text-gray-900">Grand Total</span>
                         <span className="text-primary-600">₹{jobCard.estimation.grandTotal?.toLocaleString('en-IN')}</span>
@@ -436,9 +526,9 @@ export default function JobCardDetail() {
                 </div>
               </div>
             ) : (
-              <EmptyState 
-                icon={HiOutlineWrench} 
-                title="No estimation" 
+              <EmptyState
+                icon={HiOutlineWrench}
+                title="No estimation"
                 message='Click "Edit Estimation" to add parts and labor.'
               />
             )}
@@ -451,7 +541,7 @@ export default function JobCardDetail() {
         <ModalOverlay onClose={() => setShowEstimation(false)}>
           <Modal className="max-w-[900px]">
             <ModalHeader title="Edit Estimation" onClose={() => setShowEstimation(false)} />
-            
+
             <ModalBody>
               {/* Parts */}
               <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Parts</h4>

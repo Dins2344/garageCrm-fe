@@ -27,10 +27,10 @@ import Button from '../components/Button';export default function Login() {
     try {
       if (isRegister) {
         await register(form);
-        toast.success('Garage registered successfully! 🎉');
+        toast.success('Garage registered successfully!');
       } else {
         await login(form.email, form.password);
-        toast.success('Welcome back! 🔧');
+        toast.success('Welcome back!');
       }
       navigate('/');
     } catch (error) {

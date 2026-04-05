@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { getUsers, createUser, updateUser, deleteUser } from '../services/apiServices/userService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -35,8 +35,8 @@ export default function Settings() {
 
   const fetchUsers = async () => {
     try {
-      const res = await api.get('/users');
-      setUsers(res.data.data);
+      const { data } = await getUsers();
+      setUsers(data);
     } catch (error) {
       console.error('Could not load users');
     } finally {
@@ -54,11 +54,11 @@ export default function Settings() {
     e.preventDefault();
     try {
       if (editingUser) {
-        await api.put(`/users/${editingUser._id}`, form);
+        await updateUser(editingUser._id, form);
         toast.success('User updated!');
       } else {
-        await api.post('/users', form);
-        toast.success('Staff member added!');
+        await createUser(form);
+        toast.success('User added!');
       }
       setShowUserModal(false);
       fetchUsers();
@@ -69,7 +69,7 @@ export default function Settings() {
 
   const toggleUserActive = async (userId, isActive) => {
     try {
-      await api.put(`/users/${userId}`, { isActive: !isActive });
+      await updateUser(userId, { isActive: !isActive });
       toast.success(`User ${isActive ? 'deactivated' : 'activated'}`);
       fetchUsers();
     } catch (error) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { getInvoices, updateInvoicePayment, downloadInvoicePdf } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -16,25 +16,31 @@ import EmptyState from '../components/EmptyState';
 import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
+import Pagination from '../components/Pagination';
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('');
+  const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
   const { openInvoice, InvoiceModal } = useInvoiceViewer(fetchInvoices);
 
   useEffect(() => {
     fetchInvoices();
-  }, [search, paymentFilter]);
+  }, [search, paymentFilter, pagination.page]);
 
   function fetchInvoices() {
     setLoading(true);
-    api.get('/invoices', {
-      params: { search, paymentStatus: paymentFilter, limit: 50 }
-    })
-      .then(res => setInvoices(res.data.data))
+    getInvoices({ search, paymentStatus: paymentFilter, page: pagination.page, limit: 15 })
+      .then(({ data, pages, total }) => {
+        setInvoices(data);
+        setPagination(prev => ({
+          ...prev,
+          pages: pages || Math.ceil(total / 15) || 1
+        }));
+      })
       .catch(() => toast.error('Failed to load invoices'))
       .finally(() => setLoading(false));
   }
@@ -44,30 +50,28 @@ export default function Invoices() {
     if (!invoice) return;
 
     try {
-      await api.put(`/invoices/${invoiceId}/payment`, {
+      await updateInvoicePayment(invoiceId, {
         amountPaid: invoice.grandTotal,
         paymentMethod: 'cash'
       });
-      toast.success('Payment recorded! 💰');
+      toast.success('Payment recorded!');
       fetchInvoices();
     } catch (error) {
-      toast.error('Failed to update payment');
+      toast.error('Failed to record payment');
     }
   };
 
-  const downloadPDF = async (invoiceId, invoiceNumber) => {
+  const handleDownload = async (id, number) => {
     try {
-      const res = await api.get(`/invoices/${invoiceId}/pdf`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const { data } = await downloadInvoicePdf(id);
+      const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${invoiceNumber || 'invoice'}.pdf`;
+      link.setAttribute('download', `Invoice-${number}.pdf`);
       document.body.appendChild(link);
       link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
       toast.success('PDF downloaded');
-    } catch (error) {
+    } catch (e) {
       toast.error('Failed to download PDF');
     }
   };
@@ -181,6 +185,13 @@ export default function Invoices() {
           </Tbody>
         </Table>
       )}
+
+      {/* Pagination */}
+      <Pagination 
+        page={pagination.page} 
+        pages={pagination.pages} 
+        onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
+      />
 
       <InvoiceModal />
     </div>

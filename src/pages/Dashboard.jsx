@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
+import { getDashboardStats, triggerCron as runReminderCron } from '../services/apiServices/dashboardService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -31,8 +31,8 @@ export default function Dashboard() {
 
   const fetchDashboard = async () => {
     try {
-      const res = await api.get('/dashboard');
-      setStats(res.data.data);
+      const { data } = await getDashboardStats();
+      setStats(data);
     } catch (error) {
       toast.error('Failed to load dashboard');
     } finally {
@@ -48,8 +48,7 @@ export default function Dashboard() {
   const triggerCron = async () => {
     setCronRunning(true);
     try {
-      const res = await api.post('/reminders/trigger-cron');
-      const d = res.data.data;
+      const { data: d } = await runReminderCron();
       toast.success(`Reminders: ${d.emailSent || 0} emails, ${d.smsSent || 0} SMS sent | ${d.skipped || 0} skipped`);
       fetchDashboard();
     } catch (error) {
@@ -90,7 +89,7 @@ export default function Dashboard() {
 
       {/* Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        
+
         {/* Recent Job Cards */}
         <Card className="animate-[slideUp_0.4s_ease_both] delay-75">
           <CardHeader title="Recent Job Cards">
@@ -111,8 +110,14 @@ export default function Dashboard() {
                         <Badge intent={jc.status}>{jc.status}</Badge>
                       </RecentItemMain>
                       <RecentItemDetails>
-                        <span>{jc.vehicle?.licensePlate} — {jc.vehicle?.make} {jc.vehicle?.model}</span>
-                        <span>{jc.customer?.name}</span>
+                        <div className="flex flex-col">
+                          <span>{jc.vehicle?.licensePlate} — {jc.vehicle?.make} {jc.vehicle?.model}</span>
+                          <span className="text-gray-400">{jc.customer?.name}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-bold text-gray-400 uppercase block tracking-wider">Mechanic</span>
+                          <span className="text-sm font-medium text-gray-700">{jc.assignedMechanic?.name || 'Unassigned'}</span>
+                        </div>
                       </RecentItemDetails>
                     </RecentItem>
                   </Link>
@@ -124,7 +129,7 @@ export default function Dashboard() {
 
         {/* Low Stock Alerts */}
         <Card className="animate-[slideUp_0.4s_ease_both] delay-100">
-          <CardHeader title="⚠️ Low Stock Alerts">
+          <CardHeader title="Low Stock Alerts">
             <Button variant="ghost" size="sm" to="/inventory">
               Manage <HiOutlineArrowRight />
             </Button>
@@ -214,39 +219,103 @@ export default function Dashboard() {
         </Card>
 
         {/* Service Reminders */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-300 xl:col-span-2">
+        <Card className="animate-[slideUp_0.4s_ease_both] delay-300">
           <CardHeader>
             <div className="flex items-center justify-between w-full">
               <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <HiOutlineBell className="text-2xl" /> Service Reminders
+                <HiOutlineBell className="text-2xl" /> Reminders
               </h3>
               {hasRole('owner', 'admin') && (
-                <Button variant="primary" size="sm" onClick={triggerCron} disabled={cronRunning} icon={HiOutlineMail}>
-                  {cronRunning ? 'Sending...' : 'Send Reminders Now'}
+                <Button variant="ghost" size="sm" onClick={triggerCron} disabled={cronRunning} icon={HiOutlineMail}>
+                  {cronRunning ? '...' : 'Send'}
                 </Button>
               )}
             </div>
           </CardHeader>
           <CardBody noPadding>
             {!stats?.upcomingReminders?.length ? (
-              <EmptyState icon={HiOutlineCheckCircle} title="No upcoming service reminders" />
+              <EmptyState icon={HiOutlineCheckCircle} title="No reminders" />
             ) : (
-              <RecentList className="grid grid-cols-1 md:grid-cols-2">
-                {stats.upcomingReminders.map(r => (
+              <RecentList>
+                {stats.upcomingReminders.slice(0, 5).map(r => (
                   <RecentItem key={r._id}>
                     <RecentItemMain>
-                      <span className="font-semibold">{r.vehicle?.licensePlate || 'Unknown Vehicle'}</span>
+                      <span className="font-semibold text-sm">{r.vehicle?.licensePlate}</span>
                       <Badge intent={r.isOverdue ? 'cancelled' : 'estimation_sent'}>
                         {r.isOverdue ? 'Overdue' : new Date(r.nextServiceDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                       </Badge>
                     </RecentItemMain>
-                    <RecentItemDetails>
-                      <span>{r.customer?.name || '—'}</span>
-                      <span className="text-xs">{r.vehicle?.make} {r.vehicle?.model}</span>
-                    </RecentItemDetails>
                   </RecentItem>
                 ))}
               </RecentList>
+            )}
+          </CardBody>
+        </Card>
+
+        {/* Staff Achievement Leaderboard */}
+        <Card className="animate-[slideUp_0.4s_ease_both] delay-350 xl:col-span-2">
+          <CardHeader title="🏆 Monthly Staff Achievement" />
+          <CardBody noPadding>
+            {!stats?.staffAchievement?.length ? (
+              <EmptyState icon={HiOutlineUsers} title="No data yet for this month" />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-100 uppercase text-[11px] font-bold text-gray-400 tracking-wider">
+                      <th className="px-6 py-4">Rank</th>
+                      <th className="px-6 py-4">Staff Member</th>
+                      <th className="px-6 py-4">Total Jobs</th>
+                      <th className="px-6 py-4 text-right">Labour Achieved</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {stats.staffAchievement.map((achievement, index) => (
+                      <tr key={achievement._id} className="hover:bg-gray-50/80 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm ${
+                            index === 0 ? 'bg-yellow-100 text-yellow-700 shadow-sm border border-yellow-200' : 
+                            index === 1 ? 'bg-gray-100 text-gray-600' :
+                            index === 2 ? 'bg-orange-50 text-orange-700' :
+                            'text-gray-400'
+                          }`}>
+                            {index + 1}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-800 group-hover:text-primary-600 transition-colors">
+                              {achievement.staffName}
+                            </span>
+                            <span className="text-[11px] font-bold uppercase text-gray-400 tracking-tighter">
+                              {achievement.role}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-700">{achievement.jobCount}</span>
+                            <span className="text-xs text-gray-400">jobs completed</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="text-[15px] font-bold text-gray-900 font-mono">
+                              {formatCurrency(achievement.totalLabor)}
+                            </span>
+                            <div className="w-20 h-1.5 bg-gray-100 rounded-full mt-2 overflow-hidden">
+                              <div 
+                                className="h-full bg-primary-500 rounded-full shadow-[0_0_8px_rgba(59,95,248,0.3)] transition-all duration-1000"
+                                style={{ width: `${Math.min(100, (achievement.totalLabor / (stats.staffAchievement[0]?.totalLabor || 1)) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </CardBody>
         </Card>

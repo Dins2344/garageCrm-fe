@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem } from '../services/apiServices/inventoryService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -17,6 +17,7 @@ import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
 import EmptyState from '../components/EmptyState';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import Badge from '../components/Badge';
+import Pagination from '../components/Pagination';
 
 const CATEGORIES = [
   { value: '', label: 'All Categories' },
@@ -41,6 +42,7 @@ export default function Inventory() {
   const [category, setCategory] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
 
   const [form, setForm] = useState({
@@ -51,12 +53,21 @@ export default function Inventory() {
 
   useEffect(() => {
     fetchInventory();
-  }, [search, category]);
+  }, [search, category, pagination.page]);
 
   const fetchInventory = async () => {
     try {
-      const res = await api.get('/inventory', { params: { search, category, limit: 100 } });
-      setItems(res.data.data);
+      const { data, total, pages } = await getInventoryItems({ 
+        search, 
+        category, 
+        page: pagination.page, 
+        limit: 15 
+      });
+      setItems(data);
+      setPagination(prev => ({
+        ...prev,
+        pages: pages || Math.ceil(total / 15) || 1
+      }));
     } catch (error) {
       toast.error('Failed to load inventory');
     } finally {
@@ -94,10 +105,10 @@ export default function Inventory() {
     e.preventDefault();
     try {
       if (editingItem) {
-        await api.put(`/inventory/${editingItem._id}`, form);
+        await updateInventoryItem(editingItem._id, form);
         toast.success('Item updated!');
       } else {
-        await api.post('/inventory', form);
+        await createInventoryItem(form);
         toast.success('Item added to inventory!');
       }
       setShowModal(false);
@@ -110,7 +121,7 @@ export default function Inventory() {
   const handleDelete = async (id) => {
     if (!confirm('Remove this item from inventory?')) return;
     try {
-      await api.delete(`/inventory/${id}`);
+      await deleteInventoryItem(id);
       toast.success('Item removed');
       fetchInventory();
     } catch (error) {
@@ -227,6 +238,13 @@ export default function Inventory() {
           </Tbody>
         </Table>
       )}
+
+      {/* Pagination */}
+      <Pagination 
+        page={pagination.page} 
+        pages={pagination.pages} 
+        onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
+      />
 
       {showModal && (
         <ModalOverlay onClose={() => setShowModal(false)}>

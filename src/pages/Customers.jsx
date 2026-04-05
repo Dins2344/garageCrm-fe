@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '../services/apiServices/customerService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -38,14 +38,16 @@ export default function Customers() {
 
   const fetchCustomers = async () => {
     try {
-      const res = await api.get('/customers', {
-        params: { search, page: pagination.page, limit: 15 }
+      const { data, total, pages } = await getCustomers({ 
+        search, 
+        page: pagination.page, 
+        limit: 15 
       });
-      setCustomers(res.data.data);
+      setCustomers(data);
       setPagination(prev => ({
         ...prev,
-        pages: res.data.pages,
-        total: res.data.total
+        pages: pages,
+        total: total
       }));
     } catch (error) {
       toast.error('Failed to load customers');
@@ -76,10 +78,10 @@ export default function Customers() {
     e.preventDefault();
     try {
       if (editingCustomer) {
-        await api.put(`/customers/${editingCustomer._id}`, form);
+        await updateCustomer(editingCustomer._id, form);
         toast.success('Customer updated!');
       } else {
-        await api.post('/customers', form);
+        await createCustomer(form);
         toast.success('Customer added!');
       }
       setShowModal(false);
@@ -92,7 +94,7 @@ export default function Customers() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this customer?')) return;
     try {
-      await api.delete(`/customers/${id}`);
+      await deleteCustomer(id);
       toast.success('Customer deleted');
       fetchCustomers();
     } catch (error) {
