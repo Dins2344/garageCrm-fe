@@ -11,6 +11,7 @@ import JobCardDetail from './pages/JobCardDetail';
 import Inventory from './pages/Inventory';
 import Invoices from './pages/Invoices';
 import Settings from './pages/Settings';
+import EstimationApproval from './pages/EstimationApproval';
 
 // Protected route wrapper
 function ProtectedRoute({ children, roles }) {
@@ -95,6 +96,9 @@ function App() {
               </ProtectedRoute>
             } />
           </Route>
+
+          {/* Public: customer estimation approval — no auth required */}
+          <Route path="/estimate/:token" element={<EstimationApproval />} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

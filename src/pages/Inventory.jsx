@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useDebounce } from '../hooks/useDebounce';
+import { useConfirm } from '../components/ConfirmModal';
 import { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem } from '../services/apiServices/inventoryService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -39,11 +41,13 @@ export default function Inventory() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search);
   const [category, setCategory] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
+  const { confirm, ConfirmModal } = useConfirm();
 
   const [form, setForm] = useState({
     partName: '', partNumber: '', category: 'other',
@@ -51,14 +55,19 @@ export default function Inventory() {
     supplier: { name: '', phone: '' }, location: ''
   });
 
+  // Reset to page 1 whenever the user changes the search term
+  useEffect(() => {
+    setPagination(p => ({ ...p, page: 1 }));
+  }, [search]);
+
   useEffect(() => {
     fetchInventory();
-  }, [search, category, pagination.page]);
+  }, [debouncedSearch, category, pagination.page]);
 
   const fetchInventory = async () => {
     try {
       const { data, total, pages } = await getInventoryItems({ 
-        search, 
+        search: debouncedSearch, 
         category, 
         page: pagination.page, 
         limit: 15 
@@ -119,7 +128,13 @@ export default function Inventory() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Remove this item from inventory?')) return;
+    const ok = await confirm({
+      title: 'Remove Inventory Item?',
+      message: 'This item will be permanently removed from inventory.',
+      confirmLabel: 'Remove',
+      intent: 'danger',
+    });
+    if (!ok) return;
     try {
       await deleteInventoryItem(id);
       toast.success('Item removed');
@@ -368,6 +383,7 @@ export default function Inventory() {
           </Modal>
         </ModalOverlay>
       )}
+      <ConfirmModal />
     </div>
   );
 }

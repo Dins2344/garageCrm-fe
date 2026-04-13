@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useDebounce } from '../hooks/useDebounce';
 import { getInvoices, updateInvoicePayment, downloadInvoicePdf } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -22,18 +23,24 @@ export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search);
   const [paymentFilter, setPaymentFilter] = useState('');
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
   const { openInvoice, InvoiceModal } = useInvoiceViewer(fetchInvoices);
 
+  // Reset to page 1 whenever the user changes the search term
+  useEffect(() => {
+    setPagination(p => ({ ...p, page: 1 }));
+  }, [search]);
+
   useEffect(() => {
     fetchInvoices();
-  }, [search, paymentFilter, pagination.page]);
+  }, [debouncedSearch, paymentFilter, pagination.page]);
 
   function fetchInvoices() {
     setLoading(true);
-    getInvoices({ search, paymentStatus: paymentFilter, page: pagination.page, limit: 15 })
+    getInvoices({ search: debouncedSearch, paymentStatus: paymentFilter, page: pagination.page, limit: 15 })
       .then(({ data, pages, total }) => {
         setInvoices(data);
         setPagination(prev => ({

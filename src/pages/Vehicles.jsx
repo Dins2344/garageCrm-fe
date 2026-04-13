@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useDebounce } from '../hooks/useDebounce';
 import { getVehicles, createVehicle, updateVehicle, deleteVehicle } from '../services/apiServices/vehicleService';
 import { getCustomers } from '../services/apiServices/customerService';
 import { useAuth } from '../context/AuthContext';
@@ -18,31 +19,39 @@ import EmptyState from '../components/EmptyState';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import Badge from '../components/Badge';
 import Pagination from '../components/Pagination';
+import { useConfirm } from '../components/ConfirmModal';
 
 export default function Vehicles() {
   const [vehicles, setVehicles] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search);
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
+  const { confirm, ConfirmModal } = useConfirm();
 
   const [form, setForm] = useState({
     licensePlate: '', make: '', model: '', year: '', color: '',
     fuelType: 'petrol', customer: ''
   });
 
+  // Reset to page 1 whenever the user changes the search term
+  useEffect(() => {
+    setPagination(p => ({ ...p, page: 1 }));
+  }, [search]);
+
   useEffect(() => {
     fetchVehicles();
     fetchCustomers();
-  }, [search, pagination.page]);
+  }, [debouncedSearch, pagination.page]);
 
   const fetchVehicles = async () => {
     try {
       const { data, total, pages } = await getVehicles({ 
-        search, 
+        search: debouncedSearch, 
         page: pagination.page, 
         limit: 15 
       });
@@ -108,7 +117,13 @@ export default function Vehicles() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this vehicle?')) return;
+    const ok = await confirm({
+      title: 'Delete Vehicle?',
+      message: 'This will permanently remove the vehicle from the system.',
+      confirmLabel: 'Delete',
+      intent: 'danger',
+    });
+    if (!ok) return;
     try {
       await deleteVehicle(id);
       toast.success('Vehicle deleted');
@@ -317,6 +332,7 @@ export default function Vehicles() {
           </Modal>
         </ModalOverlay>
       )}
+      <ConfirmModal />
     </div>
   );
 }

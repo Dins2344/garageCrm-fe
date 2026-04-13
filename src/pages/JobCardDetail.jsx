@@ -29,6 +29,7 @@ import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../com
 import Badge from '../components/Badge';
 import { Card } from '../components/Card';
 import { useInvoiceViewer } from '../components/InvoiceViewerModal';
+import { useConfirm } from '../components/ConfirmModal';
 
 const STATUS_FLOW = [
   'new', 'estimation_sent', 'approved', 'in_progress',
@@ -45,6 +46,7 @@ export default function JobCardDetail() {
   const [loading, setLoading] = useState(true);
   const [showEstimation, setShowEstimation] = useState(false);
   const [updatingMechanic, setUpdatingMechanic] = useState(false);
+  const { confirm, ConfirmModal } = useConfirm();
 
   const [estimation, setEstimation] = useState({
     parts: [],
@@ -106,6 +108,15 @@ export default function JobCardDetail() {
   };
 
   const updateStatus = async (newStatus) => {
+    if (newStatus === 'estimation_sent') {
+      const hasParts = jobCard?.estimation?.parts?.length > 0;
+      const hasLabor = jobCard?.estimation?.labor?.length > 0;
+      if (!hasParts && !hasLabor) {
+        toast.error('Cannot send estimation: Please add at least one part or labor item.');
+        return;
+      }
+    }
+
     try {
       await updateJobCard(id, { status: newStatus });
       toast.success(`Status updated to "${newStatus.replace(/_/g, ' ')}"`);
@@ -224,6 +235,14 @@ export default function JobCardDetail() {
   const { openInvoice, InvoiceModal } = useInvoiceViewer(fetchJobCard);
 
   const createInvoice = async () => {
+    const ok = await confirm({
+      title: 'Generate Invoice?',
+      message: 'Are you sure you want to generate an invoice for this job card? This will finalize the estimation, update the system statuses, and notify the customer.',
+      confirmLabel: 'Generate Invoice',
+      intent: 'warning',
+    });
+    if (!ok) return;
+
     try {
       const { data } = await generateInvoice({ jobCardId: id });
       toast.success(`Invoice ${data.invoiceNumber} created!`);
@@ -252,10 +271,15 @@ export default function JobCardDetail() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">{jobCard.jobCardNumber}</h1>
-            <div className="mt-1">
+            <div className="mt-1 flex gap-2">
               <Badge intent={jobCard.status}>
                 {jobCard.status?.replace(/_/g, ' ')}
               </Badge>
+              {jobCard.serviceType && (
+                <Badge intent="none">
+                  {jobCard.serviceType.replace(/_/g, ' ')}
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -329,11 +353,19 @@ export default function JobCardDetail() {
               <span className="font-medium text-gray-900">{jobCard.odometerAtIntake?.toLocaleString() || '—'} km</span>
             </div>
             <div>
+              <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Service Type</span>
+              <span className="font-medium text-gray-900">{jobCard.serviceType || ''}</span>
+            </div>
+            <div>
+              <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Service Advisor</span>
+              <span className="font-medium text-gray-900">{jobCard.assignedAdvisor?.name || 'Unassigned'}</span>
+            </div>
+            <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Mechanic</span>
               {hasRole('owner', 'admin', 'service_advisor') ? (
                 <Select
                   value={jobCard.assignedMechanic?._id || ''}
-                  onChange={(e) => changeMechanic(e.target.value)}
+                  onChange={(e) => assignMechanic(e.target.value)}
                   disabled={updatingMechanic}
                   className="h-8 py-0 px-2 text-sm bg-gray-50/50 border-gray-200"
                 >
@@ -350,7 +382,7 @@ export default function JobCardDetail() {
         </Card>
 
         {/* Service History Timeline */}
-        <Card title="🕰️ Timeline" className="lg:col-span-1">
+        <Card title="Timeline" className="lg:col-span-1">
           <div className="flex flex-col gap-6 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-gray-100 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
             {(jobCard.statusHistory || []).slice().reverse().map((history, index) => (
               <div key={index} className="flex gap-4 relative z-10">
@@ -366,7 +398,7 @@ export default function JobCardDetail() {
                     <span className="text-[10px] font-bold text-gray-400 uppercase">{new Date(history.changedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
                   </div>
                   <div className="text-[10px] text-gray-400 font-medium mb-1.5 uppercase tracking-tighter">
-                    {new Date(history.changedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {history.changedBy?.name || 'Staff'}
+                    {new Date(history.changedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {history?.changedBy?.name || 'Staff'}
                   </div>
                   {history.notes && (
                     <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded-lg border-l-2 border-primary-200">
@@ -519,7 +551,7 @@ export default function JobCardDetail() {
 
                     {jobCard.estimation.approvedByCustomer && (
                       <div className="mt-6 flex items-center justify-center gap-2 bg-green-50 text-green-700 py-3 rounded-lg border border-green-200 font-semibold shadow-sm">
-                        <HiOutlineCheckCircle className="text-xl" /> Approved by Customer
+                        <HiOutlineCheckCircle className="text-xl" /> Estimation Approved
                       </div>
                     )}
                   </div>
@@ -684,6 +716,7 @@ export default function JobCardDetail() {
         </ModalOverlay>
       )}
       <InvoiceModal />
+      <ConfirmModal />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useDebounce } from '../hooks/useDebounce';
 import { Link, useNavigate } from 'react-router-dom';
 import { getJobCards, createJobCard } from '../services/apiServices/jobCardService';
 import { getCustomers, createCustomer } from '../services/apiServices/customerService';
@@ -46,6 +47,7 @@ export default function JobCards() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const [showModal, setShowModal] = useState(false);
   const { hasRole, user } = useAuth();
@@ -80,6 +82,7 @@ export default function JobCards() {
 
   // Step-2: Work details
   const [workForm, setWorkForm] = useState({
+    serviceType: 'service',
     assignedMechanic: '',
     odometerAtIntake: '',
     expectedDeliveryDate: '',
@@ -88,9 +91,14 @@ export default function JobCards() {
   });
 
   // ---- Data Fetching ----
+  // Reset to page 1 whenever the user changes the search term
+  useEffect(() => {
+    setPagination(p => ({ ...p, page: 1 }));
+  }, [search]);
+
   useEffect(() => {
     fetchJobCards();
-  }, [statusFilter, search, pagination.page]);
+  }, [statusFilter, debouncedSearch, pagination.page]);
 
   useEffect(() => {
     if (showModal) {
@@ -104,7 +112,7 @@ export default function JobCards() {
     try {
       const { data, total, pages } = await getJobCards({ 
         status: statusFilter, 
-        search, 
+        search: debouncedSearch, 
         page: pagination.page, 
         limit: 10 
       });
@@ -203,10 +211,11 @@ export default function JobCards() {
     setVehicleMode('existing');
     setSelectedVehicle(null);
     setVehicleSearch('');
-    setNewVehicle({ licensePlate: '', make: '', model: '', year: '', color: '', fuelType: 'petrol' });
+    if (vehicleMode === 'new') setNewVehicle({ licensePlate: '', make: '', model: '', year: '', color: '', fuelType: 'petrol' });
     setWorkForm({
-      assignedMechanic: '', odometerAtIntake: '', expectedDeliveryDate: '',
-      internalNotes: '', complaints: [{ description: '', priority: 'medium' }]
+      serviceType: 'service', assignedMechanic: '', odometerAtIntake: '', expectedDeliveryDate: '',
+      internalNotes: '', complaints: [{ description: '', priority: 'medium' }],
+      assignedAdvisor: user?.role === 'service_advisor' ? user._id : ''
     });
     setShowModal(true);
   };
@@ -249,6 +258,7 @@ export default function JobCards() {
 
       // 3. Create Job Card
       const jobCardData = {
+        serviceType: workForm.serviceType,
         vehicle: vehicleId,
         customer: customerId,
         assignedMechanic: workForm.assignedMechanic || undefined,
@@ -763,12 +773,25 @@ export default function JobCards() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Assign Service Advisor</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Service Type *</label>
                       <Select
-                        value={workForm.assignedAdvisor}
-                        onChange={e => setWorkForm({ ...workForm, assignedAdvisor: e.target.value })}
+                        value={workForm.serviceType}
+                        onChange={e => setWorkForm({ ...workForm, serviceType: e.target.value })}
+                        required
                       >
-                        <option value="">Unassigned</option>
+                        <option value="service">Periodic Service</option>
+                        <option value="repair">General Repair</option>
+                        <option value="accident">Accident Repair</option>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Assign Service Advisor *</label>
+                      <Select
+                        value={workForm.assignedAdvisor || ''}
+                        onChange={e => setWorkForm({ ...workForm, assignedAdvisor: e.target.value })}
+                        required
+                      >
+                        <option value="">Select Service Advisor</option>
                         {advisors.map(a => (
                           <option key={a._id} value={a._id}>{a.name}</option>
                         ))}

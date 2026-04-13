@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useConfirm } from './ConfirmModal';
 import { getInvoice, updateInvoicePayment, downloadInvoicePdf, deleteInvoice } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -28,6 +29,7 @@ export function useInvoiceViewer(onPaymentUpdate) {
   const [viewerInvoice, setViewerInvoice] = useState(null);
   const [viewerLoading, setViewerLoading] = useState(false);
   const { hasRole } = useAuth();
+  const { confirm, ConfirmModal } = useConfirm();
 
   const openInvoice = async (invoiceId) => {
     if (!invoiceId) return;
@@ -67,12 +69,17 @@ export function useInvoiceViewer(onPaymentUpdate) {
   };
 
   const handleCancelInvoice = async (invoiceId) => {
-    if (!window.confirm('Cancelling this invoice will reopen the job card for editing and restore inventory. Proceed?')) return;
+    const ok = await confirm({
+      title: 'Cancel Invoice?',
+      message: 'Cancelling this invoice will reopen the job card for editing and automatically restore inventory stock levels.',
+      confirmLabel: 'Cancel Invoice',
+      intent: 'warning',
+    });
+    if (!ok) return;
     try {
       await deleteInvoice(invoiceId);
       toast.success('Invoice cancelled and Job reopened!');
       closeViewer();
-      // Callback to parent to refresh (important to see Job reopened)
       if (onPaymentUpdate) onPaymentUpdate();
     } catch (error) {
       toast.error('Failed to cancel invoice');
@@ -119,6 +126,7 @@ export function useInvoiceViewer(onPaymentUpdate) {
     const inv = viewerInvoice;
 
     return (
+      <>
       <ModalOverlay onClose={closeViewer}>
         <Modal className="max-w-[800px] p-0 overflow-hidden bg-white">
           {/* Custom Header to accommodate actions */}
@@ -380,6 +388,8 @@ export function useInvoiceViewer(onPaymentUpdate) {
           </div>
         </Modal>
       </ModalOverlay>
+      <ConfirmModal />
+      </>
     );
   };
 

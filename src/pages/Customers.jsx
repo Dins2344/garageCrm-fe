@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useDebounce } from '../hooks/useDebounce';
+import { useConfirm } from '../components/ConfirmModal';
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '../services/apiServices/customerService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -22,10 +24,12 @@ export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search);
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
+  const { confirm, ConfirmModal } = useConfirm();
 
   const [form, setForm] = useState({
     name: '', phone: '', email: '', notes: '',
@@ -34,12 +38,12 @@ export default function Customers() {
 
   useEffect(() => {
     fetchCustomers();
-  }, [search, pagination.page]);
+  }, [debouncedSearch, pagination.page]);
 
   const fetchCustomers = async () => {
     try {
       const { data, total, pages } = await getCustomers({ 
-        search, 
+        search: debouncedSearch, 
         page: pagination.page, 
         limit: 15 
       });
@@ -92,7 +96,13 @@ export default function Customers() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this customer?')) return;
+    const ok = await confirm({
+      title: 'Delete Customer?',
+      message: 'This will permanently remove the customer and all associated records.',
+      confirmLabel: 'Delete',
+      intent: 'danger',
+    });
+    if (!ok) return;
     try {
       await deleteCustomer(id);
       toast.success('Customer deleted');
@@ -285,6 +295,7 @@ export default function Customers() {
           </Modal>
         </ModalOverlay>
       )}
+      <ConfirmModal />
     </div>
   );
 }
