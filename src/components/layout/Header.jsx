@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { HiOutlineBell, HiOutlineSearch } from 'react-icons/hi';
+import { HiOutlineBell, HiOutlineSearch, HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 
 const pageTitles = {
@@ -12,7 +12,7 @@ const pageTitles = {
   '/settings': 'Settings',
 };
 
-export default function Header({ collapsed }) {
+export default function Header({ collapsed, onMobileMenuOpen }) {
   const location = useLocation();
   const { user } = useAuth();
 
@@ -33,8 +33,18 @@ export default function Header({ collapsed }) {
   };
 
   return (
-    <header className="h-header bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-40">
-      <div className="flex items-center gap-4">
+    <header className="h-header bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
+      <div className="flex items-center gap-3">
+        {/* Mobile hamburger menu */}
+        <button
+          className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors -ml-1"
+          onClick={onMobileMenuOpen}
+          id="mobile-menu-toggle"
+          title="Open menu"
+        >
+          <HiOutlineMenuAlt2 className="text-2xl" />
+        </button>
+
         <div className="flex flex-col">
           <h2 className="text-xl font-bold text-gray-900 leading-tight">{getTitle()}</h2>
           {location.pathname === '/' && (
