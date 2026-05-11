@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AppLayout from './components/layout/AppLayout';
+import HomePage from './pages/HomePage';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
@@ -11,6 +12,7 @@ import JobCardDetail from './pages/JobCardDetail';
 import Inventory from './pages/Inventory';
 import Invoices from './pages/Invoices';
 import Settings from './pages/Settings';
+import EstimationApproval from './pages/EstimationApproval';
 
 // Protected route wrapper
 function ProtectedRoute({ children, roles }) {
@@ -18,14 +20,14 @@ function ProtectedRoute({ children, roles }) {
 
   if (loading) {
     return (
-      <div className="loading-screen" style={{ minHeight: '100vh' }}>
-        <div className="spinner" />
+      <div className="flex flex-col items-center justify-center min-h-[400px] h-screen gap-4 text-gray-500">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
         <p>Loading GarageFlow...</p>
       </div>
     );
   }
 
-  if (!user) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/home" />;
 
   if (roles && !roles.includes(user.role)) {
     return <Navigate to="/" />;
@@ -34,8 +36,8 @@ function ProtectedRoute({ children, roles }) {
   return children;
 }
 
-// Public route — redirect to dashboard if logged in
-function PublicRoute({ children }) {
+// Auth route — redirect to dashboard if already logged in
+function AuthRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (user) return <Navigate to="/" />;
@@ -47,7 +49,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Toaster
-          position="top-right"
+          position="bottom-right"
           toastOptions={{
             duration: 3000,
             style: {
@@ -67,10 +69,15 @@ function App() {
           }}
         />
         <Routes>
+          {/* Public: Landing page */}
+          <Route path="/home" element={<HomePage />} />
+
+          {/* Auth: Login / Register */}
           <Route path="/login" element={
-            <PublicRoute><Login /></PublicRoute>
+            <AuthRoute><Login /></AuthRoute>
           } />
 
+          {/* Protected: App shell */}
           <Route element={
             <ProtectedRoute><AppLayout /></ProtectedRoute>
           }>
@@ -96,7 +103,10 @@ function App() {
             } />
           </Route>
 
-          <Route path="*" element={<Navigate to="/" />} />
+          {/* Public: customer estimation approval — no auth required */}
+          <Route path="/estimate/:token" element={<EstimationApproval />} />
+
+          <Route path="*" element={<Navigate to="/home" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

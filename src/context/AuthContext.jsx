@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import { login as authLogin, register as authRegister, getMe } from '../services/apiServices/authService';
 
 const AuthContext = createContext(null);
 
@@ -14,13 +14,17 @@ export function AuthProvider({ children }) {
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
       // Verify token is still valid
-      api.get('/auth/me')
+      getMe()
         .then(res => {
-          setUser(res.data.data);
-          localStorage.setItem('garageflow_user', JSON.stringify(res.data.data));
+          setUser(res.data);
+          localStorage.setItem('garageflow_user', JSON.stringify(res.data));
         })
         .catch(() => {
           logout();
+          // Session expired — redirect to public landing
+          if (window.location.pathname !== '/home' && window.location.pathname !== '/login') {
+            window.location.href = '/home';
+          }
         })
         .finally(() => setLoading(false));
     } else {
@@ -29,8 +33,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
-    const { token, data } = res.data;
+    const { token, data } = await authLogin(email, password);
     localStorage.setItem('garageflow_token', token);
     localStorage.setItem('garageflow_user', JSON.stringify(data));
     setUser(data);
@@ -38,8 +41,7 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (formData) => {
-    const res = await api.post('/auth/register', formData);
-    const { token, data } = res.data;
+    const { token, data } = await authRegister(formData);
     localStorage.setItem('garageflow_token', token);
     localStorage.setItem('garageflow_user', JSON.stringify(data));
     setUser(data);

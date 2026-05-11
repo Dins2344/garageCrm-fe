@@ -1,7 +1,6 @@
 import { useLocation } from 'react-router-dom';
-import { HiOutlineBell, HiOutlineSearch } from 'react-icons/hi';
+import { HiOutlineBell, HiOutlineSearch, HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
-import './Header.css';
 
 const pageTitles = {
   '/': 'Dashboard',
@@ -13,7 +12,7 @@ const pageTitles = {
   '/settings': 'Settings',
 };
 
-export default function Header({ collapsed }) {
+export default function Header({ collapsed, onMobileMenuOpen }) {
   const location = useLocation();
   const { user } = useAuth();
 
@@ -34,30 +33,44 @@ export default function Header({ collapsed }) {
   };
 
   return (
-    <header className={`app-header ${collapsed ? 'collapsed' : ''}`}>
-      <div className="header-left">
-        <div className="header-title-group">
-          <h2 className="header-title">{getTitle()}</h2>
+    <header className="h-header bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
+      <div className="flex items-center gap-3">
+        {/* Mobile hamburger menu */}
+        <button
+          className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors -ml-1"
+          onClick={onMobileMenuOpen}
+          id="mobile-menu-toggle"
+          title="Open menu"
+        >
+          <HiOutlineMenuAlt2 className="text-2xl" />
+        </button>
+
+        <div className="flex flex-col">
+          <h2 className="text-xl font-bold text-gray-900 leading-tight">{getTitle()}</h2>
           {location.pathname === '/' && (
-            <p className="header-greeting">
-              {getGreeting()}, <strong>{user?.name?.split(' ')[0]}</strong> 👋
+            <p className="text-sm text-gray-500 font-medium">
+              {getGreeting()}, <strong className="text-primary-600">{user?.name?.split(' ')[0]}</strong> 👋
             </p>
           )}
         </div>
       </div>
 
-      <div className="header-right">
-        <div className="header-search">
-          <HiOutlineSearch />
-          <input type="text" placeholder="Search anything..." />
+      <div className="flex items-center gap-4">
+        <div className="relative hidden md:block">
+          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <input 
+            type="text" 
+            placeholder="Search anything..." 
+            className="w-[280px] h-10 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-full text-sm outline-none transition-all focus:bg-white focus:border-primary-400 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.1)]"
+          />
         </div>
 
-        <button className="header-notification" id="notification-bell">
-          <HiOutlineBell />
-          <span className="notification-dot" />
+        <button className="relative w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors" id="notification-bell">
+          <HiOutlineBell className="text-xl" />
+          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-danger rounded-full border-2 border-white" />
         </button>
 
-        <div className="header-date">
+        <div className="hidden sm:flex items-center text-sm font-medium text-gray-600 bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
           {new Date().toLocaleDateString('en-IN', {
             weekday: 'short',
             day: 'numeric',

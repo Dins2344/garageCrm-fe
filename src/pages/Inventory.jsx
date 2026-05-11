@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { useDebounce } from '../hooks/useDebounce';
+import { useConfirm } from '../components/ConfirmModal';
+import { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem } from '../services/apiServices/inventoryService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -8,8 +10,16 @@ import {
   HiOutlinePencil,
   HiOutlineTrash,
   HiOutlineExclamation,
-  HiOutlineX
+  HiOutlineTemplate
 } from 'react-icons/hi';
+import PageHeader from '../components/PageHeader';
+import Button from '../components/Button';
+import { Input, Select } from '../components/Form';
+import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
+import EmptyState from '../components/EmptyState';
+import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
+import Badge from '../components/Badge';
+import Pagination from '../components/Pagination';
 
 const CATEGORIES = [
   { value: '', label: 'All Categories' },
@@ -31,10 +41,13 @@ export default function Inventory() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search);
   const [category, setCategory] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
+  const { confirm, ConfirmModal } = useConfirm();
 
   const [form, setForm] = useState({
     partName: '', partNumber: '', category: 'other',
@@ -42,14 +55,28 @@ export default function Inventory() {
     supplier: { name: '', phone: '' }, location: ''
   });
 
+  // Reset to page 1 whenever the user changes the search term
+  useEffect(() => {
+    setPagination(p => ({ ...p, page: 1 }));
+  }, [search]);
+
   useEffect(() => {
     fetchInventory();
-  }, [search, category]);
+  }, [debouncedSearch, category, pagination.page]);
 
   const fetchInventory = async () => {
     try {
-      const res = await api.get('/inventory', { params: { search, category, limit: 100 } });
-      setItems(res.data.data);
+      const { data, total, pages } = await getInventoryItems({ 
+        search: debouncedSearch, 
+        category, 
+        page: pagination.page, 
+        limit: 15 
+      });
+      setItems(data);
+      setPagination(prev => ({
+        ...prev,
+        pages: pages || Math.ceil(total / 15) || 1
+      }));
     } catch (error) {
       toast.error('Failed to load inventory');
     } finally {
@@ -87,10 +114,10 @@ export default function Inventory() {
     e.preventDefault();
     try {
       if (editingItem) {
-        await api.put(`/inventory/${editingItem._id}`, form);
+        await updateInventoryItem(editingItem._id, form);
         toast.success('Item updated!');
       } else {
-        await api.post('/inventory', form);
+        await createInventoryItem(form);
         toast.success('Item added to inventory!');
       }
       setShowModal(false);
@@ -101,9 +128,15 @@ export default function Inventory() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Remove this item from inventory?')) return;
+    const ok = await confirm({
+      title: 'Remove Inventory Item?',
+      message: 'This item will be permanently removed from inventory.',
+      confirmLabel: 'Remove',
+      intent: 'danger',
+    });
+    if (!ok) return;
     try {
-      await api.delete(`/inventory/${id}`);
+      await deleteInventoryItem(id);
       toast.success('Item removed');
       fetchInventory();
     } catch (error) {
@@ -114,208 +147,243 @@ export default function Inventory() {
   const lowStockCount = items.filter(i => i.isLowStock).length;
 
   return (
-    <div>
-      <div className="page-header">
-        <div>
-          <h1>Inventory</h1>
-          {lowStockCount > 0 && (
-            <span className="badge badge-cancelled" style={{ marginLeft: '12px' }}>
-              <HiOutlineExclamation /> {lowStockCount} low stock
-            </span>
-          )}
-        </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Inventory">
         {hasRole('owner', 'admin', 'service_advisor') && (
-          <button className="btn btn-primary" onClick={openAdd} id="add-inventory-btn">
-            <HiOutlinePlus /> Add Item
-          </button>
+          <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>
+            Add Item
+          </Button>
         )}
-      </div>
+      </PageHeader>
 
-      <div className="search-filter-bar">
-        <div className="search-input-wrapper">
-          <HiOutlineSearch />
-          <input
-            className="form-input"
+      {lowStockCount > 0 && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2 mb-2 shadow-sm animate-[fadeIn_0.3s_ease]">
+          <HiOutlineExclamation className="text-xl" />
+          <span className="font-medium">You have {lowStockCount} items low on stock. Please restock soon.</span>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[250px]">
+          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <Input
             type="text"
             placeholder="Search parts..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            className="pl-10"
           />
         </div>
-        <select
-          className="form-select"
+        <Select
           value={category}
           onChange={e => setCategory(e.target.value)}
-          style={{ width: 'auto', minWidth: '180px' }}
+          className="w-auto min-w-[200px]"
         >
           {CATEGORIES.map(c => (
             <option key={c.value} value={c.value}>{c.label}</option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {loading ? (
-        <div className="loading-screen"><div className="spinner" /></div>
+        <div className="min-h-[300px] flex justify-center items-center">
+          <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
+        </div>
       ) : items.length === 0 ? (
-        <div className="empty-state">
-          <h3>No inventory items found</h3>
-          <p>Start adding parts and materials</p>
-        </div>
+        <EmptyState 
+          icon={HiOutlineTemplate} 
+          title="No inventory items found" 
+          message="Start adding parts and materials" 
+        />
       ) : (
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Part Name</th>
-                <th>Part #</th>
-                <th>Category</th>
-                <th>Stock</th>
-                <th>Threshold</th>
-                <th>Cost Price</th>
-                <th>Selling Price</th>
-                <th>Location</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map(item => (
-                <tr key={item._id} style={item.isLowStock ? { background: 'rgba(239, 68, 68, 0.03)' } : {}}>
-                  <td>
-                    <span className="font-semibold">{item.partName}</span>
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>Part Name</Th>
+              <Th>Part #</Th>
+              <Th>Category</Th>
+              <Th>Stock</Th>
+              <Th>Threshold</Th>
+              <Th>Cost Price</Th>
+              <Th>Selling Price</Th>
+              <Th>Location</Th>
+              <Th>Actions</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {items.map(item => (
+              <Tr key={item._id} className={item.isLowStock ? 'bg-red-50/40 hover:bg-red-50/80 transition-colors' : ''}>
+                <Td>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-900">{item.partName}</span>
                     {item.isLowStock && (
-                      <HiOutlineExclamation style={{ color: 'var(--danger)', marginLeft: '6px', verticalAlign: 'middle' }} />
+                      <HiOutlineExclamation className="text-danger shrink-0" title="Low Stock!" />
                     )}
-                  </td>
-                  <td className="text-muted">{item.partNumber || '—'}</td>
-                  <td>
-                    <span className="badge badge-new">{item.category?.replace(/_/g, ' ')}</span>
-                  </td>
-                  <td>
-                    <span className={`font-bold ${item.isLowStock ? 'text-danger' : ''}`}>
-                      {item.quantity}
-                    </span>
-                  </td>
-                  <td className="text-muted">{item.threshold}</td>
-                  <td>₹{item.unitPrice?.toLocaleString('en-IN')}</td>
-                  <td className="font-semibold">₹{(item.sellingPrice || item.unitPrice)?.toLocaleString('en-IN')}</td>
-                  <td className="text-muted">{item.location || '—'}</td>
-                  <td>
-                    <div className="flex gap-1">
-                      {hasRole('owner', 'admin', 'service_advisor') && (
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(item)}>
-                          <HiOutlinePencil />
-                        </button>
-                      )}
-                      {hasRole('owner', 'admin') && (
-                        <button className="btn btn-ghost btn-sm text-danger" onClick={() => handleDelete(item._id)}>
-                          <HiOutlineTrash />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </Td>
+                <Td className="text-gray-500 text-sm tracking-wider">{item.partNumber || '—'}</Td>
+                <Td>
+                  <Badge intent="new">{item.category?.replace(/_/g, ' ')}</Badge>
+                </Td>
+                <Td>
+                  <span className={`font-bold ${item.isLowStock ? 'text-danger' : 'text-gray-900'}`}>
+                    {item.quantity}
+                  </span>
+                </Td>
+                <Td className="text-gray-500">{item.threshold}</Td>
+                <Td className="text-gray-700">₹{item.unitPrice?.toLocaleString('en-IN')}</Td>
+                <Td className="font-semibold text-gray-900">₹{(item.sellingPrice || item.unitPrice)?.toLocaleString('en-IN')}</Td>
+                <Td className="text-gray-500">{item.location || '—'}</Td>
+                <Td>
+                  <div className="flex gap-2">
+                    {hasRole('owner', 'admin', 'service_advisor') && (
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(item)} title="Edit">
+                        <HiOutlinePencil />
+                      </Button>
+                    )}
+                    {hasRole('owner', 'admin') && (
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(item._id)} className="text-danger hover:text-danger hover:bg-danger-light" title="Delete">
+                        <HiOutlineTrash />
+                      </Button>
+                    )}
+                  </div>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
       )}
 
-      {/* Add/Edit Modal */}
+      {/* Pagination */}
+      <Pagination 
+        page={pagination.page} 
+        pages={pagination.pages} 
+        onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
+      />
+
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingItem ? 'Edit Inventory Item' : 'Add Inventory Item'}</h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>
-                <HiOutlineX />
-              </button>
-            </div>
+        <ModalOverlay onClose={() => setShowModal(false)}>
+          <Modal>
             <form onSubmit={handleSubmit}>
-              <div className="modal-body">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Part Name *</label>
-                    <input className="form-input" value={form.partName}
+              <ModalHeader 
+                title={editingItem ? 'Edit Inventory Item' : 'Add Inventory Item'} 
+                onClose={() => setShowModal(false)} 
+              />
+              <ModalBody>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Part Name *</label>
+                    <Input 
+                      value={form.partName}
                       onChange={e => setForm({ ...form, partName: e.target.value })}
-                      placeholder="Engine Oil 5W-30" required />
+                      placeholder="Engine Oil 5W-30" 
+                      required 
+                    />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Part Number</label>
-                    <input className="form-input" value={form.partNumber}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Part Number</label>
+                    <Input 
+                      value={form.partNumber}
                       onChange={e => setForm({ ...form, partNumber: e.target.value })}
-                      placeholder="SKU / Part #" />
+                      placeholder="SKU / Part #" 
+                    />
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Category</label>
-                    <select className="form-select" value={form.category}
-                      onChange={e => setForm({ ...form, category: e.target.value })}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
+                    <Select 
+                      value={form.category}
+                      onChange={e => setForm({ ...form, category: e.target.value })}
+                    >
                       {CATEGORIES.filter(c => c.value).map(c => (
                         <option key={c.value} value={c.value}>{c.label}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Location</label>
-                    <input className="form-input" value={form.location}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Location</label>
+                    <Input 
+                      value={form.location}
                       onChange={e => setForm({ ...form, location: e.target.value })}
-                      placeholder="Rack A, Shelf 3" />
+                      placeholder="Rack A, Shelf 3" 
+                    />
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Quantity *</label>
-                    <input className="form-input" type="number" value={form.quantity}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Quantity *</label>
+                    <Input 
+                      type="number" 
+                      value={form.quantity}
                       onChange={e => setForm({ ...form, quantity: parseInt(e.target.value) || 0 })}
-                      min="0" required />
+                      min="0" 
+                      required 
+                    />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Low Stock Threshold</label>
-                    <input className="form-input" type="number" value={form.threshold}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Low Stock Threshold</label>
+                    <Input 
+                      type="number" 
+                      value={form.threshold}
                       onChange={e => setForm({ ...form, threshold: parseInt(e.target.value) || 0 })}
-                      min="0" />
+                      min="0" 
+                    />
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Cost Price (₹) *</label>
-                    <input className="form-input" type="number" value={form.unitPrice}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cost Price (₹) *</label>
+                    <Input 
+                      type="number" 
+                      value={form.unitPrice}
                       onChange={e => setForm({ ...form, unitPrice: parseFloat(e.target.value) || 0 })}
-                      min="0" required />
+                      min="0" 
+                      required 
+                    />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Selling Price (₹)</label>
-                    <input className="form-input" type="number" value={form.sellingPrice}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Selling Price (₹)</label>
+                    <Input 
+                      type="number" 
+                      value={form.sellingPrice}
                       onChange={e => setForm({ ...form, sellingPrice: parseFloat(e.target.value) || 0 })}
-                      min="0" />
+                      min="0" 
+                    />
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Supplier Name</label>
-                    <input className="form-input" value={form.supplier.name}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Supplier Name</label>
+                    <Input 
+                      value={form.supplier.name}
                       onChange={e => setForm({ ...form, supplier: { ...form.supplier, name: e.target.value } })}
-                      placeholder="Supplier name" />
+                      placeholder="Supplier name" 
+                    />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Supplier Phone</label>
-                    <input className="form-input" value={form.supplier.phone}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Supplier Phone</label>
+                    <Input 
+                      value={form.supplier.phone}
                       onChange={e => setForm({ ...form, supplier: { ...form.supplier, phone: e.target.value } })}
-                      placeholder="Supplier phone" />
+                      placeholder="Supplier phone" 
+                    />
                   </div>
                 </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="secondary" type="button" onClick={() => setShowModal(false)}>
+                  Cancel
+                </Button>
+                <Button variant="primary" type="submit">
                   {editingItem ? 'Update Item' : 'Add to Inventory'}
-                </button>
-              </div>
+                </Button>
+              </ModalFooter>
             </form>
-          </div>
-        </div>
+          </Modal>
+        </ModalOverlay>
       )}
+      <ConfirmModal />
     </div>
   );
 }

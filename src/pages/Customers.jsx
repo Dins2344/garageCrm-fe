@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import api from '../services/api';
+import { useDebounce } from '../hooks/useDebounce';
+import { useConfirm } from '../components/ConfirmModal';
+import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '../services/apiServices/customerService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -9,18 +10,26 @@ import {
   HiOutlinePencil,
   HiOutlineTrash,
   HiOutlinePhone,
-  HiOutlineMail,
-  HiOutlineX
+  HiOutlineMail
 } from 'react-icons/hi';
+import PageHeader from '../components/PageHeader';
+import Button from '../components/Button';
+import { Input } from '../components/Form';
+import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
+import EmptyState from '../components/EmptyState';
+import Pagination from '../components/Pagination';
+import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search);
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
+  const { confirm, ConfirmModal } = useConfirm();
 
   const [form, setForm] = useState({
     name: '', phone: '', email: '', notes: '',
@@ -29,18 +38,20 @@ export default function Customers() {
 
   useEffect(() => {
     fetchCustomers();
-  }, [search, pagination.page]);
+  }, [debouncedSearch, pagination.page]);
 
   const fetchCustomers = async () => {
     try {
-      const res = await api.get('/customers', {
-        params: { search, page: pagination.page, limit: 15 }
+      const { data, total, pages } = await getCustomers({ 
+        search: debouncedSearch, 
+        page: pagination.page, 
+        limit: 15 
       });
-      setCustomers(res.data.data);
+      setCustomers(data);
       setPagination(prev => ({
         ...prev,
-        pages: res.data.pages,
-        total: res.data.total
+        pages: pages,
+        total: total
       }));
     } catch (error) {
       toast.error('Failed to load customers');
@@ -71,10 +82,10 @@ export default function Customers() {
     e.preventDefault();
     try {
       if (editingCustomer) {
-        await api.put(`/customers/${editingCustomer._id}`, form);
+        await updateCustomer(editingCustomer._id, form);
         toast.success('Customer updated!');
       } else {
-        await api.post('/customers', form);
+        await createCustomer(form);
         toast.success('Customer added!');
       }
       setShowModal(false);
@@ -85,9 +96,15 @@ export default function Customers() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this customer?')) return;
+    const ok = await confirm({
+      title: 'Delete Customer?',
+      message: 'This will permanently remove the customer and all associated records.',
+      confirmLabel: 'Delete',
+      intent: 'danger',
+    });
+    if (!ok) return;
     try {
-      await api.delete(`/customers/${id}`);
+      await deleteCustomer(id);
       toast.success('Customer deleted');
       fetchCustomers();
     } catch (error) {
@@ -96,147 +113,119 @@ export default function Customers() {
   };
 
   return (
-    <div>
-      <div className="page-header">
-        <h1>Customers</h1>
-        <div className="page-header-actions">
-          {hasRole('owner', 'admin', 'service_advisor', 'receptionist') && (
-            <button className="btn btn-primary" onClick={openAdd} id="add-customer-btn">
-              <HiOutlinePlus /> Add Customer
-            </button>
-          )}
-        </div>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Customers">
+        {hasRole('owner', 'admin', 'service_advisor', 'receptionist') && (
+          <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>
+            Add Customer
+          </Button>
+        )}
+      </PageHeader>
 
       {/* Search */}
-      <div className="search-filter-bar">
-        <div className="search-input-wrapper">
-          <HiOutlineSearch />
-          <input
-            className="form-input"
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[250px]">
+          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <Input
             type="text"
             placeholder="Search by name or phone..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
+            className="pl-10"
           />
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <div className="loading-screen"><div className="spinner" /></div>
+        <div className="min-h-[300px] flex justify-center items-center">
+          <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
+        </div>
       ) : customers.length === 0 ? (
-        <div className="empty-state">
-          <HiOutlineSearch style={{ fontSize: '3rem' }} />
-          <h3>No customers found</h3>
-          <p>Add your first customer to get started</p>
-        </div>
+        <EmptyState 
+          icon={HiOutlineSearch} 
+          title="No customers found" 
+          message="Add your first customer to get started" 
+        />
       ) : (
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Vehicles</th>
-                <th>Total Visits</th>
-                <th>Total Spent</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map(c => (
-                <tr key={c._id}>
-                  <td>
-                    <span className="font-semibold">{c.name}</span>
-                  </td>
-                  <td>
-                    <span className="flex items-center gap-1">
-                      <HiOutlinePhone style={{ color: 'var(--gray-400)' }} />
-                      {c.phone}
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>Name</Th>
+              <Th>Phone</Th>
+              <Th>Email</Th>
+              <Th>Vehicles</Th>
+              <Th>Total Visits</Th>
+              <Th>Total Spent</Th>
+              <Th>Actions</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {customers.map(c => (
+              <Tr key={c._id}>
+                <Td className="font-semibold text-gray-900">{c.name}</Td>
+                <Td>
+                  <span className="flex items-center gap-1.5 text-gray-800">
+                    <HiOutlinePhone className="text-gray-400" />
+                    {c.phone}
+                  </span>
+                </Td>
+                <Td>
+                  {c.email ? (
+                    <span className="flex items-center gap-1.5 text-gray-800">
+                      <HiOutlineMail className="text-gray-400" />
+                      {c.email}
                     </span>
-                  </td>
-                  <td>
-                    {c.email ? (
-                      <span className="flex items-center gap-1">
-                        <HiOutlineMail style={{ color: 'var(--gray-400)' }} />
-                        {c.email}
-                      </span>
-                    ) : (
-                      <span className="text-muted">—</span>
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
+                </Td>
+                <Td className="text-gray-700">
+                  {c.vehicles?.length || 0} vehicle{c.vehicles?.length !== 1 ? 's' : ''}
+                </Td>
+                <Td className="text-gray-700">{c.totalVisits}</Td>
+                <Td className="font-semibold text-gray-900">
+                  ₹{(c.totalSpent || 0).toLocaleString('en-IN')}
+                </Td>
+                <Td>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edit">
+                      <HiOutlinePencil />
+                    </Button>
+                    {hasRole('owner', 'admin') && (
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(c._id)} className="text-danger hover:text-danger hover:bg-danger-light" title="Delete">
+                        <HiOutlineTrash />
+                      </Button>
                     )}
-                  </td>
-                  <td>
-                    {c.vehicles?.length || 0} vehicle{(c.vehicles?.length || 0) !== 1 ? 's' : ''}
-                  </td>
-                  <td>{c.totalVisits}</td>
-                  <td className="font-semibold">
-                    ₹{(c.totalSpent || 0).toLocaleString('en-IN')}
-                  </td>
-                  <td>
-                    <div className="flex gap-1">
-                      <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>
-                        <HiOutlinePencil />
-                      </button>
-                      {hasRole('owner', 'admin') && (
-                        <button className="btn btn-ghost btn-sm text-danger" onClick={() => handleDelete(c._id)}>
-                          <HiOutlineTrash />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
       )}
 
       {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="pagination">
-          <button
-            disabled={pagination.page <= 1}
-            onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))}
-          >
-            ‹
-          </button>
-          {Array.from({ length: pagination.pages }, (_, i) => (
-            <button
-              key={i + 1}
-              className={pagination.page === i + 1 ? 'active' : ''}
-              onClick={() => setPagination(p => ({ ...p, page: i + 1 }))}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <button
-            disabled={pagination.page >= pagination.pages}
-            onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}
-          >
-            ›
-          </button>
-        </div>
-      )}
+      <Pagination 
+        page={pagination.page} 
+        pages={pagination.pages} 
+        onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
+      />
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingCustomer ? 'Edit Customer' : 'Add Customer'}</h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>
-                <HiOutlineX />
-              </button>
-            </div>
+        <ModalOverlay onClose={() => setShowModal(false)}>
+          <Modal>
             <form onSubmit={handleSubmit}>
-              <div className="modal-body">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Customer Name *</label>
-                    <input
-                      className="form-input"
+              <ModalHeader 
+                title={editingCustomer ? 'Edit Customer' : 'Add Customer'} 
+                onClose={() => setShowModal(false)} 
+              />
+              <ModalBody>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Customer Name *</label>
+                    <Input
                       type="text"
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
@@ -244,10 +233,9 @@ export default function Customers() {
                       required
                     />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Phone Number *</label>
-                    <input
-                      className="form-input"
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number *</label>
+                    <Input
                       type="tel"
                       value={form.phone}
                       onChange={e => setForm({ ...form, phone: e.target.value })}
@@ -256,31 +244,28 @@ export default function Customers() {
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Email</label>
-                  <input
-                    className="form-input"
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                  <Input
                     type="email"
                     value={form.email}
                     onChange={e => setForm({ ...form, email: e.target.value })}
                     placeholder="customer@email.com (optional)"
                   />
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">City</label>
-                    <input
-                      className="form-input"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">City</label>
+                    <Input
                       type="text"
                       value={form.address.city}
                       onChange={e => setForm({ ...form, address: { ...form.address, city: e.target.value } })}
                       placeholder="City"
                     />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Pincode</label>
-                    <input
-                      className="form-input"
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Pincode</label>
+                    <Input
                       type="text"
                       value={form.address.pincode}
                       onChange={e => setForm({ ...form, address: { ...form.address, pincode: e.target.value } })}
@@ -288,28 +273,29 @@ export default function Customers() {
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Notes</label>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label>
                   <textarea
-                    className="form-textarea"
+                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-lg text-[15px] text-gray-800 bg-white outline-none focus:border-primary-400 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.1)] min-h-[100px] resize-y placeholder:text-gray-400"
                     value={form.notes}
                     onChange={e => setForm({ ...form, notes: e.target.value })}
                     placeholder="Any notes about this customer..."
                   />
                 </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="secondary" onClick={() => setShowModal(false)} type="button">
                   Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
+                </Button>
+                <Button variant="primary" type="submit">
                   {editingCustomer ? 'Update Customer' : 'Add Customer'}
-                </button>
-              </div>
+                </Button>
+              </ModalFooter>
             </form>
-          </div>
-        </div>
+          </Modal>
+        </ModalOverlay>
       )}
+      <ConfirmModal />
     </div>
   );
 }
