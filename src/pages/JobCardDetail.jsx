@@ -117,6 +117,11 @@ export default function JobCardDetail() {
       }
     }
 
+    if (newStatus === 'delivered' && !jobCard?.invoice) {
+      toast.error('Cannot mark as delivered: Please generate an invoice first.');
+      return;
+    }
+
     try {
       await updateJobCard(id, { status: newStatus });
       toast.success(`Status updated to "${newStatus.replace(/_/g, ' ')}"`);

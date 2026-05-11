@@ -21,6 +21,10 @@ export function AuthProvider({ children }) {
         })
         .catch(() => {
           logout();
+          // Session expired — redirect to public landing
+          if (window.location.pathname !== '/home' && window.location.pathname !== '/login') {
+            window.location.href = '/home';
+          }
         })
         .finally(() => setLoading(false));
     } else {

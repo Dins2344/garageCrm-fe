@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AppLayout from './components/layout/AppLayout';
+import HomePage from './pages/HomePage';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
@@ -26,7 +27,7 @@ function ProtectedRoute({ children, roles }) {
     );
   }
 
-  if (!user) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/home" />;
 
   if (roles && !roles.includes(user.role)) {
     return <Navigate to="/" />;
@@ -35,8 +36,8 @@ function ProtectedRoute({ children, roles }) {
   return children;
 }
 
-// Public route — redirect to dashboard if logged in
-function PublicRoute({ children }) {
+// Auth route — redirect to dashboard if already logged in
+function AuthRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (user) return <Navigate to="/" />;
@@ -68,10 +69,15 @@ function App() {
           }}
         />
         <Routes>
+          {/* Public: Landing page */}
+          <Route path="/home" element={<HomePage />} />
+
+          {/* Auth: Login / Register */}
           <Route path="/login" element={
-            <PublicRoute><Login /></PublicRoute>
+            <AuthRoute><Login /></AuthRoute>
           } />
 
+          {/* Protected: App shell */}
           <Route element={
             <ProtectedRoute><AppLayout /></ProtectedRoute>
           }>
@@ -100,7 +106,7 @@ function App() {
           {/* Public: customer estimation approval — no auth required */}
           <Route path="/estimate/:token" element={<EstimationApproval />} />
 
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/home" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

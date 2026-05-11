@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Input } from '../components/Form';
-import Button from '../components/Button';export default function Login() {
-  const [isRegister, setIsRegister] = useState(false);
+import Button from '../components/Button';
+
+export default function Login() {
+  const [searchParams] = useSearchParams();
+  const [isRegister, setIsRegister] = useState(searchParams.get('register') === 'true');
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '',
