@@ -14,6 +14,14 @@ import Invoices from './pages/Invoices';
 import Settings from './pages/Settings';
 import EstimationApproval from './pages/EstimationApproval';
 
+// Admin Pages
+import AdminLogin from './pages/Admin/AdminLogin';
+import AdminLayout from './pages/Admin/AdminLayout';
+import AdminOverview from './pages/Admin/AdminOverview';
+import AdminGarages from './pages/Admin/AdminGarages';
+import AdminUsers from './pages/Admin/AdminUsers';
+import AdminHealth from './pages/Admin/AdminHealth';
+
 // Protected route wrapper
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -105,6 +113,16 @@ function App() {
 
           {/* Public: customer estimation approval — no auth required */}
           <Route path="/estimate/:token" element={<EstimationApproval />} />
+
+          {/* Admin Command Center (Hidden from main UI) */}
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="overview" element={<AdminOverview />} />
+            <Route path="garages" element={<AdminGarages />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="health" element={<AdminHealth />} />
+            <Route index element={<Navigate to="overview" replace />} />
+          </Route>
 
           <Route path="*" element={<Navigate to="/home" />} />
         </Routes>
