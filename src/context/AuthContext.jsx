@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { login as authLogin, register as authRegister, getMe } from '../services/apiServices/authService';
+import IdleTimer from '../components/common/IdleTimer';
 
 const AuthContext = createContext(null);
 
@@ -60,6 +61,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout, hasRole }}>
+      <IdleTimer />
       {children}
     </AuthContext.Provider>
   );
