@@ -42,10 +42,10 @@ export default function Customers() {
 
   const fetchCustomers = async () => {
     try {
-      const { data, total, pages } = await getCustomers({ 
-        search: debouncedSearch, 
-        page: pagination.page, 
-        limit: 15 
+      const { data, total, pages } = await getCustomers({
+        search: debouncedSearch,
+        page: pagination.page,
+        limit: 15
       });
       setCustomers(data);
       setPagination(prev => ({
@@ -142,10 +142,10 @@ export default function Customers() {
           <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
         </div>
       ) : customers.length === 0 ? (
-        <EmptyState 
-          icon={HiOutlineSearch} 
-          title="No customers found" 
-          message="Add your first customer to get started" 
+        <EmptyState
+          icon={HiOutlineSearch}
+          title="No customers found"
+          message="Add your first customer to get started"
         />
       ) : (
         <Table>
@@ -189,11 +189,11 @@ export default function Customers() {
                 </Td>
                 <Td>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edit">
+                    <Button className='cursor-pointer' variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edit">
                       <HiOutlinePencil />
                     </Button>
                     {hasRole('owner', 'admin') && (
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(c._id)} className="text-danger hover:text-danger hover:bg-danger-light" title="Delete">
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(c._id)} className="cursor-pointer text-danger hover:text-danger hover:bg-danger-light" title="Delete">
                         <HiOutlineTrash />
                       </Button>
                     )}
@@ -206,10 +206,10 @@ export default function Customers() {
       )}
 
       {/* Pagination */}
-      <Pagination 
-        page={pagination.page} 
-        pages={pagination.pages} 
-        onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
+      <Pagination
+        page={pagination.page}
+        pages={pagination.pages}
+        onPageChange={(page) => setPagination(p => ({ ...p, page }))}
       />
 
       {/* Add/Edit Modal */}
@@ -217,9 +217,9 @@ export default function Customers() {
         <ModalOverlay onClose={() => setShowModal(false)}>
           <Modal>
             <form onSubmit={handleSubmit}>
-              <ModalHeader 
-                title={editingCustomer ? 'Edit Customer' : 'Add Customer'} 
-                onClose={() => setShowModal(false)} 
+              <ModalHeader
+                title={editingCustomer ? 'Edit Customer' : 'Add Customer'}
+                onClose={() => setShowModal(false)}
               />
               <ModalBody>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">

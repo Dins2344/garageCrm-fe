@@ -87,8 +87,8 @@ export default function Settings() {
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-10">
-      <PageHeader 
-        title="Settings" 
+      <PageHeader
+        title="Settings"
         subtitle="Manage your garage profile and staff members"
       />
 
@@ -115,11 +115,11 @@ export default function Settings() {
       </Card>
 
       {/* Staff Management */}
-      <Card 
-        title="Staff Management" 
+      <Card
+        title="Staff Management"
         icon={HiOutlineUserGroup}
         action={
-          <Button variant="primary" size="sm" onClick={openAddUser} icon={HiOutlinePlus}>
+          <Button className='cursor-pointer' variant="primary" size="sm" onClick={openAddUser} icon={HiOutlinePlus}>
             Add Staff
           </Button>
         }
@@ -148,7 +148,7 @@ export default function Settings() {
                   <Td>{u.email}</Td>
                   <Td>{u.phone}</Td>
                   <Td>
-                    <span 
+                    <span
                       className="px-2.5 py-1 rounded-full text-xs font-semibold"
                       style={{
                         background: `${roleColors[u.role]}15`,
@@ -192,52 +192,52 @@ export default function Settings() {
                 <div className="flex flex-col gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name *</label>
-                    <Input 
+                    <Input
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
-                      placeholder="Staff member name" 
-                      required 
+                      placeholder="Staff member name"
+                      required
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email *</label>
-                      <Input 
-                        type="email" 
+                      <Input
+                        type="email"
                         value={form.email}
                         onChange={e => setForm({ ...form, email: e.target.value })}
-                        placeholder="email@example.com" 
-                        required 
+                        placeholder="email@example.com"
+                        required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone *</label>
-                      <Input 
-                        type="tel" 
+                      <Input
+                        type="tel"
                         value={form.phone}
                         onChange={e => setForm({ ...form, phone: e.target.value })}
-                        placeholder="9876543210" 
-                        required 
+                        placeholder="9876543210"
+                        required
                       />
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5">Password *</label>
-                      <Input 
-                        type="password" 
+                      <Input
+                        type="password"
                         value={form.password}
                         onChange={e => setForm({ ...form, password: e.target.value })}
-                        placeholder="Min 6 characters" 
-                        required 
-                        minLength={6} 
+                        placeholder="Min 6 characters"
+                        required
+                        minLength={6}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5">Role *</label>
-                      <Select 
+                      <Select
                         value={form.role}
                         onChange={e => setForm({ ...form, role: e.target.value })}
                       >

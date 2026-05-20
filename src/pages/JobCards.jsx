@@ -110,11 +110,11 @@ export default function JobCards() {
 
   const fetchJobCards = async () => {
     try {
-      const { data, total, pages } = await getJobCards({ 
-        status: statusFilter, 
-        search: debouncedSearch, 
-        page: pagination.page, 
-        limit: 10 
+      const { data, total, pages } = await getJobCards({
+        status: statusFilter,
+        search: debouncedSearch,
+        page: pagination.page,
+        limit: 10
       });
       setJobCards(data);
       setPagination(prev => ({
@@ -386,7 +386,7 @@ export default function JobCards() {
                   {formatDate(jc.createdAt)}
                 </Td>
                 <Td>
-                  <Button variant="ghost" size="sm" onClick={() => navigate(`/jobcards/${jc._id}`)}>
+                  <Button className='cursor-pointer' variant="ghost" size="sm" onClick={() => navigate(`/jobcards/${jc._id}`)}>
                     <HiOutlineEye className="mr-1.5" /> View
                   </Button>
                 </Td>
@@ -856,10 +856,10 @@ export default function JobCards() {
                           <option value="urgent">Urgent</option>
                         </Select>
                         {workForm.complaints.length > 1 && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => removeComplaint(index)} 
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeComplaint(index)}
                             className="text-gray-400 hover:text-danger hover:bg-danger-light shrink-0"
                             title="Remove complaint"
                           >
