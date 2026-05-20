@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getJobCard, updateJobCard, saveJobCardEstimation, approveJobCardEstimation, downloadEstimationPDF } from '../services/apiServices/jobCardService';
-import { getInventoryItems } from '../services/apiServices/inventoryService';
 import { getMechanics } from '../services/apiServices/userService';
 import { createInvoice as generateInvoice } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
@@ -41,7 +40,6 @@ export default function JobCardDetail() {
   const navigate = useNavigate();
   const { hasRole, user } = useAuth();
   const [jobCard, setJobCard] = useState(null);
-  const [inventory, setInventory] = useState([]);
   const [mechanics, setMechanics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showEstimation, setShowEstimation] = useState(false);
@@ -57,7 +55,6 @@ export default function JobCardDetail() {
 
   useEffect(() => {
     fetchJobCard();
-    fetchInventory();
     fetchMechanics();
   }, [id]);
 
@@ -78,13 +75,6 @@ export default function JobCardDetail() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchInventory = async () => {
-    try {
-      const { data } = await getInventoryItems({ limit: 1000 });
-      setInventory(data);
-    } catch (e) { /* ignore */ }
   };
 
   const fetchMechanics = async () => {
@@ -142,7 +132,7 @@ export default function JobCardDetail() {
   const addPart = () => {
     setEstimation({
       ...estimation,
-      parts: [...estimation.parts, { partName: '', quantity: 1, unitPrice: 0, inventoryItem: '' }]
+      parts: [...estimation.parts, { partName: '', quantity: 1, unitPrice: 0 }]
     });
   };
 
@@ -173,16 +163,6 @@ export default function JobCardDetail() {
   const updatePart = (index, field, value) => {
     const updated = [...estimation.parts];
     updated[index][field] = value;
-
-    // Auto-fill from inventory
-    if (field === 'inventoryItem' && value) {
-      const item = inventory.find(i => i._id === value);
-      if (item) {
-        updated[index].partName = item.partName;
-        updated[index].unitPrice = item.sellingPrice || item.unitPrice;
-      }
-    }
-
     setEstimation({ ...estimation, parts: updated });
   };
 
@@ -383,7 +363,21 @@ export default function JobCardDetail() {
                 <span className="font-medium text-gray-900">{jobCard.assignedMechanic?.name || 'Unassigned'}</span>
               )}
             </div>
+            {jobCard.expectedDeliveryDate && (
+              <div>
+                <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Expected Delivery</span>
+                <span className="font-medium text-gray-900">
+                  {new Date(jobCard.expectedDeliveryDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </span>
+              </div>
+            )}
           </div>
+          {jobCard.internalNotes && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Internal Notes</span>
+              <p className="text-sm text-gray-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 italic">{jobCard.internalNotes}</p>
+            </div>
+          )}
         </Card>
 
         {/* Service History Timeline */}
@@ -417,7 +411,7 @@ export default function JobCardDetail() {
         </Card>
 
         {/* Complaints */}
-        <Card title="Complaints & Service Requests">
+        <Card title="Complaints & Service Requests" className="md:col-span-2 lg:col-span-3">
           {jobCard.complaints?.length === 0 ? (
             <p className="text-gray-500 italic">No complaints logged</p>
           ) : (
@@ -585,23 +579,11 @@ export default function JobCardDetail() {
               <div className="flex flex-col gap-3 mb-6">
                 {estimation.parts.map((part, i) => (
                   <div key={i} className="flex flex-wrap sm:flex-nowrap gap-3 items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <Select
-                      value={part.inventoryItem || ''}
-                      onChange={e => updatePart(i, 'inventoryItem', e.target.value)}
-                      className="min-w-[200px] flex-1"
-                    >
-                      <option value="">Select from inventory...</option>
-                      {inventory.map(inv => (
-                        <option key={inv._id} value={inv._id}>
-                          {inv.partName} (₹{inv.sellingPrice || inv.unitPrice}) — Stock: {inv.quantity}
-                        </option>
-                      ))}
-                    </Select>
                     <Input
                       value={part.partName}
                       onChange={e => updatePart(i, 'partName', e.target.value)}
-                      placeholder="Part name"
-                      className="flex-1 min-w-[150px]"
+                      placeholder="Part name (e.g. Engine Oil, Brake Pad)"
+                      className="flex-1 min-w-[180px]"
                     />
                     <Input
                       type="number"
@@ -614,8 +596,8 @@ export default function JobCardDetail() {
                       type="number"
                       value={part.unitPrice}
                       onChange={e => updatePart(i, 'unitPrice', parseFloat(e.target.value) || 0)}
-                      placeholder="Price"
-                      className="w-[100px]"
+                      placeholder="Unit Price (₹)"
+                      className="w-[120px]"
                     />
                     <div className="font-bold text-gray-900 min-w-[100px] text-right">
                       ₹{(part.quantity * part.unitPrice).toLocaleString('en-IN')}
