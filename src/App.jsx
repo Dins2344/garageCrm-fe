@@ -10,7 +10,8 @@ import Vehicles from './pages/Vehicles';
 import VehicleDetail from './pages/VehicleDetail';
 import JobCards from './pages/JobCards';
 import JobCardDetail from './pages/JobCardDetail';
-import Inventory from './pages/Inventory';
+// Inventory disabled — users enter parts manually; re-enable by adding back to nav + route
+// import Inventory from './pages/Inventory';
 import Invoices from './pages/Invoices';
 import Settings from './pages/Settings';
 import EstimationApproval from './pages/EstimationApproval';
@@ -96,11 +97,8 @@ function App() {
             <Route path="vehicles/:id" element={<VehicleDetail />} />
             <Route path="jobcards" element={<JobCards />} />
             <Route path="jobcards/:id" element={<JobCardDetail />} />
-            <Route path="inventory" element={
-              <ProtectedRoute roles={['owner', 'admin', 'service_advisor']}>
-                <Inventory />
-              </ProtectedRoute>
-            } />
+            {/* Inventory is disabled — redirect to dashboard */}
+            <Route path="inventory" element={<Navigate to="/" replace />} />
             <Route path="invoices" element={
               <ProtectedRoute roles={['owner', 'admin', 'service_advisor']}>
                 <Invoices />

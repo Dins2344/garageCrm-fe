@@ -6,7 +6,6 @@ import {
   HiOutlineUsers,
   HiOutlineTruck,
   HiOutlineClipboardList,
-  HiOutlineCube,
   HiOutlineDocumentText,
   HiOutlineCog,
   HiOutlineChevronLeft,
@@ -20,7 +19,8 @@ const navItems = [
   { path: '/jobcards', label: 'Job Cards', icon: HiOutlineClipboardList, roles: ['owner', 'admin', 'service_advisor', 'mechanic'] },
   { path: '/customers', label: 'Customers', icon: HiOutlineUsers, roles: ['owner', 'admin', 'service_advisor', 'receptionist'] },
   { path: '/vehicles', label: 'Vehicles', icon: HiOutlineTruck, roles: ['owner', 'admin', 'service_advisor', 'receptionist'] },
-  { path: '/inventory', label: 'Inventory', icon: HiOutlineCube, roles: ['owner', 'admin', 'service_advisor'] },
+  // Inventory is disabled — users enter parts manually in estimations
+  // { path: '/inventory', label: 'Inventory', icon: HiOutlineCube, roles: ['owner', 'admin', 'service_advisor'] },
   { path: '/invoices', label: 'Invoices', icon: HiOutlineDocumentText, roles: ['owner', 'admin', 'service_advisor'] },
   { path: '/settings', label: 'Settings', icon: HiOutlineCog, roles: ['owner', 'admin'] },
 ];
