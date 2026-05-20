@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import Vehicles from './pages/Vehicles';
+import VehicleDetail from './pages/VehicleDetail';
 import JobCards from './pages/JobCards';
 import JobCardDetail from './pages/JobCardDetail';
 import Inventory from './pages/Inventory';
@@ -92,6 +93,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="customers" element={<Customers />} />
             <Route path="vehicles" element={<Vehicles />} />
+            <Route path="vehicles/:id" element={<VehicleDetail />} />
             <Route path="jobcards" element={<JobCards />} />
             <Route path="jobcards/:id" element={<JobCardDetail />} />
             <Route path="inventory" element={

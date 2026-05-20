@@ -124,10 +124,10 @@ export default function Invoices() {
           <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
         </div>
       ) : invoices.length === 0 ? (
-        <EmptyState 
-          icon={HiOutlineDocumentText} 
-          title="No invoices found" 
-          message="Invoices are generated from approved job card estimations" 
+        <EmptyState
+          icon={HiOutlineDocumentText}
+          title="No invoices found"
+          message="Invoices are generated from approved job card estimations"
         />
       ) : (
         <Table>
@@ -174,14 +174,14 @@ export default function Invoices() {
                 <Td className="text-sm text-gray-500">{formatDate(inv.createdAt)}</Td>
                 <Td>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => openInvoice(inv._id)} title="View Invoice">
+                    <Button className='cursor-pointer' variant="ghost" size="icon" onClick={() => openInvoice(inv._id)} title="View Invoice">
                       <HiOutlineEye />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => downloadPDF(inv._id, inv.invoiceNumber)} title="Download PDF">
+                    <Button className='cursor-pointer' variant="ghost" size="icon" onClick={() => downloadPDF(inv._id, inv.invoiceNumber)} title="Download PDF">
                       <HiOutlineDownload />
                     </Button>
                     {inv.paymentStatus !== 'paid' && hasRole('owner', 'admin', 'service_advisor') && (
-                      <Button variant="success" size="icon" onClick={() => markAsPaid(inv._id)} title="Mark as Paid">
+                      <Button className='cursor-pointer' variant="success" size="icon" onClick={() => markAsPaid(inv._id)} title="Mark as Paid">
                         <HiOutlineCheckCircle />
                       </Button>
                     )}
@@ -194,10 +194,10 @@ export default function Invoices() {
       )}
 
       {/* Pagination */}
-      <Pagination 
-        page={pagination.page} 
-        pages={pagination.pages} 
-        onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
+      <Pagination
+        page={pagination.page}
+        pages={pagination.pages}
+        onPageChange={(page) => setPagination(p => ({ ...p, page }))}
       />
 
       <InvoiceModal />

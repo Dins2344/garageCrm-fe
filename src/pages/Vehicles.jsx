@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '../hooks/useDebounce';
 import { getVehicles, createVehicle, updateVehicle, deleteVehicle } from '../services/apiServices/vehicleService';
 import { getCustomers } from '../services/apiServices/customerService';
@@ -9,7 +10,8 @@ import {
   HiOutlineSearch,
   HiOutlinePencil,
   HiOutlineTrash,
-  HiOutlineTruck
+  HiOutlineTruck,
+  HiOutlineEye
 } from 'react-icons/hi';
 import PageHeader from '../components/PageHeader';
 import Button from '../components/Button';
@@ -22,6 +24,7 @@ import Pagination from '../components/Pagination';
 import { useConfirm } from '../components/ConfirmModal';
 
 export default function Vehicles() {
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,10 +53,10 @@ export default function Vehicles() {
 
   const fetchVehicles = async () => {
     try {
-      const { data, total, pages } = await getVehicles({ 
-        search: debouncedSearch, 
-        page: pagination.page, 
-        limit: 15 
+      const { data, total, pages } = await getVehicles({
+        search: debouncedSearch,
+        page: pagination.page,
+        limit: 15
       });
       setVehicles(data);
       setPagination(prev => ({
@@ -169,10 +172,10 @@ export default function Vehicles() {
           <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
         </div>
       ) : vehicles.length === 0 ? (
-        <EmptyState 
-          icon={HiOutlineTruck} 
-          title="No vehicles found" 
-          message="Add your first vehicle to start tracking" 
+        <EmptyState
+          icon={HiOutlineTruck}
+          title="No vehicles found"
+          message="Add your first vehicle to start tracking"
         />
       ) : (
         <Table>
@@ -190,7 +193,7 @@ export default function Vehicles() {
           </Thead>
           <Tbody>
             {vehicles.map(v => (
-              <Tr key={v._id}>
+              <Tr key={v._id} className=" hover:bg-blue-50/40 transition-colors" onClick={() => navigate(`/vehicles/${v._id}`)}>
                 <Td>
                   <span className="font-bold bg-gray-100 px-2.5 py-1 rounded-md tracking-wider text-sm text-gray-800">
                     {v.licensePlate}
@@ -208,11 +211,14 @@ export default function Vehicles() {
                 <Td className="text-gray-900 font-medium">{v.customer?.name || '—'}</Td>
                 <Td>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(v)} title="Edit">
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); navigate(`/vehicles/${v._id}`); }} title="View History" className="cursor-pointer text-primary-500 hover:text-primary-600 hover:bg-primary-50">
+                      <HiOutlineEye />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(v); }} title="Edit" className="cursor-pointer">
                       <HiOutlinePencil />
                     </Button>
                     {hasRole('owner', 'admin') && (
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(v._id)} className="text-danger hover:text-danger hover:bg-danger-light" title="Delete">
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(v._id); }} className="cursor-pointer text-danger hover:text-danger hover:bg-danger-light" title="Delete">
                         <HiOutlineTrash />
                       </Button>
                     )}
@@ -225,19 +231,19 @@ export default function Vehicles() {
       )}
 
       {/* Pagination */}
-      <Pagination 
-        page={pagination.page} 
-        pages={pagination.pages} 
-        onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
+      <Pagination
+        page={pagination.page}
+        pages={pagination.pages}
+        onPageChange={(page) => setPagination(p => ({ ...p, page }))}
       />
 
       {showModal && (
         <ModalOverlay onClose={() => setShowModal(false)}>
           <Modal>
             <form onSubmit={handleSubmit}>
-              <ModalHeader 
-                title={editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'} 
-                onClose={() => setShowModal(false)} 
+              <ModalHeader
+                title={editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}
+                onClose={() => setShowModal(false)}
               />
               <ModalBody>
                 <div className="mb-4">
