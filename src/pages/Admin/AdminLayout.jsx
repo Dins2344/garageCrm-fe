@@ -41,7 +41,7 @@ export default function AdminLayout() {
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-purple-600 flex items-center justify-center text-xl text-white shadow-lg shadow-primary-500/20">
               {/* GP */}
-              <img src="/GPfavi.png" alt="GaragePulse Logo" className="w-10" />
+              <img src="/mainIcon.png" alt="GaragePulse Logo" className="w-10" />
             </div>
             <span className="text-xl font-bold text-gray-900 tracking-tight">Admin<span className="text-primary-600">Pulse</span></span>
           </div>
@@ -56,8 +56,8 @@ export default function AdminLayout() {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 ${active
-                    ? 'bg-primary-50 text-primary-600 shadow-sm shadow-primary-500/5'
-                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-primary-50 text-primary-600 shadow-sm shadow-primary-500/5'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                   }`}
               >
                 <span className="text-lg">{item.icon}</span>

@@ -70,7 +70,7 @@ export default function Login() {
                 </linearGradient>
               </defs>
             </svg> */}
-            <img src="/GPfavi.png" alt="GaragePulse Logo" className="w-10 h-10" />
+            <img src="/mainIcon.png" alt="GaragePulse Logo" className="w-10" />
             <h1 className="text-2xl font-bold tracking-tight">GaragePulse</h1>
           </div>
 
