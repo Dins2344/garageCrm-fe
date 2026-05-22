@@ -95,7 +95,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
                       </linearGradient>
                     </defs>
                   </svg> */}
-                  <img src="/GPfavi.png" alt="GaragePulse Logo" className="w-10" />
+                  <img src="/mainIcon.png" alt="GaragePulse Logo" className="w-10" />
                 </div>
                 <span className="text-xl font-extrabold text-white whitespace-nowrap tracking-tight bg-linear-to-br from-white to-white/70 bg-clip-text text-transparent">
                   GaragePulse

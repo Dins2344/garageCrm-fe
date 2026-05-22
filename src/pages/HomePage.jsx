@@ -17,7 +17,7 @@ function Logo({ size = 40, id = 'logo' }) {
     //   </defs>
     // </svg>
     // Image component
-    <img src="/GPfavi.png" alt="GaragePulse Logo" className="w-10" />
+    <img src="/mainIcon.png" alt="GaragePulse Logo" className="w-10" />
   );
 }
 
