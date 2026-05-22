@@ -32,7 +32,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
 
   const handleLogout = async () => {
     const ok = await confirm({
-      title: 'Log out of GarageFlow?',
+      title: 'Log out of GaragePulse?',
       message: 'You will need to sign in again to access your account.',
       confirmLabel: 'Log Out',
       intent: 'warning',
@@ -84,7 +84,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
             {(!collapsed || mobileOpen) && (
               <>
                 <div className="w-9 h-9 shrink-0">
-                  <svg viewBox="0 0 32 32" fill="none" className="w-full h-full">
+                  {/* <svg viewBox="0 0 32 32" fill="none" className="w-full h-full">
                     <rect width="32" height="32" rx="8" fill="url(#logo-gradient)" />
                     <path d="M10 22V14L16 10L22 14V22L16 18L10 22Z" fill="white" fillOpacity="0.9" />
                     <path d="M16 10V18" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
@@ -94,10 +94,11 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
                         <stop offset="1" stopColor="#7C3AED" />
                       </linearGradient>
                     </defs>
-                  </svg>
+                  </svg> */}
+                  <img src="/GPfavi.png" alt="GaragePulse Logo" className="w-10" />
                 </div>
                 <span className="text-xl font-extrabold text-white whitespace-nowrap tracking-tight bg-linear-to-br from-white to-white/70 bg-clip-text text-transparent">
-                  GarageFlow
+                  GaragePulse
                 </span>
               </>
             )}

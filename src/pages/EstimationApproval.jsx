@@ -95,13 +95,7 @@ export default function EstimationApproval() {
 
         {/* ── Header ── */}
         <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-8 text-white text-center shadow-xl">
-          <div className="flex justify-center mb-4">
-            <svg viewBox="0 0 40 40" fill="none" className="w-12 h-12 drop-shadow-lg">
-              <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.2"/>
-              <path d="M12 28V17L20 12L28 17V28L20 23L12 28Z" fill="white" fillOpacity="0.9"/>
-              <path d="M20 12V23" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </div>
+
           <p className="text-indigo-200 text-xs uppercase tracking-widest mb-1">Service Estimation</p>
           <h1 className="text-2xl font-bold">{garage?.name || 'Your Garage'}</h1>
           {garage?.phone && (
@@ -284,7 +278,7 @@ export default function EstimationApproval() {
 
         {/* ── Footer ── */}
         <p className="text-center text-xs text-slate-400 pb-4">
-          Powered by <span className="font-semibold text-slate-500">GarageFlow CRM</span>
+          Powered by <span className="font-semibold text-slate-500">GaragePulse CRM</span>
           {estimation?.approvedAt && approved && (
             <span className="block mt-1">
               Approved on {new Date(estimation.approvedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}

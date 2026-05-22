@@ -14,8 +14,8 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       const { token, data } = await adminLogin(email, password);
-      localStorage.setItem('garageflow_admin_token', token);
-      localStorage.setItem('garageflow_admin_user', JSON.stringify(data));
+      localStorage.setItem('garagepulse_admin_token', token);
+      localStorage.setItem('garagepulse_admin_user', JSON.stringify(data));
       toast.success('Admin login successful');
       navigate('/admin/overview');
     } catch (error) {
@@ -33,7 +33,7 @@ export default function AdminLogin() {
              <span className="text-3xl">🛡️</span>
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Platform Admin</h1>
-          <p className="text-gray-400 mt-2">GarageFlow Control Center</p>
+          <p className="text-gray-400 mt-2">GaragePulse Control Center</p>
         </div>
 
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -45,7 +45,7 @@ export default function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
-                placeholder="admin@garageflow.com"
+                placeholder="admin@garagepulse.com"
                 required
               />
             </div>

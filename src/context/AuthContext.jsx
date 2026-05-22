@@ -9,8 +9,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('garageflow_token');
-    const savedUser = localStorage.getItem('garageflow_user');
+    const token = localStorage.getItem('garagepulse_token');
+    const savedUser = localStorage.getItem('garagepulse_user');
 
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
       getMe()
         .then(res => {
           setUser(res.data);
-          localStorage.setItem('garageflow_user', JSON.stringify(res.data));
+          localStorage.setItem('garagepulse_user', JSON.stringify(res.data));
         })
         .catch(() => {
           logout();
@@ -35,23 +35,23 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const { token, data } = await authLogin(email, password);
-    localStorage.setItem('garageflow_token', token);
-    localStorage.setItem('garageflow_user', JSON.stringify(data));
+    localStorage.setItem('garagepulse_token', token);
+    localStorage.setItem('garagepulse_user', JSON.stringify(data));
     setUser(data);
     return data;
   };
 
   const register = async (formData) => {
     const { token, data } = await authRegister(formData);
-    localStorage.setItem('garageflow_token', token);
-    localStorage.setItem('garageflow_user', JSON.stringify(data));
+    localStorage.setItem('garagepulse_token', token);
+    localStorage.setItem('garagepulse_user', JSON.stringify(data));
     setUser(data);
     return data;
   };
 
   const logout = () => {
-    localStorage.removeItem('garageflow_token');
-    localStorage.removeItem('garageflow_user');
+    localStorage.removeItem('garagepulse_token');
+    localStorage.removeItem('garagepulse_user');
     setUser(null);
   };
 

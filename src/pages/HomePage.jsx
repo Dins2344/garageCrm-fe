@@ -5,19 +5,22 @@ import { useAuth } from '../context/AuthContext';
 /* ───── tiny reusable logo SVG ───── */
 function Logo({ size = 40, id = 'logo' }) {
   return (
-    <svg viewBox="0 0 40 40" fill="none" style={{ width: size, height: size }}>
-      <rect width="40" height="40" rx="10" fill={`url(#${id})`} />
-      <path d="M12 28V17L20 12L28 17V28L20 23L12 28Z" fill="white" fillOpacity="0.9" />
-      <path d="M20 12V23" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="40" y2="40">
-          <stop stopColor="#3B5FF8" />
-          <stop offset="1" stopColor="#7C3AED" />
-        </linearGradient>
-      </defs>
-    </svg>
+    // <svg viewBox="0 0 40 40" fill="none" style={{ width: size, height: size }}>
+    //   <rect width="40" height="40" rx="10" fill={`url(#${id})`} />
+    //   <path d="M12 28V17L20 12L28 17V28L20 23L12 28Z" fill="white" fillOpacity="0.9" />
+    //   <path d="M20 12V23" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+    //   <defs>
+    //     <linearGradient id={id} x1="0" y1="0" x2="40" y2="40">
+    //       <stop stopColor="#3B5FF8" />
+    //       <stop offset="1" stopColor="#7C3AED" />
+    //     </linearGradient>
+    //   </defs>
+    // </svg>
+    // Image component
+    <img src="/GPfavi.png" alt="GaragePulse Logo" className="w-10" />
   );
 }
+
 
 /* ───── Feature card ───── */
 function FeatureCard({ icon, title, desc, delay }) {
@@ -93,15 +96,15 @@ export default function HomePage() {
       {/* ─── NAVBAR ─── */}
       <nav
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled
-            ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-gray-900/5 border-b border-gray-200/50'
-            : 'bg-transparent'
+          ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-gray-900/5 border-b border-gray-200/50'
+          : 'bg-transparent'
           }`}
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/home" className="flex items-center gap-2.5 group">
             <Logo size={36} id="nav_logo" />
             <span className="text-xl font-bold tracking-tight text-gray-900">
-              Garage<span className="text-primary-600">Flow</span>
+              Garage<span className="text-primary-600">Pulse</span>
             </span>
           </Link>
 
@@ -156,7 +159,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed mb-10">
-            GarageFlow is the all-in-one workshop management platform — from job cards and estimations
+            GaragePulse is the all-in-one workshop management platform — from job cards and estimations
             to invoicing and inventory. Spend less time on paperwork, more time fixing cars.
           </p>
 
@@ -251,7 +254,7 @@ export default function HomePage() {
               Ready to transform your workshop?
             </h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto mb-8">
-              Join hundreds of garage owners who ditched spreadsheets and paper job cards for GarageFlow.
+              Join hundreds of garage owners who ditched spreadsheets and paper job cards for GaragePulse.
             </p>
             <Link
               to="/login?register=true"
@@ -270,10 +273,10 @@ export default function HomePage() {
           <div className="flex items-center gap-2">
             <Logo size={28} id="footer_logo" />
             <span className="font-bold text-gray-900">
-              Garage<span className="text-primary-600">Flow</span>
+              Garage<span className="text-primary-600">Pulse</span>
             </span>
           </div>
-          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} GarageFlow. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} GaragePulse. All rights reserved.</p>
           <div className="flex gap-6 text-sm font-medium text-gray-500">
             <a href="#features" className="hover:text-primary-600 transition-colors">Features</a>
             <Link to="/login" className="hover:text-primary-600 transition-colors">Sign In</Link>

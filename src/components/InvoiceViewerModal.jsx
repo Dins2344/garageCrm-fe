@@ -189,7 +189,7 @@ export function useInvoiceViewer(onPaymentUpdate) {
                 <div className="flex flex-col md:flex-row justify-between items-start mb-12 pb-8 border-b border-gray-100 gap-6">
                   <div>
                     <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
-                      {inv.garage?.name || 'GarageFlow'}
+                      {inv.garage?.name || 'GaragePulse'}
                     </h1>
                     <div className="text-gray-500 text-sm flex flex-col gap-1">
                       {inv.garage?.address && (
