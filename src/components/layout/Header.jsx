@@ -22,7 +22,7 @@ export default function Header({ collapsed, onMobileMenuOpen }) {
     if (path.startsWith('/jobcards/')) return 'Job Card Details';
     if (path.startsWith('/customers/')) return 'Customer Details';
     if (path.startsWith('/invoices/')) return 'Invoice Details';
-    return 'GarageFlow';
+    return 'GaragePulse';
   };
 
   const getGreeting = () => {

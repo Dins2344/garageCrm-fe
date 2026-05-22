@@ -32,7 +32,7 @@ function ProtectedRoute({ children, roles }) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] h-screen gap-4 text-gray-500">
         <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-        <p>Loading GarageFlow...</p>
+        <p>Loading GaragePulse...</p>
       </div>
     );
   }

@@ -53,13 +53,13 @@ export default function Login() {
       </div>
 
       <div className="relative z-10 w-full max-w-5xl flex flex-col lg:flex-row shadow-2xl rounded-3xl overflow-hidden bg-white/80 backdrop-blur-xl border border-white/40">
-        
+
         {/* Left Side: Features */}
         <div className="hidden lg:flex flex-col justify-between w-5/12 bg-linear-to-br from-gray-900 to-gray-800 p-12 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none" />
-          
+
           <div className="relative z-10 flex items-center gap-3 mb-12">
-            <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10 shadow-lg rounded-xl">
+            {/* <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10 shadow-lg rounded-xl">
               <rect width="40" height="40" rx="10" fill="url(#lg)"/>
               <path d="M12 28V17L20 12L28 17V28L20 23L12 28Z" fill="white" fillOpacity="0.9"/>
               <path d="M20 12V23" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -69,8 +69,9 @@ export default function Login() {
                   <stop offset="1" stopColor="#7C3AED"/>
                 </linearGradient>
               </defs>
-            </svg>
-            <h1 className="text-2xl font-bold tracking-tight">GarageFlow</h1>
+            </svg> */}
+            <img src="/GPfavi.png" alt="GaragePulse Logo" className="w-10 h-10" />
+            <h1 className="text-2xl font-bold tracking-tight">GaragePulse</h1>
           </div>
 
           <div className="relative z-10 space-y-8 flex-1 flex flex-col justify-center">
@@ -96,25 +97,25 @@ export default function Login() {
               </div>
             </div>
           </div>
-          
+
           <div className="relative z-10 mt-12 pt-8 border-t border-white/10 text-sm text-gray-500 font-medium">
-            © 2026 GarageFlow. All rights reserved.
+            © 2026 GaragePulse. All rights reserved.
           </div>
         </div>
 
         {/* Right Side: Form */}
         <div className="w-full lg:w-7/12 flex-1 p-8 sm:p-12 md:p-16 flex flex-col justify-center bg-white/60">
-          
+
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
             <svg viewBox="0 0 40 40" fill="none" className="w-12 h-12 shadow-md rounded-xl drop-shadow-sm">
-              <rect width="40" height="40" rx="10" fill="url(#lg_mobile)"/>
-              <path d="M12 28V17L20 12L28 17V28L20 23L12 28Z" fill="white" fillOpacity="0.9"/>
-              <path d="M20 12V23" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <rect width="40" height="40" rx="10" fill="url(#lg_mobile)" />
+              <path d="M12 28V17L20 12L28 17V28L20 23L12 28Z" fill="white" fillOpacity="0.9" />
+              <path d="M20 12V23" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
               <defs>
                 <linearGradient id="lg_mobile" x1="0" y1="0" x2="40" y2="40">
-                  <stop stopColor="#3B5FF8"/>
-                  <stop offset="1" stopColor="#7C3AED"/>
+                  <stop stopColor="#3B5FF8" />
+                  <stop offset="1" stopColor="#7C3AED" />
                 </linearGradient>
               </defs>
             </svg>

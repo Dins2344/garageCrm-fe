@@ -12,7 +12,7 @@ const adminApi = axios.create({
 // Admin specific interceptor for its own token
 adminApi.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('garageflow_admin_token');
+    const token = localStorage.getItem('garagepulse_admin_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
