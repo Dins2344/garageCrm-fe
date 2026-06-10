@@ -339,6 +339,7 @@ export default function JobCards() {
               <Th>Vehicle</Th>
               <Th>Customer</Th>
               <Th>Mechanic</Th>
+              <Th>Service Advisor</Th>
               <Th>Status</Th>
               <Th>Est. Total</Th>
               <Th>Created</Th>
@@ -369,6 +370,11 @@ export default function JobCards() {
                 </Td>
                 <Td className="text-gray-700">
                   {jc.assignedMechanic?.name || (
+                    <span className="text-gray-400 italic">Unassigned</span>
+                  )}
+                </Td>
+                <Td className="text-gray-700">
+                  {jc.assignedAdvisor?.name || (
                     <span className="text-gray-400 italic">Unassigned</span>
                   )}
                 </Td>
