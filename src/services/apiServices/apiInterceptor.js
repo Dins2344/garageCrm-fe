@@ -25,11 +25,24 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const requestUrl = error.config?.url || '';
+
+    // Auth endpoints intentionally return 401 on bad credentials (wrong password,
+    // invalid login, etc.). Do NOT redirect — let the calling code handle the error.
+    const isAuthEndpoint =
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/register') ||
+      requestUrl.includes('/auth/changepassword') ||
+      requestUrl.includes('/auth/updatepassword');
+
+    if (status === 401 && !isAuthEndpoint) {
+      // Token is missing or expired — clear session and redirect to login
       localStorage.removeItem('garagepulse_token');
       localStorage.removeItem('garagepulse_user');
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
