@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { getAdminStats } from '../../services/apiServices/adminService';
+import { Building2, Users, ClipboardList, IndianRupee } from 'lucide-react';
 
-function StatCard({ label, value, icon, color }) {
+function StatCard({ label, value, icon: Icon, color }) {
   return (
     <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm shadow-gray-200/50 flex items-center gap-5">
-      <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center text-2xl shadow-inner`}>
-        {icon}
+      <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center shadow-inner`}>
+        <Icon className="w-7 h-7" strokeWidth={1.5} />
       </div>
       <div>
         <p className="text-sm font-bold text-gray-400 uppercase tracking-tight">{label}</p>
@@ -28,10 +29,10 @@ export default function AdminOverview() {
   if (loading) return <div>Loading platform metrics...</div>;
 
   const countItems = [
-    { label: 'Garages', value: stats.counts.garages, icon: '🏢', color: 'bg-blue-50 text-blue-600' },
-    { label: 'Total Users', value: stats.counts.users, icon: '👥', color: 'bg-purple-50 text-purple-600' },
-    { label: 'Job Cards', value: stats.counts.jobCards, icon: '📋', color: 'bg-emerald-50 text-emerald-600' },
-    { label: 'Revenue', value: `₹${stats.revenue.total?.toLocaleString()}`, icon: '💰', color: 'bg-amber-50 text-amber-600' },
+    { label: 'Garages', value: stats.counts.garages, icon: Building2, color: 'bg-blue-50 text-blue-600' },
+    { label: 'Total Users', value: stats.counts.users, icon: Users, color: 'bg-purple-50 text-purple-600' },
+    { label: 'Job Cards', value: stats.counts.jobCards, icon: ClipboardList, color: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Revenue', value: `₹${stats.revenue.total?.toLocaleString()}`, icon: IndianRupee, color: 'bg-amber-50 text-amber-600' },
   ];
 
   return (

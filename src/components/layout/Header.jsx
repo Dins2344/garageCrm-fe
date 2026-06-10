@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { HiOutlineBell, HiOutlineSearch, HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
+import { Hand } from 'lucide-react';
 
 const pageTitles = {
   '/': 'Dashboard',
@@ -49,7 +50,8 @@ export default function Header({ collapsed, onMobileMenuOpen }) {
           <h2 className="text-xl font-bold text-gray-900 leading-tight">{getTitle()}</h2>
           {location.pathname === '/' && (
             <p className="text-sm text-gray-500 font-medium">
-              {getGreeting()}, <strong className="text-primary-600">{user?.name?.split(' ')[0]}</strong> 👋
+              {getGreeting()}, <strong className="text-primary-600">{user?.name?.split(' ')[0]}</strong>{' '}
+              <Hand className="inline w-4 h-4 text-amber-500" strokeWidth={1.5} />
             </p>
           )}
         </div>

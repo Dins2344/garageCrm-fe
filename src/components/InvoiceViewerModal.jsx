@@ -10,6 +10,7 @@ import {
   HiOutlineX,
   HiOutlineTrash
 } from 'react-icons/hi';
+import { Phone, Mail, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
 import Button from './Button';
 import { Table, Thead, Th, Tbody, Tr, Td } from './Table';
@@ -202,7 +203,7 @@ export function useInvoiceViewer(onPaymentUpdate) {
                           ].filter(Boolean).join(', ')}
                         </p>
                       )}
-                      {inv.garage?.phone && <p>📞 {inv.garage.phone}</p>}
+                      {inv.garage?.phone && <p className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-gray-400" /> {inv.garage.phone}</p>}
                       {inv.garage?.gstNumber && (
                         <p className="font-semibold text-gray-700 mt-1">
                           GSTIN: {inv.garage.gstNumber}
@@ -229,8 +230,8 @@ export function useInvoiceViewer(onPaymentUpdate) {
                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Bill To</h4>
                     <div className="text-lg font-bold text-gray-900 mb-2">{inv.customer?.name || '—'}</div>
                     <div className="text-gray-600 text-sm space-y-1">
-                      {inv.customer?.phone && <div className="flex items-center gap-2"><span className="text-gray-400">📞</span> {inv.customer.phone}</div>}
-                      {inv.customer?.email && <div className="flex items-center gap-2"><span className="text-gray-400">✉️</span> {inv.customer.email}</div>}
+                      {inv.customer?.phone && <div className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-gray-400" /> {inv.customer.phone}</div>}
+                      {inv.customer?.email && <div className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-gray-400" /> {inv.customer.email}</div>}
                       {inv.customer?.address && (
                         <div className="mt-2 text-gray-500 leading-relaxed">
                           {[
@@ -322,9 +323,9 @@ export function useInvoiceViewer(onPaymentUpdate) {
                       'bg-blue-50 border-blue-200 text-blue-800'
                     }`}>
                       <div className="flex items-center gap-2 font-bold text-lg">
-                        {inv.paymentStatus === 'paid' && '✅ Payment Received'}
-                        {inv.paymentStatus === 'unpaid' && '⚠️ Payment Pending'}
-                        {inv.paymentStatus === 'partial' && '⏳ Partial Payment Received'}
+                        {inv.paymentStatus === 'paid' && <><CheckCircle2 className="w-5 h-5" /> Payment Received</>}
+                        {inv.paymentStatus === 'unpaid' && <><AlertTriangle className="w-5 h-5" /> Payment Pending</>}
+                        {inv.paymentStatus === 'partial' && <><Clock className="w-5 h-5" /> Partial Payment Received</>}
                       </div>
                       <div className="text-sm opacity-90 font-medium">
                         {inv.paymentStatus !== 'unpaid' && (

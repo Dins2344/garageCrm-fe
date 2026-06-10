@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { verifyAdmin } from '../../services/apiServices/adminService';
+import { BarChart3, Building2, Users, Zap, LogOut } from 'lucide-react';
 
 export default function AdminLayout() {
   const [loading, setLoading] = useState(true);
@@ -25,10 +26,10 @@ export default function AdminLayout() {
   }, [navigate]);
 
   const navItems = [
-    { label: 'Overview', path: '/admin/overview', icon: '📊' },
-    { label: 'Garages', path: '/admin/garages', icon: '🏢' },
-    { label: 'Users', path: '/admin/users', icon: '👥' },
-    { label: 'System Health', path: '/admin/health', icon: '⚡' },
+    { label: 'Overview', path: '/admin/overview', icon: BarChart3 },
+    { label: 'Garages', path: '/admin/garages', icon: Building2 },
+    { label: 'Users', path: '/admin/users', icon: Users },
+    { label: 'System Health', path: '/admin/health', icon: Zap },
   ];
 
   if (loading) return null;
@@ -60,7 +61,7 @@ export default function AdminLayout() {
                   : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                   }`}
               >
-                <span className="text-lg">{item.icon}</span>
+                <item.icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
                 {item.label}
               </Link>
             );
@@ -75,7 +76,7 @@ export default function AdminLayout() {
             }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-sm text-red-500 hover:bg-red-50 transition-all"
           >
-            <span>🚪</span> Logout
+            <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} /> Logout
           </button>
         </div>
       </aside>

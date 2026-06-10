@@ -15,6 +15,7 @@ import {
   HiOutlineBell,
   HiOutlineMail
 } from 'react-icons/hi';
+import { Trophy } from 'lucide-react';
 import { useInvoiceViewer } from '../components/InvoiceViewerModal';
 import StatCard from '../components/StatCard';
 import Badge from '../components/Badge';
@@ -254,7 +255,12 @@ export default function Dashboard() {
 
         {/* Staff Achievement Leaderboard */}
         <Card className="animate-[slideUp_0.4s_ease_both] delay-350 xl:col-span-2">
-          <CardHeader title="🏆 Monthly Staff Achievement" />
+          <CardHeader>
+            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-500" strokeWidth={1.5} />
+              Monthly Staff Achievement
+            </h3>
+          </CardHeader>
           <CardBody noPadding>
             {!stats?.staffAchievement?.length ? (
               <EmptyState icon={HiOutlineUsers} title="No data yet for this month" />

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Input } from '../components/Form';
 import Button from '../components/Button';
+import { ClipboardList, Receipt, Package } from 'lucide-react';
 
 export default function Login() {
   const [searchParams] = useSearchParams();
@@ -76,21 +77,27 @@ export default function Login() {
 
           <div className="relative z-10 space-y-8 flex-1 flex flex-col justify-center">
             <div className="flex gap-4 items-start group">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-primary-500/30 transition-all duration-300 shadow-inner">📋</div>
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary-500/30 transition-all duration-300 shadow-inner">
+                <ClipboardList className="w-6 h-6 text-white/80" strokeWidth={1.5} />
+              </div>
               <div>
                 <h4 className="text-lg font-semibold mb-1">Job Card Management</h4>
                 <p className="text-gray-400 text-sm leading-relaxed">Track every vehicle from intake to delivery with organized workflows.</p>
               </div>
             </div>
             <div className="flex gap-4 items-start group">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-purple-500/30 transition-all duration-300 shadow-inner">💰</div>
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-purple-500/30 transition-all duration-300 shadow-inner">
+                <Receipt className="w-6 h-6 text-white/80" strokeWidth={1.5} />
+              </div>
               <div>
                 <h4 className="text-lg font-semibold mb-1">Billing & Invoices</h4>
                 <p className="text-gray-400 text-sm leading-relaxed">Generate professional estimations and GST-ready invoices instantly.</p>
               </div>
             </div>
             <div className="flex gap-4 items-start group">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-accent-500/30 transition-all duration-300 shadow-inner">📦</div>
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-accent-500/30 transition-all duration-300 shadow-inner">
+                <Package className="w-6 h-6 text-white/80" strokeWidth={1.5} />
+              </div>
               <div>
                 <h4 className="text-lg font-semibold mb-1">Inventory Tracking</h4>
                 <p className="text-gray-400 text-sm leading-relaxed">Never run out of critical parts. Manage stock margins smoothly.</p>
