@@ -129,7 +129,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Low Stock Alerts */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-100">
+        {/* <Card className="animate-[slideUp_0.4s_ease_both] delay-100">
           <CardHeader title="Low Stock Alerts">
             <Button variant="ghost" size="sm" to="/inventory">
               Manage <HiOutlineArrowRight />
@@ -157,7 +157,7 @@ export default function Dashboard() {
               </RecentList>
             )}
           </CardBody>
-        </Card>
+        </Card> */}
 
         {/* Quick Stats Sidebar */}
         <Card className="animate-[slideUp_0.4s_ease_both] delay-150">
@@ -279,12 +279,11 @@ export default function Dashboard() {
                     {stats.staffAchievement.map((achievement, index) => (
                       <tr key={achievement._id} className="hover:bg-gray-50/80 transition-colors group">
                         <td className="px-6 py-4">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm ${
-                            index === 0 ? 'bg-yellow-100 text-yellow-700 shadow-sm border border-yellow-200' : 
-                            index === 1 ? 'bg-gray-100 text-gray-600' :
-                            index === 2 ? 'bg-orange-50 text-orange-700' :
-                            'text-gray-400'
-                          }`}>
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm ${index === 0 ? 'bg-yellow-100 text-yellow-700 shadow-sm border border-yellow-200' :
+                              index === 1 ? 'bg-gray-100 text-gray-600' :
+                                index === 2 ? 'bg-orange-50 text-orange-700' :
+                                  'text-gray-400'
+                            }`}>
                             {index + 1}
                           </div>
                         </td>
@@ -310,7 +309,7 @@ export default function Dashboard() {
                               {formatCurrency(achievement.totalLabor)}
                             </span>
                             <div className="w-20 h-1.5 bg-gray-100 rounded-full mt-2 overflow-hidden">
-                              <div 
+                              <div
                                 className="h-full bg-primary-500 rounded-full shadow-[0_0_8px_rgba(59,95,248,0.3)] transition-all duration-1000"
                                 style={{ width: `${Math.min(100, (achievement.totalLabor / (stats.staffAchievement[0]?.totalLabor || 1)) * 100)}%` }}
                               />
