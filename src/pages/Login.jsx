@@ -77,7 +77,7 @@ export default function Login() {
 
           <div className="relative z-10 space-y-8 flex-1 flex flex-col justify-center">
             <div className="flex gap-4 items-start group">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary-500/30 transition-all duration-300 shadow-inner">
+              <div className="w-16 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary-500/30 transition-all duration-300 shadow-inner">
                 <ClipboardList className="w-6 h-6 text-white/80" strokeWidth={1.5} />
               </div>
               <div>
@@ -86,7 +86,7 @@ export default function Login() {
               </div>
             </div>
             <div className="flex gap-4 items-start group">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-purple-500/30 transition-all duration-300 shadow-inner">
+              <div className="w-16 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-purple-500/30 transition-all duration-300 shadow-inner">
                 <Receipt className="w-6 h-6 text-white/80" strokeWidth={1.5} />
               </div>
               <div>
@@ -95,7 +95,7 @@ export default function Login() {
               </div>
             </div>
             <div className="flex gap-4 items-start group">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-accent-500/30 transition-all duration-300 shadow-inner">
+              <div className="w-16 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-accent-500/30 transition-all duration-300 shadow-inner">
                 <Package className="w-6 h-6 text-white/80" strokeWidth={1.5} />
               </div>
               <div>
@@ -115,7 +115,8 @@ export default function Login() {
 
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
-            <svg viewBox="0 0 40 40" fill="none" className="w-12 h-12 shadow-md rounded-xl drop-shadow-sm">
+            <img src="/mainIcon.png" alt="GaragePulse Logo" className="w-14" />
+            {/* <svg viewBox="0 0 40 40" fill="none" className="w-12 h-12 shadow-md rounded-xl drop-shadow-sm">
               <rect width="40" height="40" rx="10" fill="url(#lg_mobile)" />
               <path d="M12 28V17L20 12L28 17V28L20 23L12 28Z" fill="white" fillOpacity="0.9" />
               <path d="M20 12V23" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
@@ -125,7 +126,7 @@ export default function Login() {
                   <stop offset="1" stopColor="#7C3AED" />
                 </linearGradient>
               </defs>
-            </svg>
+            </svg> */}
           </div>
 
           <div className="mb-10 text-center lg:text-left">
