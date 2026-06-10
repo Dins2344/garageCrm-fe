@@ -22,7 +22,7 @@ const navItems = [
   // Inventory is disabled — users enter parts manually in estimations
   // { path: '/inventory', label: 'Inventory', icon: HiOutlineCube, roles: ['owner', 'admin', 'service_advisor'] },
   { path: '/invoices', label: 'Invoices', icon: HiOutlineDocumentText, roles: ['owner', 'admin', 'service_advisor'] },
-  { path: '/settings', label: 'Settings', icon: HiOutlineCog, roles: ['owner', 'admin'] },
+  { path: '/settings', label: 'Settings', icon: HiOutlineCog, roles: ['owner', 'admin', 'service_advisor', 'mechanic', 'receptionist'] },
 ];
 
 export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
