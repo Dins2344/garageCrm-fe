@@ -10,6 +10,8 @@ import { useConfirm } from '../components/ConfirmModal';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import { Input, Select } from '../components/Form';
 import Button from '../components/Button';
+import Loader from '../components/Loader';
+import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import {
   Building2, Users, UserCircle, Lock, Info, LogOut,
   Pencil, X, Plus, Save, Eye, EyeOff, Trash2,
@@ -205,6 +207,7 @@ function StaffModal({ visible, onClose, onSave, editingUser, canSetAdmin }) {
 export default function Settings() {
   const { user, hasRole, logout } = useAuth();
   const { confirm, ConfirmModal } = useConfirm();
+  const { withLoader } = useGlobalLoader();
 
   const canEditGarage = hasRole('owner', 'admin');
   const canManageStaff = hasRole('owner', 'admin');
@@ -273,47 +276,53 @@ export default function Settings() {
 
   const handleSaveGarage = async () => {
     if (!garageForm.name.trim()) { toast.error('Garage name is required'); return; }
-    setSavingGarage(true);
-    try {
-      const { data } = await updateGarage({
-        name: garageForm.name.trim(),
-        phone: garageForm.phone.trim(),
-        email: garageForm.email.trim(),
-        gstNumber: garageForm.gstNumber.trim(),
-        address: { street: garageForm.street, city: garageForm.city, state: garageForm.state, pincode: garageForm.pincode },
-        settings: { taxRate: Number(garageForm.taxRate) || 18, laborRatePerHour: Number(garageForm.laborRatePerHour) || 500 },
-      });
-      setGarage(data);
-      setEditingGarage(false);
-      toast.success('Garage info updated!');
-    } catch (e) {
-      toast.error(e?.response?.data?.message || 'Failed to update garage');
-    } finally { setSavingGarage(false); }
+    await withLoader(async () => {
+      setSavingGarage(true);
+      try {
+        const { data } = await updateGarage({
+          name: garageForm.name.trim(),
+          phone: garageForm.phone.trim(),
+          email: garageForm.email.trim(),
+          gstNumber: garageForm.gstNumber.trim(),
+          address: { street: garageForm.street, city: garageForm.city, state: garageForm.state, pincode: garageForm.pincode },
+          settings: { taxRate: Number(garageForm.taxRate) || 18, laborRatePerHour: Number(garageForm.laborRatePerHour) || 500 },
+        });
+        setGarage(data);
+        setEditingGarage(false);
+        toast.success('Garage info updated!');
+      } catch (e) {
+        toast.error(e?.response?.data?.message || 'Failed to update garage');
+      } finally { setSavingGarage(false); }
+    });
   };
 
   const handleSaveProfile = async () => {
     if (!profileForm.name.trim()) { toast.error('Name cannot be empty'); return; }
-    setSavingProfile(true);
-    try {
-      await updateProfile({ name: profileForm.name.trim(), phone: profileForm.phone.trim() });
-      toast.success('Profile updated!');
-    } catch (e) {
-      toast.error(e?.response?.data?.message || 'Failed to update profile');
-    } finally { setSavingProfile(false); }
+    await withLoader(async () => {
+      setSavingProfile(true);
+      try {
+        await updateProfile({ name: profileForm.name.trim(), phone: profileForm.phone.trim() });
+        toast.success('Profile updated!');
+      } catch (e) {
+        toast.error(e?.response?.data?.message || 'Failed to update profile');
+      } finally { setSavingProfile(false); }
+    });
   };
 
   const handleChangePassword = async () => {
     if (!pwdForm.current || !pwdForm.new || !pwdForm.confirm) { toast.error('Please fill all fields'); return; }
     if (pwdForm.new.length < 6) { toast.error('New password must be at least 6 characters'); return; }
     if (pwdForm.new !== pwdForm.confirm) { toast.error('Passwords do not match'); return; }
-    setSavingPwd(true);
-    try {
-      await changePassword({ currentPassword: pwdForm.current, newPassword: pwdForm.new });
-      toast.success('Password changed successfully!');
-      setPwdForm({ current: '', new: '', confirm: '' });
-    } catch (e) {
-      toast.error(e?.response?.data?.message || 'Failed to change password');
-    } finally { setSavingPwd(false); }
+    await withLoader(async () => {
+      setSavingPwd(true);
+      try {
+        await changePassword({ currentPassword: pwdForm.current, newPassword: pwdForm.new });
+        toast.success('Password changed successfully!');
+        setPwdForm({ current: '', new: '', confirm: '' });
+      } catch (e) {
+        toast.error(e?.response?.data?.message || 'Failed to change password');
+      } finally { setSavingPwd(false); }
+    });
   };
 
   const fetchStaff = async () => {
@@ -325,14 +334,16 @@ export default function Settings() {
   };
 
   const handleStaffSave = async (payload) => {
-    if (editingUser) {
-      await updateUser(editingUser._id, payload);
-      toast.success('Staff member updated!');
-    } else {
-      await createUser(payload);
-      toast.success('Staff member added!');
-    }
-    fetchStaff();
+    await withLoader(async () => {
+      if (editingUser) {
+        await updateUser(editingUser._id, payload);
+        toast.success('Staff member updated!');
+      } else {
+        await createUser(payload);
+        toast.success('Staff member added!');
+      }
+      fetchStaff();
+    });
   };
 
   const handleToggleActive = async (u) => {
@@ -346,11 +357,13 @@ export default function Settings() {
       intent: u.isActive ? 'warning' : 'default',
     });
     if (!ok) return;
-    try {
-      await updateUser(u._id, { isActive: !u.isActive });
-      toast.success(`${u.name} ${u.isActive ? 'deactivated' : 'activated'}`);
-      fetchStaff();
-    } catch { toast.error('Update failed'); }
+    await withLoader(async () => {
+      try {
+        await updateUser(u._id, { isActive: !u.isActive });
+        toast.success(`${u.name} ${u.isActive ? 'deactivated' : 'activated'}`);
+        fetchStaff();
+      } catch { toast.error('Update failed'); }
+    });
   };
 
   const handleDeleteStaff = async (u) => {
@@ -361,11 +374,13 @@ export default function Settings() {
       intent: 'danger',
     });
     if (!ok) return;
-    try {
-      await deleteUser(u._id);
-      toast.success('Staff member deleted');
-      fetchStaff();
-    } catch { toast.error('Delete failed'); }
+    await withLoader(async () => {
+      try {
+        await deleteUser(u._id);
+        toast.success('Staff member deleted');
+        fetchStaff();
+      } catch { toast.error('Delete failed'); }
+    });
   };
 
   // const handleLogout = async () => {
@@ -451,9 +466,7 @@ export default function Settings() {
         )}
       >
         {garageLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-          </div>
+          <Loader />
         ) : editingGarage ? (
           <div className="flex flex-col gap-4">
             <FormField label="Garage Name" required>
@@ -535,9 +548,7 @@ export default function Settings() {
         )}
       >
         {staffLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-          </div>
+          <Loader />
         ) : (
           <div className="flex flex-col gap-3">
 

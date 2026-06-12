@@ -27,6 +27,7 @@ import EmptyState from '../components/EmptyState';
 import { Card, CardHeader, CardBody } from '../components/Card';
 import Button from '../components/Button';
 import { RecentList, RecentItem, RecentItemMain, RecentItemDetails } from '../components/ListComponents';
+import Loader from '../components/Loader';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -97,12 +98,7 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-[400px] flex flex-col items-center justify-center gap-4 text-gray-500">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-        <p>Loading dashboard...</p>
-      </div>
-    );
+    return <Loader text="Loading dashboard..." />;
   }
 
   const formatCurrency = (amount) => {
@@ -446,9 +442,7 @@ export default function Dashboard() {
             <CardHeader title="Revenue Trend" />
             <CardBody>
               {chartLoading ? (
-                <div className="flex items-center justify-center h-[220px]">
-                  <div className="w-8 h-8 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-                </div>
+                <Loader />
               ) : chartData?.revenueTrend?.every(d => d.revenue === 0) ? (
                 <EmptyState icon={HiOutlineCurrencyRupee} title="No revenue in this period" />
               ) : (
@@ -496,9 +490,7 @@ export default function Dashboard() {
             <CardHeader title="Job Status" />
             <CardBody>
               {chartLoading ? (
-                <div className="flex items-center justify-center h-[220px]">
-                  <div className="w-8 h-8 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-                </div>
+                <Loader />
               ) : (() => {
                 const STATUS_COLORS = { new: '#3b5ff8', estimation_sent: '#f59e0b', approved: '#8b5cf6', in_progress: '#06b6d4', ready_for_pickup: '#10b981', delivered: '#6b7280', cancelled: '#ef4444' };
                 const STATUS_LABELS = { new: 'New', estimation_sent: 'Est. Sent', approved: 'Approved', in_progress: 'In Progress', ready_for_pickup: 'Ready', delivered: 'Delivered', cancelled: 'Cancelled' };

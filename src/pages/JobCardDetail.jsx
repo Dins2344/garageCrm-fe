@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Loader from '../components/Loader';
+import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { getJobCard, updateJobCard, saveJobCardEstimation, approveJobCardEstimation, downloadEstimationPDF } from '../services/apiServices/jobCardService';
 import { getMechanics } from '../services/apiServices/userService';
 import { createInvoice as generateInvoice } from '../services/apiServices/invoiceService';
@@ -39,6 +41,7 @@ export default function JobCardDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { hasRole, user } = useAuth();
+  const { withLoader } = useGlobalLoader();
   const [jobCard, setJobCard] = useState(null);
   const [mechanics, setMechanics] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,19 +109,19 @@ export default function JobCardDetail() {
         return;
       }
     }
-
     if (newStatus === 'delivered' && !jobCard?.invoice) {
       toast.error('Cannot mark as delivered: Please generate an invoice first.');
       return;
     }
-
-    try {
-      await updateJobCard(id, { status: newStatus });
-      toast.success(`Status updated to "${newStatus.replace(/_/g, ' ')}"`);
-      fetchJobCard();
-    } catch (error) {
-      toast.error('Failed to update status');
-    }
+    await withLoader(async () => {
+      try {
+        await updateJobCard(id, { status: newStatus });
+        toast.success(`Status updated to "${newStatus.replace(/_/g, ' ')}"`);
+        fetchJobCard();
+      } catch (error) {
+        toast.error('Failed to update status');
+      }
+    });
   };
 
   const getNextStatus = () => {
@@ -144,20 +147,22 @@ export default function JobCardDetail() {
   };
 
   const downloadEstimation = async () => {
-    try {
-      const response = await downloadEstimationPDF(id);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Estimation-${jobCard.jobCardNumber}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success('Estimation PDF downloaded');
-    } catch (error) {
-      toast.error('Failed to download estimation');
-    }
+    await withLoader(async () => {
+      try {
+        const response = await downloadEstimationPDF(id);
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Estimation-${jobCard.jobCardNumber}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        toast.success('Estimation PDF downloaded');
+      } catch (error) {
+        toast.error('Failed to download estimation');
+      }
+    });
   };
 
   const updatePart = (index, field, value) => {
@@ -196,24 +201,28 @@ export default function JobCardDetail() {
   };
 
   const saveEstimation = async () => {
-    try {
-      await saveJobCardEstimation(id, estimation);
-      toast.success('Estimation saved!');
-      setShowEstimation(false);
-      fetchJobCard();
-    } catch (error) {
-      toast.error('Failed to save estimation');
-    }
+    await withLoader(async () => {
+      try {
+        await saveJobCardEstimation(id, estimation);
+        toast.success('Estimation saved!');
+        setShowEstimation(false);
+        fetchJobCard();
+      } catch (error) {
+        toast.error('Failed to save estimation');
+      }
+    });
   };
 
   const approveEstimation = async () => {
-    try {
-      await approveJobCardEstimation(id);
-      toast.success('Estimation approved!');
-      fetchJobCard();
-    } catch (error) {
-      toast.error('Failed to approve');
-    }
+    await withLoader(async () => {
+      try {
+        await approveJobCardEstimation(id);
+        toast.success('Estimation approved!');
+        fetchJobCard();
+      } catch (error) {
+        toast.error('Failed to approve');
+      }
+    });
   };
 
   // Invoice viewer modal
@@ -227,18 +236,19 @@ export default function JobCardDetail() {
       intent: 'warning',
     });
     if (!ok) return;
-
-    try {
-      const { data } = await generateInvoice({ jobCardId: id });
-      toast.success(`Invoice ${data.invoiceNumber} created!`);
-      fetchJobCard();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create invoice');
-    }
+    await withLoader(async () => {
+      try {
+        const { data } = await generateInvoice({ jobCardId: id });
+        toast.success(`Invoice ${data.invoiceNumber} created!`);
+        fetchJobCard();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to create invoice');
+      }
+    });
   };
 
   if (loading) {
-    return <div className="loading-screen"><div className="spinner" /></div>;
+    return <Loader text="Loading job card..." />;
   }
 
   if (!jobCard) return null;

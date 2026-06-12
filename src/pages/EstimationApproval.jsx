@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getEstimationByToken, approveEstimationByToken } from '../services/apiServices/publicService';
+import Loader from '../components/Loader';
 
 const fmt = (n) =>
   `₹${Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -57,10 +58,7 @@ export default function EstimationApproval() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-slate-400">
-          <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
-          <p className="text-sm">Loading your estimation…</p>
-        </div>
+        <Loader text="Loading your estimation…" />
       </div>
     );
   }
@@ -260,7 +258,7 @@ export default function EstimationApproval() {
           >
             {approving ? (
               <span className="flex items-center justify-center gap-3">
-                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <Loader variant="inline" />
                 Approving…
               </span>
             ) : (

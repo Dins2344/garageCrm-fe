@@ -27,20 +27,18 @@ import EmptyState from '../components/EmptyState';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import Badge from '../components/Badge';
 import Pagination from '../components/Pagination';
+import {
+  JOB_STATUS_OPTIONS,
+  FUEL_TYPES,
+  DEFAULT_PAGE_SIZE,
+  DROPDOWN_FETCH_LIMIT,
+  LOCALE,
+  DATE_FORMAT_OPTIONS
+} from '../utils/constants';
+import Loader from '../components/Loader';
+import { useGlobalLoader } from '../context/GlobalLoaderContext';
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'All Status' },
-  { value: 'new', label: 'New' },
-  { value: 'estimation_sent', label: 'Estimation Sent' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'quality_check', label: 'Quality Check' },
-  { value: 'ready_for_pickup', label: 'Ready for Pickup' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'cancelled', label: 'Cancelled' }
-];
 
-const FUEL_TYPES = ['petrol', 'diesel', 'cng', 'electric', 'hybrid', 'other'];
 
 export default function JobCards() {
   const [jobCards, setJobCards] = useState([]);
@@ -50,7 +48,8 @@ export default function JobCards() {
   const debouncedSearch = useDebounce(search);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const [showModal, setShowModal] = useState(false);
-  const { hasRole, user } = useAuth();
+  const { user, hasRole } = useAuth();
+  const { withLoader } = useGlobalLoader();
   const navigate = useNavigate();
 
   // ---- Stepper State ----
@@ -110,16 +109,17 @@ export default function JobCards() {
 
   const fetchJobCards = async () => {
     try {
+      setLoading(true);
       const { data, total, pages } = await getJobCards({
         status: statusFilter,
         search: debouncedSearch,
         page: pagination.page,
-        limit: 10
+        limit: DEFAULT_PAGE_SIZE
       });
       setJobCards(data);
       setPagination(prev => ({
         ...prev,
-        pages: pages || Math.ceil(total / 10) || 1
+        pages: pages || Math.ceil(total / DEFAULT_PAGE_SIZE) || 1
       }));
     } catch (error) {
       toast.error('Failed to load job cards');
@@ -130,14 +130,14 @@ export default function JobCards() {
 
   const fetchCustomers = async () => {
     try {
-      const { data } = await getCustomers({ limit: 200 });
+      const { data } = await getCustomers({ limit: DROPDOWN_FETCH_LIMIT });
       setCustomers(data);
     } catch (e) { /* ignore */ }
   };
 
   const fetchVehicles = async () => {
     try {
-      const { data } = await getVehicles({ limit: 200 });
+      const { data } = await getVehicles({ limit: DROPDOWN_FETCH_LIMIT });
       setVehicles(data);
     } catch (e) { /* ignore */ }
   };
@@ -233,61 +233,61 @@ export default function JobCards() {
 
   // ---- Final Submission ----
   const handleSubmit = async () => {
-    try {
-      // 1. Resolve customer
-      let customerId;
-      if (customerMode === 'existing') {
-        customerId = selectedCustomer._id;
-      } else {
-        const { data } = await createCustomer(newCustomer);
-        customerId = data._id;
-        toast.success(`Customer "${newCustomer.name}" added`);
+    await withLoader(async () => {
+      try {
+        // 1. Resolve customer
+        let customerId;
+        if (customerMode === 'existing') {
+          customerId = selectedCustomer._id;
+        } else {
+          const { data } = await createCustomer(newCustomer);
+          customerId = data._id;
+          toast.success(`Customer "${newCustomer.name}" added`);
+        }
+
+        // 2. Resolve vehicle
+        let vehicleId;
+        if (vehicleMode === 'existing') {
+          vehicleId = selectedVehicle._id;
+        } else {
+          const vData = { ...newVehicle, customer: customerId };
+          if (vData.year) vData.year = parseInt(vData.year);
+          const { data } = await createVehicle(vData);
+          vehicleId = data._id;
+          toast.success(`Vehicle "${newVehicle.licensePlate}" added`);
+        }
+
+        // 3. Create Job Card
+        const jobCardData = {
+          serviceType: workForm.serviceType,
+          vehicle: vehicleId,
+          customer: customerId,
+          assignedMechanic: workForm.assignedMechanic || undefined,
+          assignedAdvisor: workForm.assignedAdvisor || undefined,
+          odometerAtIntake: workForm.odometerAtIntake ? parseInt(workForm.odometerAtIntake) : 0,
+          expectedDeliveryDate: workForm.expectedDeliveryDate || undefined,
+          internalNotes: workForm.internalNotes,
+          complaints: workForm.complaints.filter(c => c.description.trim())
+        };
+
+        const { data } = await createJobCard(jobCardData);
+        toast.success(`Job Card ${data.jobCardNumber} created!`);
+        setShowModal(false);
+        fetchJobCards();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to create job card');
       }
-
-      // 2. Resolve vehicle
-      let vehicleId;
-      if (vehicleMode === 'existing') {
-        vehicleId = selectedVehicle._id;
-      } else {
-        const vData = { ...newVehicle, customer: customerId };
-        if (vData.year) vData.year = parseInt(vData.year);
-        const { data } = await createVehicle(vData);
-        vehicleId = data._id;
-        toast.success(`Vehicle "${newVehicle.licensePlate}" added`);
-      }
-
-      // 3. Create Job Card
-      const jobCardData = {
-        serviceType: workForm.serviceType,
-        vehicle: vehicleId,
-        customer: customerId,
-        assignedMechanic: workForm.assignedMechanic || undefined,
-        assignedAdvisor: workForm.assignedAdvisor || undefined,
-        odometerAtIntake: workForm.odometerAtIntake ? parseInt(workForm.odometerAtIntake) : 0,
-        expectedDeliveryDate: workForm.expectedDeliveryDate || undefined,
-        internalNotes: workForm.internalNotes,
-        complaints: workForm.complaints.filter(c => c.description.trim())
-      };
-
-      const { data } = await createJobCard(jobCardData);
-      toast.success(`Job Card ${data.jobCardNumber} created!`);
-      setShowModal(false);
-      fetchJobCards();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create job card');
-    }
+    });
   };
 
   const formatDate = (date) => {
     if (!date) return '—';
-    return new Date(date).toLocaleDateString('en-IN', {
-      day: 'numeric', month: 'short', year: 'numeric'
-    });
+    return new Date(date).toLocaleDateString(LOCALE, DATE_FORMAT_OPTIONS);
   };
 
   // ============ RENDER ============
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       {/* Page Header */}
       <PageHeader title="Job Cards">
         {hasRole('owner', 'admin', 'service_advisor') && (
@@ -314,18 +314,15 @@ export default function JobCards() {
           onChange={e => setStatusFilter(e.target.value)}
           className="w-auto min-w-[180px]"
         >
-          {STATUS_OPTIONS.map(opt => (
+          {JOB_STATUS_OPTIONS.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </Select>
       </div>
 
-      {/* Table */}
-      {loading ? (
-        <div className="min-h-[300px] flex justify-center items-center">
-          <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-        </div>
-      ) : jobCards.length === 0 ? (
+      {/* Table + Pagination */}
+      <div className="flex flex-col flex-1">
+      {loading ? <Loader /> : jobCards.length === 0 ? (
         <EmptyState
           icon={HiOutlineClipboardList}
           title="No job cards found"
@@ -385,7 +382,7 @@ export default function JobCards() {
                 </Td>
                 <Td className="font-semibold text-gray-900">
                   {jc.estimation?.grandTotal
-                    ? `₹${jc.estimation.grandTotal.toLocaleString('en-IN')}`
+                    ? `₹${jc.estimation.grandTotal.toLocaleString(LOCALE)}`
                     : '—'}
                 </Td>
                 <Td className="text-sm text-gray-500">
@@ -403,11 +400,13 @@ export default function JobCards() {
       )}
 
       {/* Pagination */}
-      <Pagination
-        page={pagination.page}
-        pages={pagination.pages}
-        onPageChange={(page) => setPagination(p => ({ ...p, page }))}
-      />
+        <Pagination
+          className="mt-auto pt-4"
+          page={pagination.page}
+          pages={pagination.pages}
+          onPageChange={(page) => setPagination(p => ({ ...p, page }))}
+        />
+      </div>
 
       {/* ============ STEPPER MODAL ============ */}
       {showModal && (

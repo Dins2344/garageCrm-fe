@@ -38,7 +38,7 @@ export default function AppLayout() {
           collapsed={sidebarCollapsed}
           onMobileMenuOpen={() => setMobileOpen(true)}
         />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden w-full max-w-full">
+        <main className="flex flex-col flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden w-full max-w-full">
           <Outlet />
         </main>
       </div>

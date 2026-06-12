@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useConfirm } from './ConfirmModal';
 import { getInvoice, updateInvoicePayment, downloadInvoicePdf, deleteInvoice } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
+import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import toast from 'react-hot-toast';
 import {
   HiOutlineCurrencyRupee,
@@ -15,6 +16,7 @@ import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from './Moda
 import Button from './Button';
 import { Table, Thead, Th, Tbody, Tr, Td } from './Table';
 import Badge from './Badge';
+import Loader from './Loader';
 
 /**
  * Reusable Invoice Viewer Modal
@@ -30,6 +32,7 @@ export function useInvoiceViewer(onPaymentUpdate) {
   const [viewerInvoice, setViewerInvoice] = useState(null);
   const [viewerLoading, setViewerLoading] = useState(false);
   const { hasRole } = useAuth();
+  const { withLoader } = useGlobalLoader();
   const { confirm, ConfirmModal } = useConfirm();
 
   const openInvoice = async (invoiceId) => {
@@ -54,19 +57,19 @@ export function useInvoiceViewer(onPaymentUpdate) {
 
   const markAsPaid = async (invoiceId) => {
     if (!viewerInvoice) return;
-    try {
-      await updateInvoicePayment(invoiceId, {
-        amountPaid: viewerInvoice.grandTotal,
-        paymentMethod: 'cash'
-      });
-      toast.success('Payment recorded!');
-      // Refresh the viewer
-      openInvoice(invoiceId);
-      // Callback to parent to refresh lists
-      if (onPaymentUpdate) onPaymentUpdate();
-    } catch (error) {
-      toast.error('Failed to update payment');
-    }
+    await withLoader(async () => {
+      try {
+        await updateInvoicePayment(invoiceId, {
+          amountPaid: viewerInvoice.grandTotal,
+          paymentMethod: 'cash'
+        });
+        toast.success('Payment recorded!');
+        openInvoice(invoiceId);
+        if (onPaymentUpdate) onPaymentUpdate();
+      } catch (error) {
+        toast.error('Failed to update payment');
+      }
+    });
   };
 
   const handleCancelInvoice = async (invoiceId) => {
@@ -77,31 +80,35 @@ export function useInvoiceViewer(onPaymentUpdate) {
       intent: 'warning',
     });
     if (!ok) return;
-    try {
-      await deleteInvoice(invoiceId);
-      toast.success('Invoice cancelled and Job reopened!');
-      closeViewer();
-      if (onPaymentUpdate) onPaymentUpdate();
-    } catch (error) {
-      toast.error('Failed to cancel invoice');
-    }
+    await withLoader(async () => {
+      try {
+        await deleteInvoice(invoiceId);
+        toast.success('Invoice cancelled and Job reopened!');
+        closeViewer();
+        if (onPaymentUpdate) onPaymentUpdate();
+      } catch (error) {
+        toast.error('Failed to cancel invoice');
+      }
+    });
   };
 
   const downloadPDF = async (invoiceId, invoiceNumber) => {
-    try {
-      const { data } = await downloadInvoicePdf(invoiceId);
-      const url = window.URL.createObjectURL(new Blob([data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Invoice-${invoiceNumber}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success('PDF downloaded');
-    } catch (error) {
-      toast.error('Failed to download PDF');
-    }
+    await withLoader(async () => {
+      try {
+        const { data } = await downloadInvoicePdf(invoiceId);
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Invoice-${invoiceNumber}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        toast.success('PDF downloaded');
+      } catch (error) {
+        toast.error('Failed to download PDF');
+      }
+    });
   };
 
   const formatDate = (date) => {
@@ -181,7 +188,7 @@ export function useInvoiceViewer(onPaymentUpdate) {
           <div className="p-6 sm:p-8 md:p-10 max-h-[80vh] overflow-y-auto">
             {viewerLoading ? (
               <div className="flex flex-col items-center justify-center py-20">
-                <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+                <Loader />
                 <p className="mt-4 text-gray-500 font-medium">Loading invoice...</p>
               </div>
             ) : inv ? (

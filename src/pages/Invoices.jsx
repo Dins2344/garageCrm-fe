@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { DEFAULT_PAGE_SIZE, LOCALE } from '../utils/constants';
+import Loader from '../components/Loader';
+import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { getInvoices, updateInvoicePayment, downloadInvoicePdf } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
@@ -27,6 +30,7 @@ export default function Invoices() {
   const [paymentFilter, setPaymentFilter] = useState('');
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
+  const { withLoader } = useGlobalLoader();
   const { openInvoice, InvoiceModal } = useInvoiceViewer(fetchInvoices);
 
   // Reset to page 1 whenever the user changes the search term
@@ -40,12 +44,12 @@ export default function Invoices() {
 
   function fetchInvoices() {
     setLoading(true);
-    getInvoices({ search: debouncedSearch, paymentStatus: paymentFilter, page: pagination.page, limit: 15 })
+    getInvoices({ search: debouncedSearch, paymentStatus: paymentFilter, page: pagination.page, limit: DEFAULT_PAGE_SIZE })
       .then(({ data, pages, total }) => {
         setInvoices(data);
         setPagination(prev => ({
           ...prev,
-          pages: pages || Math.ceil(total / 15) || 1
+          pages: pages || Math.ceil(total / DEFAULT_PAGE_SIZE) || 1
         }));
       })
       .catch(() => toast.error('Failed to load invoices'))
@@ -55,45 +59,48 @@ export default function Invoices() {
   const markAsPaid = async (invoiceId) => {
     const invoice = invoices.find(i => i._id === invoiceId);
     if (!invoice) return;
-
-    try {
-      await updateInvoicePayment(invoiceId, {
-        amountPaid: invoice.grandTotal,
-        paymentMethod: 'cash'
-      });
-      toast.success('Payment recorded!');
-      fetchInvoices();
-    } catch (error) {
-      toast.error('Failed to record payment');
-    }
+    await withLoader(async () => {
+      try {
+        await updateInvoicePayment(invoiceId, {
+          amountPaid: invoice.grandTotal,
+          paymentMethod: 'cash'
+        });
+        toast.success('Payment recorded!');
+        fetchInvoices();
+      } catch (error) {
+        toast.error('Failed to record payment');
+      }
+    });
   };
 
   const handleDownload = async (id, number) => {
-    try {
-      const { data } = await downloadInvoicePdf(id);
-      const url = window.URL.createObjectURL(new Blob([data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Invoice-${number}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      toast.success('PDF downloaded');
-    } catch (e) {
-      toast.error('Failed to download PDF');
-    }
+    await withLoader(async () => {
+      try {
+        const { data } = await downloadInvoicePdf(id);
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Invoice-${number}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        toast.success('PDF downloaded');
+      } catch (e) {
+        toast.error('Failed to download PDF');
+      }
+    });
   };
 
   const formatDate = (date) => {
     if (!date) return '—';
-    return new Date(date).toLocaleDateString('en-IN', {
+    return new Date(date).toLocaleDateString(LOCALE, {
       day: 'numeric', month: 'short', year: 'numeric'
     });
   };
 
-  const formatCurrency = (amount) => `₹${(amount || 0).toLocaleString('en-IN')}`;
+  const formatCurrency = (amount) => `₹${(amount || 0).toLocaleString(LOCALE)}`;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       <PageHeader title="Invoices" />
 
       <div className="flex flex-wrap items-center gap-3">
@@ -119,11 +126,9 @@ export default function Invoices() {
         </Select>
       </div>
 
-      {loading ? (
-        <div className="min-h-[300px] flex justify-center items-center">
-          <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-        </div>
-      ) : invoices.length === 0 ? (
+      {/* Table + Pagination */}
+      <div className="flex flex-col flex-1">
+      {loading ? <Loader /> : invoices.length === 0 ? (
         <EmptyState
           icon={HiOutlineDocumentText}
           title="No invoices found"
@@ -194,11 +199,12 @@ export default function Invoices() {
       )}
 
       {/* Pagination */}
-      <Pagination
-        page={pagination.page}
-        pages={pagination.pages}
-        onPageChange={(page) => setPagination(p => ({ ...p, page }))}
-      />
+        <Pagination
+          page={pagination.page}
+          pages={pagination.pages}
+          onPageChange={(page) => setPagination(p => ({ ...p, page }))}
+        />
+      </div>
 
       <InvoiceModal />
     </div>
