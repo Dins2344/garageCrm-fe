@@ -1,11 +1,11 @@
 import React from 'react';
 import Button from './Button';
 
-export default function Pagination({ page, pages, onPageChange }) {
+export default function Pagination({ page, pages, onPageChange, className = '' }) {
   if (pages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-center gap-1.5 mt-6">
+    <div className={`flex items-center justify-center gap-1.5 mt-auto pt-6 ${className}`}>
       <button
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}

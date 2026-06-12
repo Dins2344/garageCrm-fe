@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { TOKEN_KEY, USER_KEY } from '../utils/constants';
 import { login as authLogin, register as authRegister, getMe } from '../services/apiServices/authService';
 import IdleTimer from '../components/common/IdleTimer';
 
@@ -9,8 +10,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('garagepulse_token');
-    const savedUser = localStorage.getItem('garagepulse_user');
+    const token = localStorage.getItem(TOKEN_KEY);
+    const savedUser = localStorage.getItem(USER_KEY);
 
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
@@ -18,7 +19,7 @@ export function AuthProvider({ children }) {
       getMe()
         .then(res => {
           setUser(res.data);
-          localStorage.setItem('garagepulse_user', JSON.stringify(res.data));
+          localStorage.setItem(USER_KEY, JSON.stringify(res.data));
         })
         .catch(() => {
           logout();
@@ -35,23 +36,23 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const { token, data } = await authLogin(email, password);
-    localStorage.setItem('garagepulse_token', token);
-    localStorage.setItem('garagepulse_user', JSON.stringify(data));
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(data));
     setUser(data);
     return data;
   };
 
   const register = async (formData) => {
     const { token, data } = await authRegister(formData);
-    localStorage.setItem('garagepulse_token', token);
-    localStorage.setItem('garagepulse_user', JSON.stringify(data));
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(data));
     setUser(data);
     return data;
   };
 
   const logout = () => {
-    localStorage.removeItem('garagepulse_token');
-    localStorage.removeItem('garagepulse_user');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     setUser(null);
   };
 

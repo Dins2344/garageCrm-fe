@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { DEFAULT_PAGE_SIZE, LOCALE } from '../utils/constants';
+import Loader from '../components/Loader';
+import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { useConfirm } from '../components/ConfirmModal';
 import { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem } from '../services/apiServices/inventoryService';
@@ -47,6 +50,7 @@ export default function Inventory() {
   const [editingItem, setEditingItem] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
+  const { withLoader } = useGlobalLoader();
   const { confirm, ConfirmModal } = useConfirm();
 
   const [form, setForm] = useState({
@@ -70,12 +74,12 @@ export default function Inventory() {
         search: debouncedSearch, 
         category, 
         page: pagination.page, 
-        limit: 15 
+        limit: DEFAULT_PAGE_SIZE
       });
       setItems(data);
       setPagination(prev => ({
         ...prev,
-        pages: pages || Math.ceil(total / 15) || 1
+        pages: pages || Math.ceil(total / DEFAULT_PAGE_SIZE) || 1
       }));
     } catch (error) {
       toast.error('Failed to load inventory');
@@ -112,19 +116,21 @@ export default function Inventory() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (editingItem) {
-        await updateInventoryItem(editingItem._id, form);
-        toast.success('Item updated!');
-      } else {
-        await createInventoryItem(form);
-        toast.success('Item added to inventory!');
+    await withLoader(async () => {
+      try {
+        if (editingItem) {
+          await updateInventoryItem(editingItem._id, form);
+          toast.success('Item updated!');
+        } else {
+          await createInventoryItem(form);
+          toast.success('Item added to inventory!');
+        }
+        setShowModal(false);
+        fetchInventory();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to save');
       }
-      setShowModal(false);
-      fetchInventory();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save');
-    }
+    });
   };
 
   const handleDelete = async (id) => {
@@ -135,19 +141,21 @@ export default function Inventory() {
       intent: 'danger',
     });
     if (!ok) return;
-    try {
-      await deleteInventoryItem(id);
-      toast.success('Item removed');
-      fetchInventory();
-    } catch (error) {
-      toast.error('Failed to remove');
-    }
+    await withLoader(async () => {
+      try {
+        await deleteInventoryItem(id);
+        toast.success('Item removed');
+        fetchInventory();
+      } catch (error) {
+        toast.error('Failed to remove');
+      }
+    });
   };
 
   const lowStockCount = items.filter(i => i.isLowStock).length;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       <PageHeader title="Inventory">
         {hasRole('owner', 'admin', 'service_advisor') && (
           <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>
@@ -185,11 +193,9 @@ export default function Inventory() {
         </Select>
       </div>
 
-      {loading ? (
-        <div className="min-h-[300px] flex justify-center items-center">
-          <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-        </div>
-      ) : items.length === 0 ? (
+      {/* Table + Pagination */}
+      <div className="flex flex-col flex-1">
+      {loading ? <Loader /> : items.length === 0 ? (
         <EmptyState 
           icon={HiOutlineTemplate} 
           title="No inventory items found" 
@@ -231,8 +237,8 @@ export default function Inventory() {
                   </span>
                 </Td>
                 <Td className="text-gray-500">{item.threshold}</Td>
-                <Td className="text-gray-700">₹{item.unitPrice?.toLocaleString('en-IN')}</Td>
-                <Td className="font-semibold text-gray-900">₹{(item.sellingPrice || item.unitPrice)?.toLocaleString('en-IN')}</Td>
+                <Td className="text-gray-700">₹{item.unitPrice?.toLocaleString(LOCALE)}</Td>
+                <Td className="font-semibold text-gray-900">₹{(item.sellingPrice || item.unitPrice)?.toLocaleString(LOCALE)}</Td>
                 <Td className="text-gray-500">{item.location || '—'}</Td>
                 <Td>
                   <div className="flex gap-2">
@@ -255,11 +261,12 @@ export default function Inventory() {
       )}
 
       {/* Pagination */}
-      <Pagination 
-        page={pagination.page} 
-        pages={pagination.pages} 
-        onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
-      />
+        <Pagination 
+          page={pagination.page} 
+          pages={pagination.pages} 
+          onPageChange={(page) => setPagination(p => ({ ...p, page }))} 
+        />
+      </div>
 
       {showModal && (
         <ModalOverlay onClose={() => setShowModal(false)}>

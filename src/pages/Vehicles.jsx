@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { DEFAULT_PAGE_SIZE, DROPDOWN_FETCH_LIMIT, FUEL_TYPE_OPTIONS } from '../utils/constants';
+import Loader from '../components/Loader';
+import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '../hooks/useDebounce';
 import { getVehicles, createVehicle, updateVehicle, deleteVehicle } from '../services/apiServices/vehicleService';
@@ -34,6 +37,7 @@ export default function Vehicles() {
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
+  const { withLoader } = useGlobalLoader();
   const { confirm, ConfirmModal } = useConfirm();
 
   const [form, setForm] = useState({
@@ -53,15 +57,16 @@ export default function Vehicles() {
 
   const fetchVehicles = async () => {
     try {
+      setLoading(true);
       const { data, total, pages } = await getVehicles({
         search: debouncedSearch,
         page: pagination.page,
-        limit: 15
+        limit: DEFAULT_PAGE_SIZE
       });
       setVehicles(data);
       setPagination(prev => ({
         ...prev,
-        pages: pages || Math.ceil(total / 15) || 1
+        pages: pages || Math.ceil(total / DEFAULT_PAGE_SIZE) || 1
       }));
     } catch (error) {
       toast.error('Failed to load vehicles');
@@ -72,7 +77,7 @@ export default function Vehicles() {
 
   const fetchCustomers = async () => {
     try {
-      const { data } = await getCustomers({ limit: 200 });
+      const { data } = await getCustomers({ limit: DROPDOWN_FETCH_LIMIT });
       setCustomers(data);
     } catch (e) {
       console.error('Failed to load customers');
@@ -101,22 +106,23 @@ export default function Vehicles() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const data = { ...form };
-      if (data.year) data.year = parseInt(data.year);
-
-      if (editingVehicle) {
-        await updateVehicle(editingVehicle._id, data);
-        toast.success('Vehicle updated!');
-      } else {
-        await createVehicle(data);
-        toast.success('Vehicle added!');
+    await withLoader(async () => {
+      try {
+        const data = { ...form };
+        if (data.year) data.year = parseInt(data.year);
+        if (editingVehicle) {
+          await updateVehicle(editingVehicle._id, data);
+          toast.success('Vehicle updated!');
+        } else {
+          await createVehicle(data);
+          toast.success('Vehicle added!');
+        }
+        setShowModal(false);
+        fetchVehicles();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to save vehicle');
       }
-      setShowModal(false);
-      fetchVehicles();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save vehicle');
-    }
+    });
   };
 
   const handleDelete = async (id) => {
@@ -127,13 +133,15 @@ export default function Vehicles() {
       intent: 'danger',
     });
     if (!ok) return;
-    try {
-      await deleteVehicle(id);
-      toast.success('Vehicle deleted');
-      fetchVehicles();
-    } catch (error) {
-      toast.error('Failed to delete vehicle');
-    }
+    await withLoader(async () => {
+      try {
+        await deleteVehicle(id);
+        toast.success('Vehicle deleted');
+        fetchVehicles();
+      } catch (error) {
+        toast.error('Failed to delete vehicle');
+      }
+    });
   };
 
   const fuelBadges = {
@@ -145,7 +153,7 @@ export default function Vehicles() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       <PageHeader title="Vehicles">
         {hasRole('owner', 'admin', 'service_advisor', 'receptionist') && (
           <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>
@@ -167,75 +175,75 @@ export default function Vehicles() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="min-h-[300px] flex justify-center items-center">
-          <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-        </div>
-      ) : vehicles.length === 0 ? (
-        <EmptyState
-          icon={HiOutlineTruck}
-          title="No vehicles found"
-          message="Add your first vehicle to start tracking"
-        />
-      ) : (
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>License Plate</Th>
-              <Th>Make</Th>
-              <Th>Model</Th>
-              <Th>Year</Th>
-              <Th>Fuel</Th>
-              <Th>Color</Th>
-              <Th>Owner</Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {vehicles.map(v => (
-              <Tr key={v._id} className=" hover:bg-blue-50/40 transition-colors" onClick={() => navigate(`/vehicles/${v._id}`)}>
-                <Td>
-                  <span className="font-bold bg-gray-100 px-2.5 py-1 rounded-md tracking-wider text-sm text-gray-800">
-                    {v.licensePlate}
-                  </span>
-                </Td>
-                <Td className="font-semibold text-gray-900">{v.make}</Td>
-                <Td className="text-gray-700">{v.model}</Td>
-                <Td className="text-gray-700">{v.year || '—'}</Td>
-                <Td>
-                  <Badge className={fuelBadges[v.fuelType] || 'bg-gray-100 text-gray-600'}>
-                    {v.fuelType}
-                  </Badge>
-                </Td>
-                <Td className="text-gray-700">{v.color || '—'}</Td>
-                <Td className="text-gray-900 font-medium">{v.customer?.name || '—'}</Td>
-                <Td>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); navigate(`/vehicles/${v._id}`); }} title="View History" className="cursor-pointer text-primary-500 hover:text-primary-600 hover:bg-primary-50">
-                      <HiOutlineEye />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(v); }} title="Edit" className="cursor-pointer">
-                      <HiOutlinePencil />
-                    </Button>
-                    {hasRole('owner', 'admin') && (
-                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(v._id); }} className="cursor-pointer text-danger hover:text-danger hover:bg-danger-light" title="Delete">
-                        <HiOutlineTrash />
-                      </Button>
-                    )}
-                  </div>
-                </Td>
+      {/* Table + Pagination */}
+      <div className="flex flex-col flex-1">
+        {loading ? (
+          <Loader />
+        ) : vehicles.length === 0 ? (
+          <EmptyState
+            icon={HiOutlineTruck}
+            title="No vehicles found"
+            message="Add your first vehicle to start tracking"
+          />
+        ) : (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>License Plate</Th>
+                <Th>Make</Th>
+                <Th>Model</Th>
+                <Th>Year</Th>
+                <Th>Fuel</Th>
+                <Th>Color</Th>
+                <Th>Owner</Th>
+                <Th>Actions</Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      )}
+            </Thead>
+            <Tbody>
+              {vehicles.map(v => (
+                <Tr key={v._id} className=" hover:bg-blue-50/40 transition-colors" onClick={() => navigate(`/vehicles/${v._id}`)}>
+                  <Td>
+                    <span className="font-bold bg-gray-100 px-2.5 py-1 rounded-md tracking-wider text-sm text-gray-800">
+                      {v.licensePlate}
+                    </span>
+                  </Td>
+                  <Td className="font-semibold text-gray-900">{v.make}</Td>
+                  <Td className="text-gray-700">{v.model}</Td>
+                  <Td className="text-gray-700">{v.year || '—'}</Td>
+                  <Td>
+                    <Badge className={fuelBadges[v.fuelType] || 'bg-gray-100 text-gray-600'}>
+                      {v.fuelType}
+                    </Badge>
+                  </Td>
+                  <Td className="text-gray-700">{v.color || '—'}</Td>
+                  <Td className="text-gray-900 font-medium">{v.customer?.name || '—'}</Td>
+                  <Td>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); navigate(`/vehicles/${v._id}`); }} title="View History" className="cursor-pointer text-primary-500 hover:text-primary-600 hover:bg-primary-50">
+                        <HiOutlineEye />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(v); }} title="Edit" className="cursor-pointer">
+                        <HiOutlinePencil />
+                      </Button>
+                      {hasRole('owner', 'admin') && (
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(v._id); }} className="cursor-pointer text-danger hover:text-danger hover:bg-danger-light" title="Delete">
+                          <HiOutlineTrash />
+                        </Button>
+                      )}
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        )}
 
-      {/* Pagination */}
-      <Pagination
-        page={pagination.page}
-        pages={pagination.pages}
-        onPageChange={(page) => setPagination(p => ({ ...p, page }))}
-      />
+        <Pagination
+          page={pagination.page}
+          pages={pagination.pages}
+          onPageChange={(page) => setPagination(p => ({ ...p, page }))}
+        />
+      </div>
 
       {showModal && (
         <ModalOverlay onClose={() => setShowModal(false)}>
@@ -276,11 +284,9 @@ export default function Vehicles() {
                       value={form.fuelType}
                       onChange={e => setForm({ ...form, fuelType: e.target.value })}
                     >
-                      <option value="petrol">Petrol</option>
-                      <option value="diesel">Diesel</option>
-                      <option value="cng">CNG</option>
-                      <option value="electric">Electric</option>
-                      <option value="hybrid">Hybrid</option>
+                      {FUEL_TYPE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
                     </Select>
                   </div>
                 </div>
@@ -342,3 +348,6 @@ export default function Vehicles() {
     </div>
   );
 }
+
+
+

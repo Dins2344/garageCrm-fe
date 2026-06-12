@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE_URL, TOKEN_KEY, USER_KEY } from '../../utils/constants';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,7 +11,7 @@ const api = axios.create({
 // Request interceptor — inject JWT token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('garagepulse_token');
+    const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -38,8 +37,8 @@ api.interceptors.response.use(
 
     if (status === 401 && !isAuthEndpoint) {
       // Token is missing or expired — clear session and redirect to login
-      localStorage.removeItem('garagepulse_token');
-      localStorage.removeItem('garagepulse_user');
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
       window.location.href = '/login';
     }
 

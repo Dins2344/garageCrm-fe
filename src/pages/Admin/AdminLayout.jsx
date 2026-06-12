@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { verifyAdmin } from '../../services/apiServices/adminService';
+import { ADMIN_TOKEN_KEY } from '../../utils/constants';
 import { BarChart3, Building2, Users, Zap, LogOut } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -10,7 +11,7 @@ export default function AdminLayout() {
   const location = useLocation();
 
   useEffect(() => {
-    const token = localStorage.getItem('garagepulse_admin_token');
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
     if (!token) {
       navigate('/admin-login');
       return;
@@ -19,7 +20,7 @@ export default function AdminLayout() {
     verifyAdmin()
       .then(() => setLoading(false))
       .catch(() => {
-        localStorage.removeItem('garagepulse_admin_token');
+        localStorage.removeItem(ADMIN_TOKEN_KEY);
         toast.error('Admin session expired');
         navigate('/admin-login');
       });
@@ -71,7 +72,7 @@ export default function AdminLayout() {
         <div className="p-4 border-t border-gray-100">
           <button
             onClick={() => {
-              localStorage.removeItem('garagepulse_admin_token');
+              localStorage.removeItem(ADMIN_TOKEN_KEY);
               navigate('/admin-login');
             }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-sm text-red-500 hover:bg-red-50 transition-all"

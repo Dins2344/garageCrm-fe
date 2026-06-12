@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE_URL, ADMIN_TOKEN_KEY } from '../../utils/constants';
 
 const adminApi = axios.create({
   baseURL: `${API_BASE_URL}/admin`,
@@ -12,7 +11,7 @@ const adminApi = axios.create({
 // Admin specific interceptor for its own token
 adminApi.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('garagepulse_admin_token');
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

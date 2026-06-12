@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { GlobalLoaderProvider } from './context/GlobalLoaderContext';
+import Loader from './components/Loader';
 import AppLayout from './components/layout/AppLayout';
 import HomePage from './pages/HomePage';
 import Login from './pages/Login';
@@ -29,12 +31,7 @@ function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] h-screen gap-4 text-gray-500">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-        <p>Loading GaragePulse...</p>
-      </div>
-    );
+    return <Loader variant="page" text="Loading GaragePulse..." />;
   }
 
   if (!user) return <Navigate to="/home" />;
@@ -56,6 +53,7 @@ function AuthRoute({ children }) {
 
 function App() {
   return (
+    <GlobalLoaderProvider>
     <AuthProvider>
       <BrowserRouter>
         <Toaster
@@ -128,6 +126,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </GlobalLoaderProvider>
   );
 }
 

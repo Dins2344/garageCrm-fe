@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { DEFAULT_PAGE_SIZE, LOCALE } from '../utils/constants';
+import Loader from '../components/Loader';
+import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { useConfirm } from '../components/ConfirmModal';
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '../services/apiServices/customerService';
@@ -29,6 +32,7 @@ export default function Customers() {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const { hasRole } = useAuth();
+  const { withLoader } = useGlobalLoader();
   const { confirm, ConfirmModal } = useConfirm();
 
   const [form, setForm] = useState({
@@ -42,10 +46,11 @@ export default function Customers() {
 
   const fetchCustomers = async () => {
     try {
+      setLoading(true);
       const { data, total, pages } = await getCustomers({
         search: debouncedSearch,
         page: pagination.page,
-        limit: 15
+        limit: DEFAULT_PAGE_SIZE
       });
       setCustomers(data);
       setPagination(prev => ({
@@ -80,19 +85,21 @@ export default function Customers() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (editingCustomer) {
-        await updateCustomer(editingCustomer._id, form);
-        toast.success('Customer updated!');
-      } else {
-        await createCustomer(form);
-        toast.success('Customer added!');
+    await withLoader(async () => {
+      try {
+        if (editingCustomer) {
+          await updateCustomer(editingCustomer._id, form);
+          toast.success('Customer updated!');
+        } else {
+          await createCustomer(form);
+          toast.success('Customer added!');
+        }
+        setShowModal(false);
+        fetchCustomers();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to save customer');
       }
-      setShowModal(false);
-      fetchCustomers();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save customer');
-    }
+    });
   };
 
   const handleDelete = async (id) => {
@@ -103,17 +110,19 @@ export default function Customers() {
       intent: 'danger',
     });
     if (!ok) return;
-    try {
-      await deleteCustomer(id);
-      toast.success('Customer deleted');
-      fetchCustomers();
-    } catch (error) {
-      toast.error('Failed to delete customer');
-    }
+    await withLoader(async () => {
+      try {
+        await deleteCustomer(id);
+        toast.success('Customer deleted');
+        fetchCustomers();
+      } catch (error) {
+        toast.error('Failed to delete customer');
+      }
+    });
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       <PageHeader title="Customers">
         {hasRole('owner', 'admin', 'service_advisor', 'receptionist') && (
           <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>
@@ -136,81 +145,81 @@ export default function Customers() {
         </div>
       </div>
 
-      {/* Table */}
-      {loading ? (
-        <div className="min-h-[300px] flex justify-center items-center">
-          <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-        </div>
-      ) : customers.length === 0 ? (
-        <EmptyState
-          icon={HiOutlineSearch}
-          title="No customers found"
-          message="Add your first customer to get started"
-        />
-      ) : (
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Phone</Th>
-              <Th>Email</Th>
-              <Th>Vehicles</Th>
-              <Th>Total Visits</Th>
-              <Th>Total Spent</Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {customers.map(c => (
-              <Tr key={c._id}>
-                <Td className="font-semibold text-gray-900">{c.name}</Td>
-                <Td>
-                  <span className="flex items-center gap-1.5 text-gray-800">
-                    <HiOutlinePhone className="text-gray-400" />
-                    {c.phone}
-                  </span>
-                </Td>
-                <Td>
-                  {c.email ? (
-                    <span className="flex items-center gap-1.5 text-gray-800">
-                      <HiOutlineMail className="text-gray-400" />
-                      {c.email}
-                    </span>
-                  ) : (
-                    <span className="text-gray-400">—</span>
-                  )}
-                </Td>
-                <Td className="text-gray-700">
-                  {c.vehicles?.length || 0} vehicle{c.vehicles?.length !== 1 ? 's' : ''}
-                </Td>
-                <Td className="text-gray-700">{c.totalVisits}</Td>
-                <Td className="font-semibold text-gray-900">
-                  ₹{(c.totalSpent || 0).toLocaleString('en-IN')}
-                </Td>
-                <Td>
-                  <div className="flex gap-2">
-                    <Button className='cursor-pointer' variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edit">
-                      <HiOutlinePencil />
-                    </Button>
-                    {hasRole('owner', 'admin') && (
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(c._id)} className="cursor-pointer text-danger hover:text-danger hover:bg-danger-light" title="Delete">
-                        <HiOutlineTrash />
-                      </Button>
-                    )}
-                  </div>
-                </Td>
+      {/* Table + Pagination */}
+      <div className="flex flex-col flex-1">
+        {loading ? (
+          <Loader />
+        ) : customers.length === 0 ? (
+          <EmptyState
+            icon={HiOutlineSearch}
+            title="No customers found"
+            message="Add your first customer to get started"
+          />
+        ) : (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Phone</Th>
+                <Th>Email</Th>
+                <Th>Vehicles</Th>
+                <Th>Total Visits</Th>
+                <Th>Total Spent</Th>
+                <Th>Actions</Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      )}
+            </Thead>
+            <Tbody>
+              {customers.map(c => (
+                <Tr key={c._id}>
+                  <Td className="font-semibold text-gray-900">{c.name}</Td>
+                  <Td>
+                    <span className="flex items-center gap-1.5 text-gray-800">
+                      <HiOutlinePhone className="text-gray-400" />
+                      {c.phone}
+                    </span>
+                  </Td>
+                  <Td>
+                    {c.email ? (
+                      <span className="flex items-center gap-1.5 text-gray-800">
+                        <HiOutlineMail className="text-gray-400" />
+                        {c.email}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </Td>
+                  <Td className="text-gray-700">
+                    {c.vehicles?.length || 0} vehicle{c.vehicles?.length !== 1 ? 's' : ''}
+                  </Td>
+                  <Td className="text-gray-700">{c.totalVisits}</Td>
+                  <Td className="font-semibold text-gray-900">
+                    ₹{(c.totalSpent || 0).toLocaleString(LOCALE)}
+                  </Td>
+                  <Td>
+                    <div className="flex gap-2">
+                      <Button className='cursor-pointer' variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edit">
+                        <HiOutlinePencil />
+                      </Button>
+                      {hasRole('owner', 'admin') && (
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(c._id)} className="cursor-pointer text-danger hover:text-danger hover:bg-danger-light" title="Delete">
+                          <HiOutlineTrash />
+                        </Button>
+                      )}
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        )}
 
-      {/* Pagination */}
-      <Pagination
-        page={pagination.page}
-        pages={pagination.pages}
-        onPageChange={(page) => setPagination(p => ({ ...p, page }))}
-      />
+        {/* Pagination */}
+        <Pagination
+          page={pagination.page}
+          pages={pagination.pages}
+          onPageChange={(page) => setPagination(p => ({ ...p, page }))}
+        />
+      </div>
 
       {/* Add/Edit Modal */}
       {showModal && (

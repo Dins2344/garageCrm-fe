@@ -22,6 +22,7 @@ import {
 } from 'react-icons/hi';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
+import Loader from '../components/Loader';
 
 const FUEL_COLORS = {
   petrol:   { bg: '#fee2e2', text: '#dc2626', dot: '#ef4444' },
@@ -129,12 +130,7 @@ export default function VehicleDetail() {
   const loadMore = () => fetchHistory(page + 1, true);
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-gray-400">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-        <p className="text-sm">Loading vehicle...</p>
-      </div>
-    );
+    return <Loader text="Loading vehicle..." />;
   }
 
   if (!vehicle) return null;
@@ -398,7 +394,7 @@ export default function VehicleDetail() {
                 >
                   {historyLoading ? (
                     <span className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-gray-300 border-t-primary-500 rounded-full animate-spin" />
+                      <Loader variant="inline" />
                       Loading...
                     </span>
                   ) : `Load More (${total - jobCards.length} remaining)`}
@@ -408,9 +404,7 @@ export default function VehicleDetail() {
 
             {/* Loading skeleton overlay for refresh */}
             {historyLoading && jobCards.length === 0 && (
-              <div className="flex justify-center py-12">
-                <div className="w-8 h-8 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin" />
-              </div>
+              <Loader />
             )}
           </div>
         )}
