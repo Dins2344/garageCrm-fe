@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { HiOutlineExclamation, HiOutlineTrash, HiOutlineBan } from 'react-icons/hi';
 import Button from './Button';
 
@@ -74,8 +75,10 @@ export function useConfirm() {
 
     const cfg = intentConfig[state.intent] ?? intentConfig.default;
     const Icon = cfg.icon;
+    const modalRoot = document.body;
+    if (!modalRoot) return null;
 
-    return (
+    return createPortal(
       // Backdrop
       <div
         className="fixed inset-0 z-[2000] flex items-center justify-center p-5 bg-slate-900/60 backdrop-blur-sm animate-[fadeIn_0.15s_ease]"
@@ -110,7 +113,8 @@ export function useConfirm() {
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      modalRoot
     );
   }
 
