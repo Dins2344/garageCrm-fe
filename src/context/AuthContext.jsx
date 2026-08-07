@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { TOKEN_KEY, USER_KEY } from '../utils/constants';
-import { login as authLogin, register as authRegister, getMe } from '../services/apiServices/authService';
+import { USER_KEY } from '../utils/constants';
+import { login as authLogin, register as authRegister, getMe, logout as authLogout } from '../services/apiServices/authService';
 import IdleTimer from '../components/common/IdleTimer';
 
 const AuthContext = createContext(null);
@@ -10,48 +10,40 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    const savedUser = localStorage.getItem(USER_KEY);
-
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      // Verify token is still valid
-      getMe()
-        .then(res => {
-          setUser(res.data);
-          localStorage.setItem(USER_KEY, JSON.stringify(res.data));
-        })
-        .catch(() => {
-          logout();
-          // Session expired — redirect to public landing
-          if (window.location.pathname !== '/home' && window.location.pathname !== '/login') {
-            window.location.href = '/home';
-          }
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    // Attempt to fetch current user on mount to verify cookie is valid
+    getMe()
+      .then(res => {
+        setUser(res.data);
+        localStorage.setItem(USER_KEY, JSON.stringify(res.data));
+      })
+      .catch(() => {
+        // No valid session cookie found or expired
+        setUser(null);
+        localStorage.removeItem(USER_KEY);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const login = async (email, password) => {
-    const { token, data } = await authLogin(email, password);
-    localStorage.setItem(TOKEN_KEY, token);
+    const { data } = await authLogin(email, password);
     localStorage.setItem(USER_KEY, JSON.stringify(data));
     setUser(data);
     return data;
   };
 
   const register = async (formData) => {
-    const { token, data } = await authRegister(formData);
-    localStorage.setItem(TOKEN_KEY, token);
+    const { data } = await authRegister(formData);
     localStorage.setItem(USER_KEY, JSON.stringify(data));
     setUser(data);
     return data;
   };
 
-  const logout = () => {
-    localStorage.removeItem(TOKEN_KEY);
+  const logout = async () => {
+    try {
+      await authLogout(); // Instruct backend to clear cookie
+    } catch (e) {
+      console.warn('Logout API failed, proceeding with local logout', e);
+    }
     localStorage.removeItem(USER_KEY);
     setUser(null);
   };
