@@ -34,7 +34,7 @@ export default function Header({ collapsed, onMobileMenuOpen }) {
   };
 
   return (
-    <header className="h-header bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
+    <header className="h-header bg-white/70 backdrop-blur-md border-b border-gray-100/50 flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
       <div className="flex items-center gap-3">
         {/* Mobile hamburger menu */}
         <button

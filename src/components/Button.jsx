@@ -10,14 +10,14 @@ export default function Button({
   icon: Icon,
   ...props 
 }) {
-  const baseStyles = "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-150 whitespace-nowrap outline-none active:scale-97 border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyles = "inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all duration-300 whitespace-nowrap outline-none active:scale-95 border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants = {
-    primary: "bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-[0_2px_8px_rgba(59,95,248,0.3)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_4px_12px_rgba(59,95,248,0.4)] hover:-translate-y-[1px]",
-    secondary: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400",
-    accent: "bg-gradient-to-br from-accent-500 to-accent-600 text-white shadow-[0_2px_8px_rgba(249,115,22,0.3)] hover:from-accent-600 hover:to-accent-700 hover:-translate-y-[1px]",
-    danger: "bg-gradient-to-br from-danger to-red-600 text-white hover:shadow-[0_4px_12px_rgba(239,68,68,0.4)] hover:-translate-y-[1px]",
-    success: "bg-gradient-to-br from-success to-emerald-600 text-white hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)] hover:-translate-y-[1px]",
+    primary: "bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-[0_4px_14px_rgba(59,95,248,0.35)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_6px_20px_rgba(59,95,248,0.45)] hover:-translate-y-[2px]",
+    secondary: "bg-white/80 backdrop-blur-sm text-gray-700 border-gray-200 shadow-sm hover:bg-white hover:border-gray-300 hover:shadow-md hover:-translate-y-[2px]",
+    accent: "bg-gradient-to-br from-accent-500 to-accent-600 text-white shadow-[0_4px_14px_rgba(249,115,22,0.35)] hover:from-accent-600 hover:to-accent-700 hover:shadow-[0_6px_20px_rgba(249,115,22,0.45)] hover:-translate-y-[2px]",
+    danger: "bg-gradient-to-br from-danger to-red-600 text-white shadow-[0_4px_14px_rgba(239,68,68,0.3)] hover:shadow-[0_6px_20px_rgba(239,68,68,0.4)] hover:-translate-y-[2px]",
+    success: "bg-gradient-to-br from-success to-emerald-600 text-white shadow-[0_4px_14px_rgba(16,185,129,0.3)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.4)] hover:-translate-y-[2px]",
     ghost: "bg-transparent text-gray-600 border-transparent hover:bg-gray-100 hover:text-gray-800",
   };
 

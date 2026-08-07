@@ -257,7 +257,7 @@ export default function JobCardDetail() {
   const nextStatus = getNextStatus();
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-10">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-4">
@@ -439,34 +439,39 @@ export default function JobCardDetail() {
         </Card>
 
         {/* Estimation Summary */}
-        <Card title="Estimation" className="md:col-span-2 lg:col-span-3">
-          <div className="flex flex-wrap gap-2 mb-6 -mt-20 justify-end">
-            {hasRole('owner', 'admin', 'service_advisor') && !jobCard.invoice && (
-              <Button variant="secondary" size="sm" onClick={() => setShowEstimation(true)} icon={HiOutlinePencil}>
-                Edit Estimation
-              </Button>
-            )}
-            {jobCard.estimation?.grandTotal > 0 && (
-              <Button variant="ghost" size="sm" onClick={downloadEstimation} icon={HiOutlineDownload}>
-                Export Estimation
-              </Button>
-            )}
-            {jobCard.estimation?.grandTotal > 0 && !jobCard.estimation?.approvedByCustomer && (jobCard.status !== 'cancelled' && jobCard.status !== 'delivered') && hasRole('owner', 'admin', 'service_advisor') && (
-              <Button variant="primary" size="sm" onClick={approveEstimation} icon={HiOutlineCheckCircle} className="bg-green-600 hover:bg-green-700">
-                Approve
-              </Button>
-            )}
-            {jobCard.estimation?.approvedByCustomer && !jobCard.invoice && (jobCard.status !== 'cancelled' && jobCard.status !== 'delivered') && hasRole('owner', 'admin', 'service_advisor') && (
-              <Button variant="accent" size="sm" onClick={createInvoice} icon={HiOutlineDocumentText}>
-                Generate Invoice
-              </Button>
-            )}
-            {jobCard.invoice && (
-              <Button variant="primary" size="sm" onClick={() => openInvoice(jobCard.invoice._id || jobCard.invoice)} icon={HiOutlineCurrencyRupee}>
-                View Invoice
-              </Button>
-            )}
-          </div>
+        <Card
+          title="Estimation"
+          className="md:col-span-2 lg:col-span-3"
+          action={
+            <div className="flex flex-wrap gap-2">
+              {hasRole('owner', 'admin', 'service_advisor') && !jobCard.invoice && (
+                <Button variant="secondary" size="sm" onClick={() => setShowEstimation(true)} icon={HiOutlinePencil}>
+                  Edit Estimation
+                </Button>
+              )}
+              {jobCard.estimation?.grandTotal > 0 && (
+                <Button variant="ghost" size="sm" onClick={downloadEstimation} icon={HiOutlineDownload}>
+                  Export Estimation
+                </Button>
+              )}
+              {jobCard.estimation?.grandTotal > 0 && !jobCard.estimation?.approvedByCustomer && (jobCard.status !== 'cancelled' && jobCard.status !== 'delivered') && hasRole('owner', 'admin', 'service_advisor') && (
+                <Button variant="primary" size="sm" onClick={approveEstimation} icon={HiOutlineCheckCircle} className="bg-green-600 hover:bg-green-700">
+                  Approve
+                </Button>
+              )}
+              {jobCard.estimation?.approvedByCustomer && !jobCard.invoice && (jobCard.status !== 'cancelled' && jobCard.status !== 'delivered') && hasRole('owner', 'admin', 'service_advisor') && (
+                <Button variant="accent" size="sm" onClick={createInvoice} icon={HiOutlineDocumentText}>
+                  Generate Invoice
+                </Button>
+              )}
+              {jobCard.invoice && (
+                <Button variant="primary" size="sm" onClick={() => openInvoice(jobCard.invoice._id || jobCard.invoice)} icon={HiOutlineCurrencyRupee}>
+                  View Invoice
+                </Button>
+              )}
+            </div>
+          }
+        >
 
           <div>
             {jobCard.estimation?.grandTotal > 0 ? (

@@ -32,8 +32,7 @@ export function GlobalLoaderProvider({ children }) {
       {/* Full-screen blocking overlay */}
       {active && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center"
-          style={{ background: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(2px)' }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/45 backdrop-blur-sm"
           aria-label="Loading, please wait"
         >
           <div className="flex flex-col items-center gap-4">

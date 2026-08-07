@@ -146,7 +146,7 @@ export default function VehicleDetail() {
     : '—';
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
 
       {/* Top navigation bar */}
       <div className="flex items-center gap-3">
