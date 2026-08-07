@@ -13,7 +13,8 @@ import {
   HiOutlineCheckCircle,
   HiOutlineArrowRight,
   HiOutlineBell,
-  HiOutlineMail
+  HiOutlineMail,
+  HiOutlineRefresh
 } from 'react-icons/hi';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -111,6 +112,21 @@ export default function Dashboard() {
 
   const content = (
     <div className="flex flex-col gap-7">
+      <div className="flex justify-between items-center -mb-2">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard Overview</h1>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          onClick={() => {
+            fetchDashboard();
+            fetchCharts();
+          }}
+          icon={HiOutlineRefresh}
+        >
+          Refresh Data
+        </Button>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
         <StatCard title="Active Job Cards" value={stats?.overview?.activeJobCards || 0} icon={HiOutlineClipboardList} colorClass="blue" />

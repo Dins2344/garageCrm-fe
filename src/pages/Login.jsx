@@ -4,12 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Input } from '../components/Form';
 import Button from '../components/Button';
-import { ClipboardList, Receipt, Package } from 'lucide-react';
+import { ClipboardList, Receipt, Package, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [searchParams] = useSearchParams();
   const [isRegister, setIsRegister] = useState(searchParams.get('register') === 'true');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -204,16 +205,25 @@ export default function Login() {
                   </button>
                 )}
               </div>
-              <Input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                required
-                minLength={6}
-                className="py-3"
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                  className="py-3 pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             <Button

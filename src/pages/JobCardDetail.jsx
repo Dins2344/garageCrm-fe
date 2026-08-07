@@ -285,7 +285,15 @@ export default function JobCardDetail() {
             </Button>
           )}
           {jobCard.status !== 'cancelled' && jobCard.status !== 'delivered' && hasRole('owner', 'admin') && (
-            <Button variant="ghost" onClick={() => updateStatus('cancelled')} className="text-danger hover:text-danger hover:bg-danger-light">
+            <Button variant="ghost" onClick={async () => {
+              const ok = await confirm({
+                title: 'Cancel Job Card?',
+                message: 'Are you sure you want to cancel this job card? This action cannot be undone and will stop all progress.',
+                confirmLabel: 'Cancel Job',
+                intent: 'danger',
+              });
+              if (ok) updateStatus('cancelled');
+            }} className="text-danger hover:text-danger hover:bg-danger-light">
               Cancel
             </Button>
           )}
