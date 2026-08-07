@@ -80,7 +80,7 @@ export default function Vehicles() {
       const { data } = await getCustomers({ limit: DROPDOWN_FETCH_LIMIT });
       setCustomers(data);
     } catch (e) {
-      console.error('Failed to load customers');
+      toast.error('Failed to load customers');
     }
   };
 

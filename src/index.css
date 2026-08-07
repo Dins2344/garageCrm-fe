@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
@@ -40,15 +40,35 @@
   /* Semantic Variables */
   --color-success: #10b981;
   --color-success-light: #d1fae5;
+  --color-success-dark: #047857;
   --color-warning: #f59e0b;
   --color-warning-light: #fef3c7;
+  --color-warning-dark: #d97706;
   --color-danger: #ef4444;
   --color-danger-light: #fee2e2;
   --color-info: #3b82f6;
   --color-info-light: #dbeafe;
+  --color-info-dark: #2563eb;
+
+  /* Purple palette — used for quality_check status, admin, charts */
+  --color-purple-50: #f5f3ff;
+  --color-purple-100: #ede9fe;
+  --color-purple-200: #e9d5ff;
+  --color-purple-500: #8b5cf6;
+  --color-purple-600: #7c3aed;
+  --color-purple-700: #6d28d9;
+
+  /* Teal palette — used for ready_for_pickup, delivered statuses */
+  --color-teal-50: #f0fdfa;
+  --color-teal-100: #ccfbf1;
+  --color-teal-600: #0f766e;
+  --color-teal-700: #0d9488;
+
+  /* Dark slate — admin panel backgrounds */
+  --color-slate-900: #0f172a;
 
   /* Fonts & specific layouts */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: 'Outfit', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   
   /* Custom spacing utilities available in v4 */
   --spacing-sidebar: 260px;
@@ -58,6 +78,24 @@
   /* Radius */
   --radius-xl: 12px;
   --radius-2xl: 16px;
+  
+  /* Premium Shadows */
+  --shadow-premium: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-premium-hover: 0 8px 30px -4px rgba(0, 0, 0, 0.1);
+  --shadow-premium-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.03);
+
+  /* Premium Animations */
+  --animate-fade-in-up: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-float: float 4s ease-in-out infinite;
+  
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
 }
 
 /* Base styles cleanup */
@@ -69,7 +107,8 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-gray-50);
+  background: linear-gradient(135deg, #fdfcfb 0%, #f1f3f6 100%);
+  background-attachment: fixed;
   color: var(--color-gray-800);
   min-height: 100vh;
   margin: 0;
@@ -88,4 +127,9 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-gray-400);
+}
+
+/* Ensure all clickable elements have a pointer cursor */
+a, button, [role="button"], select, label, input[type="checkbox"], input[type="radio"], input[type="submit"], input[type="button"], input[type="reset"] {
+  cursor: pointer;
 }

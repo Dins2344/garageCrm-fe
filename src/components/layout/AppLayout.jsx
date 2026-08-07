@@ -26,7 +26,7 @@ export default function AppLayout() {
   }, [mobileOpen]);
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-gray-800 font-sans">
+    <div className="flex min-h-screen text-gray-800 font-sans">
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -38,7 +38,7 @@ export default function AppLayout() {
           collapsed={sidebarCollapsed}
           onMobileMenuOpen={() => setMobileOpen(true)}
         />
-        <main className="flex flex-col flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden w-full max-w-full">
+        <main className="flex flex-col flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden w-full max-w-full animate-fade-in-up">
           <Outlet />
         </main>
       </div>

@@ -89,7 +89,7 @@ export default function EstimationApproval() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50 py-8 px-4">
       {/* Max-width container */}
-      <div className="max-w-2xl mx-auto space-y-5">
+      <div className="w-full max-w-2xl mx-auto space-y-5">
 
         {/* ── Header ── */}
         <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-8 text-white text-center shadow-xl">

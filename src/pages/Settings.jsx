@@ -23,11 +23,11 @@ import {
 // ─── Role config ─────────────────────────────────────────────────────────────
 
 const ROLE_CONFIG = {
-  owner: { label: 'Owner', color: '#3b5ff8', bg: '#eff2ff' },
-  admin: { label: 'Admin', color: '#7c3aed', bg: '#f5f3ff' },
-  service_advisor: { label: 'Service Advisor', color: '#10b981', bg: '#f0fdf4' },
-  mechanic: { label: 'Mechanic', color: '#f59e0b', bg: '#fef3c7' },
-  receptionist: { label: 'Receptionist', color: '#0f766e', bg: '#f0fdfa' },
+  owner: { label: 'Owner', classes: 'bg-primary-50 text-primary-500' },
+  admin: { label: 'Admin', classes: 'bg-purple-50 text-purple-600' },
+  service_advisor: { label: 'Service Advisor', classes: 'bg-success-light text-success' },
+  mechanic: { label: 'Mechanic', classes: 'bg-warning-light text-warning' },
+  receptionist: { label: 'Receptionist', classes: 'bg-teal-50 text-teal-600' },
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -93,11 +93,10 @@ function PasswordInput({ value, onChange, placeholder, ...props }) {
 }
 
 function RoleBadge({ role }) {
-  const cfg = ROLE_CONFIG[role] || { label: role, color: '#6b7280', bg: '#f3f4f6' };
+  const cfg = ROLE_CONFIG[role] || { label: role, classes: 'bg-gray-100 text-gray-600' };
   return (
     <span
-      className="px-2.5 py-0.5 rounded-full text-xs font-bold"
-      style={{ background: cfg.bg, color: cfg.color }}
+      className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${cfg.classes}`}
     >
       {cfg.label}
     </span>
@@ -414,7 +413,7 @@ export default function Settings() {
   }, [staff, staffSearch, staffRoleFilter]);
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-12">
+    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto pb-12">
 
       {/* ── PROFILE HERO BANNER ── */}
       <div className="relative rounded-2xl bg-gradient-to-br from-primary-600 to-purple-700 p-6 overflow-hidden shadow-xl shadow-primary-500/20">
@@ -625,8 +624,7 @@ export default function Settings() {
                   >
                     {/* Avatar */}
                     <div
-                      className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-lg shrink-0"
-                      style={{ background: cfg.bg, color: cfg.color }}
+                      className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${cfg.classes}`}
                     >
                       {u.name?.charAt(0)?.toUpperCase()}
                     </div>
@@ -637,7 +635,7 @@ export default function Settings() {
                         <span className="font-bold text-gray-900 text-sm">
                           {u.name}{isSelf ? <span className="text-primary-500 font-normal"> (You)</span> : ''}
                         </span>
-                        <div className="w-2 h-2 rounded-full shrink-0" style={{ background: u.isActive ? '#10b981' : '#d1d5db' }} />
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${u.isActive ? 'bg-success' : 'bg-gray-300'}`} />
                       </div>
                       <p className="text-xs text-gray-500 mt-0.5">{u.email}</p>
                       <p className="text-xs text-gray-400">{u.phone}</p>
