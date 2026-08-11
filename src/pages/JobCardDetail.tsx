@@ -4,6 +4,7 @@ import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { getJobCard, updateJobCard, saveJobCardEstimation, approveJobCardEstimation, downloadEstimationPDF } from '../services/apiServices/jobCardService';
 import { getMechanics } from '../services/apiServices/userService';
+import { getGarage } from '../services/apiServices/garageService';
 import { createInvoice as generateInvoice } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -70,12 +71,26 @@ export default function JobCardDetail() {
     try {
       const { data } = await getJobCard(id!);
       setJobCard(data);
+
+      // The estimation subdocument's taxRate always defaults to 18 in the
+      // schema, so it can't distinguish "never filled in" from "actually
+      // 18" — treat an estimation with no parts/labor yet as new and seed
+      // its tax rate from the garage's configured default instead.
+      const isNewEstimation = !data.estimation?.parts?.length && !data.estimation?.labor?.length;
+      let defaultTaxRate = 18;
+      if (isNewEstimation) {
+        try {
+          const { data: garage } = await getGarage();
+          defaultTaxRate = garage.settings?.taxRate ?? 18;
+        } catch { /* fall back to 18 */ }
+      }
+
       if (data.estimation) {
         setEstimation({
           parts: data.estimation.parts || [],
           labor: data.estimation.labor || [],
           discount: data.estimation.discount || 0,
-          taxRate: data.estimation.taxRate || 18
+          taxRate: isNewEstimation ? defaultTaxRate : (data.estimation.taxRate ?? defaultTaxRate)
         });
       }
     } catch {

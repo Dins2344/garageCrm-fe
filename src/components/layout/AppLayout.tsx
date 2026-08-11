@@ -2,11 +2,13 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { useGarage } from '../../context/GarageContext';
 
 export default function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { activeGarageId } = useGarage();
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function AppLayout() {
           onMobileMenuOpen={() => setMobileOpen(true)}
         />
         <main className="flex flex-col flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden w-full max-w-full animate-fade-in-up">
-          <Outlet />
+          <Outlet key={activeGarageId ?? 'default'} />
         </main>
       </div>
     </div>

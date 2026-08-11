@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL, USER_KEY } from '../../utils/constants';
+import { API_BASE_URL, USER_KEY, ACTIVE_GARAGE_KEY } from '../../utils/constants';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,9 +9,16 @@ const api = axios.create({
   }
 });
 
-// Request interceptor (can be used for other headers later)
+// Attaches the owner's currently-selected garage (branch) to every request.
+// Ignored server-side for non-owner roles, so it's safe to always send.
 api.interceptors.request.use(
-  (config) => config,
+  (config) => {
+    const garageId = localStorage.getItem(ACTIVE_GARAGE_KEY);
+    if (garageId) {
+      config.headers['X-Garage-Id'] = garageId;
+    }
+    return config;
+  },
   (error) => Promise.reject(error)
 );
 
@@ -35,6 +42,7 @@ api.interceptors.response.use(
     if (status === 401 && !isAuthEndpoint) {
       // Token is missing or expired — clear session and redirect to login
       localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(ACTIVE_GARAGE_KEY);
       if (window.location.pathname !== '/login' && window.location.pathname !== '/home') {
         window.location.href = '/login';
       }

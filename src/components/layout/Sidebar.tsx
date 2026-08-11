@@ -1,7 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import type { ComponentType } from 'react';
+import { useState, type ComponentType } from 'react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import { useGarage } from '../../context/GarageContext';
 import { useConfirm } from '../ConfirmModal';
+import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../Modal';
+import { FormField, Input } from '../Form';
+import Button from '../Button';
 import type { Role } from '../../types/models';
 import {
   HiOutlineViewGrid,
@@ -11,6 +16,9 @@ import {
   HiOutlineDocumentText,
   HiOutlineCog,
   HiOutlineChevronRight,
+  HiOutlineChevronDown,
+  HiOutlineOfficeBuilding,
+  HiOutlinePlus,
   HiOutlineLogout,
   HiOutlineX
 } from 'react-icons/hi';
@@ -42,7 +50,12 @@ interface SidebarProps {
 
 export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const { user, logout } = useAuth();
+  const { garages, activeGarageId, switchGarage, addBranch } = useGarage();
   const { confirm, ConfirmModal } = useConfirm();
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [addBranchOpen, setAddBranchOpen] = useState(false);
+  const [branchForm, setBranchForm] = useState({ name: '', phone: '' });
+  const [submittingBranch, setSubmittingBranch] = useState(false);
 
   const handleLogout = async () => {
     const ok = await confirm({
@@ -52,6 +65,37 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
       intent: 'warning',
     });
     if (ok) logout();
+  };
+
+  const activeGarage = garages.find(g => g._id === activeGarageId);
+
+  const handleSwitchGarage = (garageId: string) => {
+    switchGarage(garageId);
+    setSwitcherOpen(false);
+  };
+
+  const openAddBranch = () => {
+    setSwitcherOpen(false);
+    setBranchForm({ name: '', phone: '' });
+    setAddBranchOpen(true);
+  };
+
+  const handleAddBranch = async () => {
+    if (!branchForm.name.trim() || !branchForm.phone.trim()) {
+      toast.error('Branch name and phone are required');
+      return;
+    }
+    setSubmittingBranch(true);
+    try {
+      await addBranch({ name: branchForm.name.trim(), phone: branchForm.phone.trim() });
+      toast.success('Branch added!');
+      setAddBranchOpen(false);
+    } catch (e) {
+      const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      toast.error(message || 'Failed to add branch');
+    } finally {
+      setSubmittingBranch(false);
+    }
   };
 
   const visibleItems = navItems.filter(item => user && item.roles.includes(user.role));
@@ -113,6 +157,46 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
           </button>
         </div>
 
+        {/* Garage switcher (owners only) */}
+        {user?.role === 'owner' && (
+          <div className="border-b border-white/10 p-3 relative">
+            <button
+              className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all w-full text-left text-gray-300 hover:bg-white/10 hover:text-white"
+              onClick={() => setSwitcherOpen(o => !o)}
+              title={collapsed ? activeGarage?.name : undefined}
+            >
+              <HiOutlineOfficeBuilding className="text-xl shrink-0" />
+              {(!collapsed || mobileOpen) && (
+                <>
+                  <span className="truncate flex-1">{activeGarage?.name || 'Select garage'}</span>
+                  <HiOutlineChevronDown className={`shrink-0 transition-transform ${switcherOpen ? 'rotate-180' : ''}`} />
+                </>
+              )}
+            </button>
+
+            {switcherOpen && (!collapsed || mobileOpen) && (
+              <div className="mt-1 bg-gray-800 rounded-lg overflow-hidden border border-white/10">
+                {garages.map(g => (
+                  <button
+                    key={g._id}
+                    className={`flex items-center w-full text-left px-3.5 py-2 text-sm truncate transition-colors ${g._id === activeGarageId ? 'bg-primary-600/30 text-white' : 'text-gray-300 hover:bg-white/10'
+                      }`}
+                    onClick={() => handleSwitchGarage(g._id)}
+                  >
+                    {g.name}
+                  </button>
+                ))}
+                <button
+                  className="flex items-center gap-2 w-full text-left px-3.5 py-2 text-sm text-primary-400 hover:bg-white/10 border-t border-white/10"
+                  onClick={openAddBranch}
+                >
+                  <HiOutlinePlus /> Add Branch
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Navigation */}
         <nav className="flex-1 p-3 flex flex-col gap-1 overflow-y-auto overflow-x-hidden">
           {visibleItems.map(item => (
@@ -164,6 +248,40 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
 
       {/* Logout confirmation modal */}
       <ConfirmModal />
+
+      {/* Add branch modal */}
+      {addBranchOpen && (
+        <ModalOverlay onClose={() => setAddBranchOpen(false)}>
+          <Modal className="max-w-[420px]">
+            <ModalHeader title="Add Branch" onClose={() => setAddBranchOpen(false)} />
+            <ModalBody>
+              <FormField label="Branch Name">
+                <Input
+                  value={branchForm.name}
+                  onChange={e => setBranchForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="e.g. Downtown Branch"
+                  autoFocus
+                />
+              </FormField>
+              <FormField label="Phone" className="mb-0">
+                <Input
+                  value={branchForm.phone}
+                  onChange={e => setBranchForm(f => ({ ...f, phone: e.target.value }))}
+                  placeholder="10-digit phone number"
+                />
+              </FormField>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" onClick={() => setAddBranchOpen(false)} disabled={submittingBranch}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddBranch} disabled={submittingBranch}>
+                {submittingBranch ? 'Adding...' : 'Add Branch'}
+              </Button>
+            </ModalFooter>
+          </Modal>
+        </ModalOverlay>
+      )}
     </>
   );
 }

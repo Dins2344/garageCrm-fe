@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
-import { HiOutlineBell, HiOutlineSearch, HiOutlineMenuAlt2 } from 'react-icons/hi';
+import { HiOutlineMenuAlt2, HiOutlineOfficeBuilding } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
+import { useGarage } from '../../context/GarageContext';
 import { Hand } from 'lucide-react';
 
 const pageTitles: Record<string, string> = {
@@ -20,6 +21,7 @@ interface HeaderProps {
 export default function Header({ onMobileMenuOpen }: HeaderProps) {
   const location = useLocation();
   const { user } = useAuth();
+  const { activeGarageName } = useGarage();
 
   const getTitle = () => {
     const path = location.pathname;
@@ -61,21 +63,14 @@ export default function Header({ onMobileMenuOpen }: HeaderProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative hidden md:block">
-          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
-          <input
-            type="text"
-            placeholder="Search anything..."
-            className="w-[280px] h-10 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-full text-sm outline-none transition-all focus:bg-white focus:border-primary-400 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.1)]"
-          />
+      {activeGarageName && (
+        <div className="hidden md:flex items-center gap-2 text-sm font-semibold text-gray-700 bg-gray-50 px-4 py-2 rounded-full border border-gray-100 absolute left-1/2 -translate-x-1/2">
+          <HiOutlineOfficeBuilding className="text-primary-600" />
+          {activeGarageName}
         </div>
+      )}
 
-        <button className="relative w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors" id="notification-bell">
-          <HiOutlineBell className="text-xl" />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-danger rounded-full border-2 border-white" />
-        </button>
-
+      <div className="flex items-center gap-4">
         <div className="hidden sm:flex items-center text-sm font-medium text-gray-600 bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
           {new Date().toLocaleDateString('en-IN', {
             weekday: 'short',

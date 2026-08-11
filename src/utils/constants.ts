@@ -11,6 +11,7 @@ export const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://loca
 export const TOKEN_KEY = 'garagepulse_token';
 export const USER_KEY = 'garagepulse_user';
 export const ADMIN_TOKEN_KEY = 'garagepulse_admin_token';
+export const ACTIVE_GARAGE_KEY = 'garagepulse_active_garage';
 
 // ── Pagination ────────────────────────────────────────────────
 export const DEFAULT_PAGE_SIZE = 10;

@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { GarageProvider } from './context/GarageContext';
 import { GlobalLoaderProvider } from './context/GlobalLoaderContext';
 import Loader from './components/Loader';
 import AppLayout from './components/layout/AppLayout';
@@ -62,6 +63,7 @@ function App() {
   return (
     <GlobalLoaderProvider>
     <AuthProvider>
+    <GarageProvider>
       <BrowserRouter>
         <Toaster
           position="bottom-right"
@@ -134,6 +136,7 @@ function App() {
           </Routes>
         </Suspense>
       </BrowserRouter>
+    </GarageProvider>
     </AuthProvider>
     </GlobalLoaderProvider>
   );

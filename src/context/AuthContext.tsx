@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { USER_KEY } from '../utils/constants';
+import { USER_KEY, ACTIVE_GARAGE_KEY } from '../utils/constants';
 import { login as authLogin, register as authRegister, getMe, logout as authLogout, type RegisterFormData } from '../services/apiServices/authService';
 import IdleTimer from '../components/common/IdleTimer';
 import type { User, Role } from '../types/models';
@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn('Logout API failed, proceeding with local logout', e);
     }
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(ACTIVE_GARAGE_KEY);
     setUser(null);
   };
 
