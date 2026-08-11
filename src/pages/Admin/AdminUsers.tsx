@@ -51,9 +51,11 @@ export default function AdminUsers() {
                 <div className="font-semibold text-gray-700">{garage?.name || 'Unknown'}</div>
               </td>
               <td className="px-6 py-4">
-                <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                  user.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'
-                }`}>
+                <span className={
+                  user.isActive
+                    ? 'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700'
+                    : 'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600'
+                }>
                   <span className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
                   {user.isActive ? 'Active' : 'Inactive'}
                 </span>

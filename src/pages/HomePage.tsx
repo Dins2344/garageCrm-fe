@@ -107,7 +107,7 @@ function StatItem({ value, label, icon: Icon }: StatItemProps) {
       <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center mb-1">
         <Icon className="w-6 h-6 text-primary-600" strokeWidth={1.5} />
       </div>
-      <div className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-primary-500 to-purple-500 bg-clip-text text-transparent">
+      <div className="text-4xl md:text-5xl font-extrabold text-primary-600">
         {value}
       </div>
       <div className="text-gray-500 text-sm font-medium">{label}</div>
@@ -261,7 +261,7 @@ export default function HomePage() {
       icon: Users,
       title: 'Customer CRM',
       desc: 'Maintain detailed customer and vehicle history for personalized, repeat service.',
-      gradient: 'bg-gradient-to-br from-purple-50/80 to-violet-50/80',
+      gradient: 'bg-gradient-to-br from-lime-50/80 to-green-50/80',
     },
     {
       icon: Receipt,
@@ -495,7 +495,7 @@ export default function HomePage() {
           <Reveal delay={80}>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-6">
               Run your garage{' '}
-              <span className="bg-gradient-to-r from-primary-600 via-purple-600 to-accent-500 bg-clip-text text-transparent">
+              <span className="text-accent-600">
                 like a pro
               </span>
             </h1>

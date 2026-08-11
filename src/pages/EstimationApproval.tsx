@@ -98,12 +98,12 @@ export default function EstimationApproval() {
       <div className="w-full max-w-2xl mx-auto space-y-5">
 
         {/* ── Header ── */}
-        <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-8 text-white text-center shadow-xl">
+        <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl p-8 text-white text-center shadow-xl">
 
-          <p className="text-indigo-200 text-xs uppercase tracking-widest mb-1">Service Estimation</p>
+          <p className="text-primary-200 text-xs uppercase tracking-widest mb-1">Service Estimation</p>
           <h1 className="text-2xl font-bold">{garage?.name || 'Your Garage'}</h1>
           {garage?.phone && (
-            <p className="text-indigo-200 text-sm mt-1">{garage.phone}</p>
+            <p className="text-primary-200 text-sm mt-1">{garage.phone}</p>
           )}
         </div>
 
@@ -154,7 +154,7 @@ export default function EstimationApproval() {
             </div>
             <div>
               <p className="text-xs text-slate-400 mb-1">Job Card</p>
-              <p className="font-semibold text-indigo-600">{jobCardNumber}</p>
+              <p className="font-semibold text-primary-600">{jobCardNumber}</p>
             </div>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function EstimationApproval() {
             )}
             <div className="flex justify-between items-center pt-3 border-t border-slate-200">
               <span className="font-bold text-slate-900 text-base">Grand Total</span>
-              <span className="font-extrabold text-indigo-600 text-xl">{fmt(estimation?.grandTotal)}</span>
+              <span className="font-extrabold text-primary-600 text-xl">{fmt(estimation?.grandTotal)}</span>
             </div>
           </div>
         </div>
@@ -258,8 +258,8 @@ export default function EstimationApproval() {
           <button
             onClick={handleApprove}
             disabled={approving}
-            className="w-full py-4 rounded-2xl font-bold text-white text-lg shadow-lg shadow-indigo-200 transition-all
-              bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700
+            className="w-full py-4 rounded-2xl font-bold text-white text-lg shadow-lg shadow-primary-200 transition-all
+              bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800
               disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.99]"
           >
             {approving ? (

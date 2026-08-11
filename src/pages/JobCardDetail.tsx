@@ -337,15 +337,18 @@ export default function JobCardDetail() {
             const currentIndex = STATUS_FLOW.indexOf(jobCard.status);
             const isCompleted = index <= currentIndex;
             const isCurrent = index === currentIndex;
+            const circleClass = isCurrent
+              ? 'bg-primary-500 text-white shadow-md ring-4 ring-primary-50'
+              : isCompleted
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-100 text-gray-400 border-2 border-white';
+            const labelClass = isCurrent ? 'text-primary-600' : isCompleted ? 'text-green-600' : 'text-gray-400';
             return (
               <div key={status} className="flex flex-col items-center flex-1 z-10 relative">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${isCurrent ? 'bg-primary-500 text-white shadow-md ring-4 ring-primary-50' :
-                  isCompleted ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400 border-2 border-white'
-                  }`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${circleClass}`}>
                   {isCompleted && !isCurrent ? <HiOutlineCheck className="text-lg" /> : index + 1}
                 </div>
-                <span className={`mt-3 text-xs font-semibold uppercase tracking-wider text-center ${isCurrent ? 'text-primary-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
-                  }`}>
+                <span className={`mt-3 text-xs font-semibold uppercase tracking-wider text-center ${labelClass}`}>
                   {status.replace(/_/g, ' ')}
                 </span>
               </div>
@@ -447,7 +450,7 @@ export default function JobCardDetail() {
                     {new Date(history.changedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {changedBy?.name || 'Staff'}
                   </div>
                   {history.notes && (
-                    <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded-lg border-l-2 border-primary-200">
+                    <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded-lg">
                       {history.notes}
                     </div>
                   )}
