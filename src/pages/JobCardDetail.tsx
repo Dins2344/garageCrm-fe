@@ -381,6 +381,14 @@ export default function JobCardDetail() {
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Phone</span>
               <span className="font-medium text-gray-900">{customer?.phone}</span>
             </div>
+            {(customer?.address?.street || customer?.address?.city) && (
+              <div>
+                <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Place</span>
+                <span className="font-medium text-gray-900">
+                  {[customer.address?.street, customer.address?.city].filter(Boolean).join(', ')}
+                </span>
+              </div>
+            )}
             <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Odometer</span>
               <span className="font-medium text-gray-900">{jobCard.odometerAtIntake?.toLocaleString() || '—'} km</span>

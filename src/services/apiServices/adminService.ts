@@ -90,4 +90,23 @@ export const getSystemHealth = async (): Promise<ApiItemResponse<SystemHealth>> 
   return res.data;
 };
 
+export interface DeleteUserResult {
+  deletedUser: { id: string; email: string; role: string };
+  cascadedGarages?: number;
+  cascadedCounts?: {
+    users: number;
+    customers: number;
+    vehicles: number;
+    jobCards: number;
+    invoices: number;
+    inventory: number;
+    reminders: number;
+  };
+}
+
+export const deleteUser = async (userId: string): Promise<ApiItemResponse<DeleteUserResult>> => {
+  const res = await adminApi.delete(`/users/${userId}`);
+  return res.data;
+};
+
 export default adminApi;
