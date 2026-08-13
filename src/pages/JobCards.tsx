@@ -255,7 +255,11 @@ export default function JobCards() {
     return hasCustomer && hasVehicle;
   };
 
-  const canProceedStep2 = () => workForm.odometerAtIntake.trim() !== '';
+  const canProceedStep2 = () =>
+    !!workForm.serviceType &&
+    !!workForm.assignedAdvisor &&
+    workForm.odometerAtIntake.trim() !== '' &&
+    workForm.complaints.some(c => c.description.trim() !== '');
 
   // ---- Final Submission ----
   const handleSubmit = async () => {
