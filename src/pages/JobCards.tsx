@@ -43,7 +43,7 @@ interface NewCustomerForm {
   name: string;
   phone: string;
   email: string;
-  address: { city: string; pincode: string };
+  address: { street: string; city: string; pincode: string };
 }
 
 interface NewVehicleForm {
@@ -92,7 +92,7 @@ export default function JobCards() {
   const [customerSearch, setCustomerSearch] = useState('');
   const [newCustomer, setNewCustomer] = useState<NewCustomerForm>({
     name: '', phone: '', email: '',
-    address: { city: '', pincode: '' }
+    address: { street: '', city: '', pincode: '' }
   });
 
   // Step-1: Vehicle
@@ -232,7 +232,7 @@ export default function JobCards() {
     setCustomerMode('existing');
     setSelectedCustomer(null);
     setCustomerSearch('');
-    setNewCustomer({ name: '', phone: '', email: '', address: { city: '', pincode: '' } });
+    setNewCustomer({ name: '', phone: '', email: '', address: { street: '', city: '', pincode: '' } });
     setVehicleMode('existing');
     setSelectedVehicle(null);
     setVehicleSearch('');
@@ -254,6 +254,8 @@ export default function JobCards() {
       : newVehicle.licensePlate.trim() && newVehicle.make.trim() && newVehicle.model.trim();
     return hasCustomer && hasVehicle;
   };
+
+  const canProceedStep2 = () => workForm.odometerAtIntake.trim() !== '';
 
   // ---- Final Submission ----
   const handleSubmit = async () => {
@@ -586,7 +588,7 @@ export default function JobCards() {
                               />
                             </div>
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
                               <Input
@@ -596,6 +598,16 @@ export default function JobCards() {
                                 placeholder="Optional"
                               />
                             </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Place</label>
+                              <Input
+                                value={newCustomer.address.street}
+                                onChange={e => setNewCustomer({ ...newCustomer, address: { ...newCustomer.address, street: e.target.value } })}
+                                placeholder="Area / locality"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">City</label>
                               <Input
@@ -846,12 +858,14 @@ export default function JobCards() {
                       </Select>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Odometer Reading (km)</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Odometer Reading (km) *</label>
                       <Input
                         type="number"
                         value={workForm.odometerAtIntake}
                         onChange={e => setWorkForm({ ...workForm, odometerAtIntake: e.target.value })}
                         placeholder="42000"
+                        min="0"
+                        required
                       />
                     </div>
                   </div>
@@ -943,7 +957,7 @@ export default function JobCards() {
                     </Button>
                   )}
                   {step === 2 && (
-                    <Button variant="primary" onClick={handleSubmit} icon={HiOutlineCheck}>
+                    <Button variant="primary" onClick={handleSubmit} icon={HiOutlineCheck} disabled={!canProceedStep2()}>
                       Create Job Card
                     </Button>
                   )}

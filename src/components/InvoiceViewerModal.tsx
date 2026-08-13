@@ -135,7 +135,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
     const customer = inv?.customer as Customer | undefined;
     const vehicle = inv?.vehicle as Vehicle | undefined;
     const garage = inv?.garage as Garage | undefined;
-    const jobCard = inv?.jobCard as { jobCardNumber?: string } | undefined;
+    const jobCard = inv?.jobCard as { jobCardNumber?: string; odometerAtIntake?: number } | undefined;
 
     return (
       <>
@@ -265,6 +265,9 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                       {vehicle?.color && (
                         <div className="text-gray-500 mt-1">Color: {vehicle.color}</div>
                       )}
+                      {jobCard?.odometerAtIntake !== undefined && jobCard.odometerAtIntake !== null && (
+                        <div className="text-gray-500 mt-1">Kilometers Run: {jobCard.odometerAtIntake.toLocaleString('en-IN')} km</div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -369,7 +372,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                         </div>
                       )}
                       <div className="flex justify-between items-center text-gray-600 text-sm font-medium">
-                        <span>Tax ({inv.taxRate || 18}%)</span>
+                        <span>Tax ({inv.taxRate ?? 18}%)</span>
                         <span className="text-gray-900">{formatCurrency(inv.taxAmount)}</span>
                       </div>
 
