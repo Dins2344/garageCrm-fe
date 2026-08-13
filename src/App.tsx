@@ -25,6 +25,8 @@ const JobCardDetail = lazy(() => import('./pages/JobCardDetail'));
 const Invoices = lazy(() => import('./pages/Invoices'));
 const Settings = lazy(() => import('./pages/Settings'));
 const EstimationApproval = lazy(() => import('./pages/EstimationApproval'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 // Admin Pages
 const AdminLogin = lazy(() => import('./pages/Admin/AdminLogin'));
@@ -94,6 +96,12 @@ function App() {
             <Route path="/login" element={
               <AuthRoute><Login /></AuthRoute>
             } />
+            <Route path="/forgot-password" element={
+              <AuthRoute><ForgotPassword /></AuthRoute>
+            } />
+
+            {/* Public: password reset via emailed token — no auth required */}
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
 
             {/* Protected: App shell */}
             <Route element={

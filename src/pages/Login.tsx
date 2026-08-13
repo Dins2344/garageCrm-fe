@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Input } from '../components/Form';
@@ -187,9 +187,9 @@ export default function Login() {
               <div className="flex justify-between items-center mb-1.5">
                 <label className="block text-sm font-semibold text-gray-700">Password</label>
                 {!isRegister && (
-                  <button type="button" className="text-sm font-medium text-primary-600 hover:text-primary-700">
+                  <Link to="/forgot-password" className="text-sm font-medium text-primary-600 hover:text-primary-700">
                     Forgot password?
-                  </button>
+                  </Link>
                 )}
               </div>
               <div className="relative">

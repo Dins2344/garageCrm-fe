@@ -47,3 +47,13 @@ export const logout = async (): Promise<{ success: boolean; data: Record<string,
   const res = await api.post('/auth/logout');
   return res.data;
 };
+
+export const forgotPassword = async (email: string): Promise<ApiMessageResponse> => {
+  const res = await api.post('/auth/forgotpassword', { email });
+  return res.data;
+};
+
+export const resetPassword = async (token: string, password: string): Promise<ApiMessageResponse> => {
+  const res = await api.put(`/auth/resetpassword/${token}`, { password });
+  return res.data;
+};
