@@ -863,12 +863,19 @@ export default function JobCards() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1.5">Odometer Reading (km) *</label>
+                      {/* `type="text"` + `inputMode="numeric"` rather than
+                          `type="number"`: still gets a numeric keypad on
+                          mobile, but avoids the number-input quirk where
+                          scrolling the wheel over a focused field silently
+                          changes its value. Digits only, capped at 7
+                          (9,999,999 km is beyond any real vehicle). */}
                       <Input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         value={workForm.odometerAtIntake}
-                        onChange={e => setWorkForm({ ...workForm, odometerAtIntake: e.target.value })}
+                        onChange={e => setWorkForm(f => ({ ...f, odometerAtIntake: e.target.value.replace(/\D/g, '').slice(0, 7) }))}
                         placeholder="42000"
-                        min="0"
+                        maxLength={7}
                         required
                       />
                     </div>
