@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { useConfirm } from './ConfirmModal';
 import { getInvoice, updateInvoicePayment, downloadInvoicePdf, deleteInvoice } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
+import { useGarage } from '../context/GarageContext';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
+import { formatMoney, formatNumber, formatDate as fmtDate } from '../utils/format';
 import toast from 'react-hot-toast';
 import {
-  HiOutlineCurrencyRupee,
+  // Currency-neutral: a rupee glyph on a UK garage's invoice is just wrong.
+  HiOutlineReceiptTax,
   HiOutlineCheckCircle,
   HiOutlineDownload,
   HiOutlineX,
@@ -32,6 +35,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
   const [viewerInvoice, setViewerInvoice] = useState<Invoice | null>(null);
   const [viewerLoading, setViewerLoading] = useState(false);
   const { hasRole } = useAuth();
+  const { locale } = useGarage();
   const { withLoader } = useGlobalLoader();
   const { confirm, ConfirmModal } = useConfirm();
 
@@ -111,22 +115,13 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
     });
   };
 
-  const formatDate = (date?: string | null) => {
-    if (!date) return '—';
-    return new Date(date).toLocaleDateString('en-IN', {
-      day: 'numeric', month: 'short', year: 'numeric'
-    });
-  };
+  const formatDate = (date?: string | null) =>
+    date ? fmtDate(date, locale, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
-  const formatDateLong = (date?: string | null) => {
-    if (!date) return '—';
-    return new Date(date).toLocaleDateString('en-IN', {
-      weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'
-    });
-  };
+  const formatDateLong = (date?: string | null) =>
+    date ? fmtDate(date, locale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) : '—';
 
-  const formatCurrency = (amount?: number) =>
-    `₹${(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formatCurrency = (amount?: number) => formatMoney(amount, locale);
 
   const InvoiceModal = () => {
     if (!viewerOpen) return null;
@@ -144,7 +139,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
           {/* Custom Header to accommodate actions */}
           <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <HiOutlineCurrencyRupee className="text-primary-600 text-2xl" />
+              <HiOutlineReceiptTax className="text-primary-600 text-2xl" />
               {inv?.invoiceNumber || 'Loading...'}
             </h2>
             <div className="flex items-center gap-2">
@@ -217,7 +212,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                       {garage?.phone && <p className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-gray-400" /> {garage.phone}</p>}
                       {garage?.gstNumber && (
                         <p className="font-semibold text-gray-700 mt-1">
-                          GSTIN: {garage.gstNumber}
+                          {locale.taxIdLabel}: {garage.gstNumber}
                         </p>
                       )}
                     </div>
@@ -266,7 +261,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                         <div className="text-gray-500 mt-1">Color: {vehicle.color}</div>
                       )}
                       {jobCard?.odometerAtIntake !== undefined && jobCard.odometerAtIntake !== null && (
-                        <div className="text-gray-500 mt-1">Kilometers Run: {jobCard.odometerAtIntake.toLocaleString('en-IN')} km</div>
+                        <div className="text-gray-500 mt-1">Kilometers Run: {formatNumber(jobCard.odometerAtIntake, locale)} km</div>
                       )}
                     </div>
                   </div>
@@ -372,7 +367,10 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                         </div>
                       )}
                       <div className="flex justify-between items-center text-gray-600 text-sm font-medium">
-                        <span>Tax ({inv.taxRate ?? 18}%)</span>
+                        {/* `?? 0`, never `?? 18`: in a zero-tax country the old
+                            fallback printed a fabricated 18% line on a real
+                            customer-facing invoice. */}
+                        <span>{locale.taxLabel} ({inv.taxRate ?? 0}%)</span>
                         <span className="text-gray-900">{formatCurrency(inv.taxAmount)}</span>
                       </div>
 

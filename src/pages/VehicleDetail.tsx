@@ -1,4 +1,6 @@
 import { useState, useEffect, type ComponentType } from 'react';
+import { useGarage } from '../context/GarageContext';
+import { formatMoney, formatNumber, formatDate as fmtDate } from '../utils/format';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getVehicle, getVehicleHistory } from '../services/apiServices/vehicleService';
 
@@ -11,7 +13,7 @@ import {
   HiOutlineMail,
   HiOutlineLocationMarker,
   HiOutlineClipboardList,
-  HiOutlineCurrencyRupee,
+  HiOutlineReceiptTax,
   HiOutlineCalendar,
   HiOutlineChip,
   HiOutlineIdentification,
@@ -85,6 +87,8 @@ function StatCard({ icon: Icon, label, value, sub, color }: StatCardProps) {
 }
 
 export default function VehicleDetail() {
+  const { locale } = useGarage();
+  const money = (n?: number) => formatMoney(n, locale);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -147,7 +151,7 @@ export default function VehicleDetail() {
   const totalSpend = jobCards.reduce((sum, jc) => sum + (jc.estimation?.grandTotal || 0), 0);
   const delivered = jobCards.filter(jc => jc.status === 'delivered');
   const lastService = delivered[0]
-    ? new Date(delivered[0].createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    ? fmtDate(delivered[0].createdAt, locale, { day: 'numeric', month: 'short', year: 'numeric' })
     : '—';
 
   return (
@@ -225,9 +229,9 @@ export default function VehicleDetail() {
           color="bg-blue-50 text-blue-500"
         />
         <StatCard
-          icon={HiOutlineCurrencyRupee}
+          icon={HiOutlineReceiptTax}
           label="Total Spend"
-          value={totalSpend > 0 ? `₹${totalSpend.toLocaleString('en-IN')}` : '₹0'}
+          value={money(totalSpend)}
           sub="across all job cards"
           color="bg-emerald-50 text-emerald-500"
         />
@@ -253,7 +257,7 @@ export default function VehicleDetail() {
             <InfoBlock icon={HiOutlineCalendar} label="Year" value={vehicle.year?.toString()} />
             <InfoBlock icon={HiOutlineChip} label="Engine Number" value={vehicle.engineNumber} />
             <InfoBlock icon={HiOutlineIdentification} label="Chassis / VIN" value={vehicle.chassisNumber || vehicle.vin} />
-            <InfoBlock icon={HiOutlineChartBar} label="Current Mileage" value={vehicle.currentOdometerReading ? `${vehicle.currentOdometerReading.toLocaleString('en-IN')} km` : null} />
+            <InfoBlock icon={HiOutlineChartBar} label="Current Mileage" value={vehicle.currentOdometerReading ? `${formatNumber(vehicle.currentOdometerReading, locale)} km` : null} />
             <InfoBlock icon={HiOutlineLightningBolt} label="Fuel Type" value={fuelType.charAt(0).toUpperCase() + fuelType.slice(1)} />
           </div>
         </div>
@@ -321,7 +325,7 @@ export default function VehicleDetail() {
             {jobCards.map((jc, index) => {
               const isLast = index === jobCards.length - 1;
               const date = jc.createdAt
-                ? new Date(jc.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                ? fmtDate(jc.createdAt, locale, { day: '2-digit', month: 'short', year: 'numeric' })
                 : '—';
               const amount = jc.estimation?.grandTotal;
 
@@ -355,7 +359,7 @@ export default function VehicleDetail() {
                     <p className="text-sm text-gray-600 font-medium">{date}</p>
                     {jc.actualDeliveryDate && (
                       <p className="text-xs text-gray-400 mt-0.5">
-                        Delivered: {new Date(jc.actualDeliveryDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                        Delivered: {fmtDate(jc.actualDeliveryDate, locale, { day: '2-digit', month: 'short' })}
                       </p>
                     )}
                   </div>
@@ -370,7 +374,7 @@ export default function VehicleDetail() {
                   {/* Amount */}
                   <div className="col-span-2 text-right">
                     {amount ? (
-                      <p className="font-bold text-gray-900 text-sm">₹{amount.toLocaleString('en-IN')}</p>
+                      <p className="font-bold text-gray-900 text-sm">{money(amount)}</p>
                     ) : (
                       <p className="text-xs text-gray-300 font-medium">No estimate</p>
                     )}

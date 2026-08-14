@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   ClipboardList, Users, Receipt, Package, Bell, BarChart3,
   CheckCircle, ArrowRight, Star, Zap, Shield, Clock, TrendingUp,
-  Wrench, Car, FileText, IndianRupee, ChevronDown, Phone, Mail,
+  Wrench, Car, FileText, ChevronDown, Phone, Mail,
   Building2, Globe, Award, Menu, X
 } from 'lucide-react';
 
@@ -293,7 +293,7 @@ export default function HomePage() {
     { icon: Car, title: 'Vehicle Intake', desc: 'Log customer & vehicle details instantly.' },
     { icon: FileText, title: 'Estimation', desc: 'Build parts + labor estimates, send for approval.' },
     { icon: Wrench, title: 'Repair & Track', desc: 'Assign mechanics, track progress live.' },
-    { icon: IndianRupee, title: 'Invoice & Deliver', desc: 'Generate invoice, collect payment, deliver.' },
+    { icon: Receipt, title: 'Invoice & Deliver', desc: 'Generate invoice, collect payment, deliver.' },
   ];
 
   const testimonials = [

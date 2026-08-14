@@ -2,8 +2,10 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { Input } from '../components/Form';
+import { Input, Select } from '../components/Form';
 import Button from '../components/Button';
+import { useCountries } from '../hooks/useCountries';
+import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
 import { ClipboardList, Receipt, Package, Eye, EyeOff } from 'lucide-react';
 
 interface LoginForm {
@@ -12,6 +14,8 @@ interface LoginForm {
   phone: string;
   password: string;
   garageName: string;
+  country: string;
+  timezone: string;
 }
 
 export default function Login() {
@@ -24,13 +28,30 @@ export default function Login() {
     email: '',
     phone: '',
     password: '',
-    garageName: ''
+    garageName: '',
+    // India by default, matching the server: every garage created before the
+    // picker existed is Indian, and it stays the common case.
+    country: DEFAULT_LOCALE.country,
+    timezone: ''
   });
   const { login, register } = useAuth();
+  const { countries } = useCountries();
   const navigate = useNavigate();
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const selectedCountry = countries.find(c => c.code === form.country);
+  const timezoneOptions = timezoneChoicesFor(form.country);
+  // Only ask for a zone when the country genuinely spans several. The server
+  // ignores it otherwise, so hiding the field keeps the form honest.
+  const needsTimezone = (selectedCountry?.requiresTimezoneChoice ?? false) && timezoneOptions.length > 0;
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleCountryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    // Clear any zone picked for the previous country — 'America/Denver' on a
+    // garage that just switched to Australia would be worse than no value.
+    setForm({ ...form, country: e.target.value, timezone: '' });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -131,8 +152,9 @@ export default function Login() {
               <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Name</label>
+                    <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1.5">Your Name</label>
                     <Input
+                      id="name"
                       type="text"
                       name="name"
                       value={form.name}
@@ -143,8 +165,9 @@ export default function Login() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Garage Name</label>
+                    <label htmlFor="garageName" className="block text-sm font-semibold text-gray-700 mb-1.5">Garage Name</label>
                     <Input
+                      id="garageName"
                       type="text"
                       name="garageName"
                       value={form.garageName}
@@ -155,24 +178,63 @@ export default function Login() {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
-                  <Input
-                    type="tel"
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="9876543210"
-                    required
-                    className="py-3"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="country" className="block text-sm font-semibold text-gray-700 mb-1.5">Country</label>
+                    <Select
+                      id="country"
+                      name="country"
+                      value={form.country}
+                      onChange={handleCountryChange}
+                      className="py-3"
+                    >
+                      {/* Until the list loads, offer the default so the field
+                          is never empty and signup is never blocked by it. */}
+                      {countries.length === 0 ? (
+                        <option value={DEFAULT_LOCALE.country}>India</option>
+                      ) : (
+                        countries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)
+                      )}
+                    </Select>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Sets your currency, {(selectedCountry?.taxLabel ?? DEFAULT_LOCALE.taxLabel)} label and date format.
+                    </p>
+                  </div>
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder={selectedCountry?.phoneExample ?? DEFAULT_LOCALE.phoneExample}
+                      required
+                      className="py-3"
+                    />
+                  </div>
                 </div>
+                {needsTimezone && (
+                  <div>
+                    <label htmlFor="timezone" className="block text-sm font-semibold text-gray-700 mb-1.5">Timezone</label>
+                    <Select id="timezone" name="timezone" value={form.timezone} onChange={handleChange} className="py-3" required>
+                      <option value="">Select your timezone</option>
+                      {timezoneOptions.map(tz => (
+                        <option key={tz.value} value={tz.value}>{tz.label}</option>
+                      ))}
+                    </Select>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Service reminders go out at 9:00 AM in this timezone.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
               <Input
+                id="email"
                 type="email"
                 name="email"
                 value={form.email}
@@ -185,7 +247,7 @@ export default function Login() {
 
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-sm font-semibold text-gray-700">Password</label>
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700">Password</label>
                 {!isRegister && (
                   <Link to="/forgot-password" className="text-sm font-medium text-primary-600 hover:text-primary-700">
                     Forgot password?
@@ -194,6 +256,7 @@ export default function Login() {
               </div>
               <div className="relative">
                 <Input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   name="password"
                   value={form.password}

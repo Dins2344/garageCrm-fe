@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { DEFAULT_PAGE_SIZE, LOCALE } from '../utils/constants';
+import { useGarage } from '../context/GarageContext';
+import { formatMoney, formatDate as fmtDate } from '../utils/format';
+import { DEFAULT_PAGE_SIZE } from '../utils/constants';
 import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useDebounce } from '../hooks/useDebounce';
@@ -24,6 +26,8 @@ import Pagination from '../components/Pagination';
 import type { Invoice } from '../types/models';
 
 export default function Invoices() {
+  const { locale } = useGarage();
+  const money = (n?: number) => formatMoney(n, locale);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -94,12 +98,10 @@ export default function Invoices() {
 
   const formatDate = (date?: string) => {
     if (!date) return '—';
-    return new Date(date).toLocaleDateString(LOCALE, {
-      day: 'numeric', month: 'short', year: 'numeric'
-    });
+    return fmtDate(date, locale, { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  const formatCurrency = (amount?: number) => `₹${(amount || 0).toLocaleString(LOCALE)}`;
+  const formatCurrency = (amount?: number) => money(amount);
 
   return (
     <div className="flex flex-col gap-6 h-full">

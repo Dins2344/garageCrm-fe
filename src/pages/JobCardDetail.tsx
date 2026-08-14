@@ -7,6 +7,8 @@ import { getMechanics } from '../services/apiServices/userService';
 import { getGarage } from '../services/apiServices/garageService';
 import { createInvoice as generateInvoice } from '../services/apiServices/invoiceService';
 import { useAuth } from '../context/AuthContext';
+import { useGarage } from '../context/GarageContext';
+import { formatMoney, formatNumber, formatDate as fmtDate } from '../utils/format';
 import toast from 'react-hot-toast';
 import {
   HiOutlineArrowLeft,
@@ -15,7 +17,7 @@ import {
   HiOutlineTrash,
   HiOutlineCheckCircle,
   HiOutlineDocumentText,
-  HiOutlineCurrencyRupee,
+  HiOutlineReceiptTax,
   HiOutlineDownload,
   HiOutlineCheck,
 } from 'react-icons/hi';
@@ -47,6 +49,8 @@ export default function JobCardDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { hasRole } = useAuth();
+  const { locale, activeGarage } = useGarage();
+  const money = (n?: number) => formatMoney(n, locale);
   const { withLoader } = useGlobalLoader();
   const [jobCard, setJobCard] = useState<JobCard | null>(null);
   const [mechanics, setMechanics] = useState<User[]>([]);
@@ -59,7 +63,7 @@ export default function JobCardDetail() {
     parts: [],
     labor: [],
     discount: 0,
-    taxRate: 18
+    taxRate: 0
   });
 
   useEffect(() => {
@@ -76,13 +80,17 @@ export default function JobCardDetail() {
       // schema, so it can't distinguish "never filled in" from "actually
       // 18" — treat an estimation with no parts/labor yet as new and seed
       // its tax rate from the garage's configured default instead.
+      //
+      // The last-resort value is 0, never 18: on a garage in a country with a
+      // different rate (or none), quietly seeding India's rate puts a wrong
+      // tax line on a quote the customer is about to approve.
       const isNewEstimation = !data.estimation?.parts?.length && !data.estimation?.labor?.length;
-      let defaultTaxRate = 18;
+      let defaultTaxRate = activeGarage?.settings?.taxRate ?? 0;
       if (isNewEstimation) {
         try {
           const { data: garage } = await getGarage();
-          defaultTaxRate = garage.settings?.taxRate ?? 18;
-        } catch { /* fall back to 18 */ }
+          defaultTaxRate = garage.settings?.taxRate ?? defaultTaxRate;
+        } catch { /* keep whatever the garage context already gave us */ }
       }
 
       if (data.estimation) {
@@ -162,7 +170,8 @@ export default function JobCardDetail() {
   const addLabor = () => {
     setEstimation({
       ...estimation,
-      labor: [...estimation.labor, { description: '', hours: 1, ratePerHour: 500 }]
+      // Seeded from the garage's configured rate, not a hardcoded ₹500.
+      labor: [...estimation.labor, { description: '', hours: 1, ratePerHour: activeGarage?.settings?.laborRatePerHour ?? 0 }]
     });
   };
 
@@ -211,13 +220,23 @@ export default function JobCardDetail() {
     });
   };
 
+  // Mirrors backend/usecases/jobCardUsecase.ts, which is the source of truth —
+  // this is only a live preview. The rounding matters: without it a fractional
+  // total previews as one value and saves as another a cent away, which gets
+  // reported as a bug. Keep the two in step.
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+
   const calculateTotals = () => {
     const partsTotal = estimation.parts.reduce((sum, p) => sum + (p.quantity * p.unitPrice), 0);
     const laborTotal = estimation.labor.reduce((sum, l) => sum + (l.hours * l.ratePerHour), 0);
     const subtotal = partsTotal + laborTotal;
     const taxAmount = ((subtotal - estimation.discount) * estimation.taxRate) / 100;
     const grandTotal = subtotal - estimation.discount + taxAmount;
-    return { partsTotal, laborTotal, subtotal, taxAmount, grandTotal };
+    return {
+      partsTotal, laborTotal, subtotal,
+      taxAmount: round2(taxAmount),
+      grandTotal: round2(grandTotal),
+    };
   };
 
   const saveEstimation = async () => {
@@ -391,7 +410,7 @@ export default function JobCardDetail() {
             )}
             <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Odometer</span>
-              <span className="font-medium text-gray-900">{jobCard.odometerAtIntake?.toLocaleString() || '—'} km</span>
+              <span className="font-medium text-gray-900">{jobCard.odometerAtIntake ? `${formatNumber(jobCard.odometerAtIntake, locale)} km` : '—'}</span>
             </div>
             <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Service Type</span>
@@ -423,7 +442,7 @@ export default function JobCardDetail() {
               <div>
                 <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Expected Delivery</span>
                 <span className="font-medium text-gray-900">
-                  {new Date(jobCard.expectedDeliveryDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  {fmtDate(jobCard.expectedDeliveryDate, locale, { day: '2-digit', month: 'short', year: 'numeric' })}
                 </span>
               </div>
             )}
@@ -452,7 +471,7 @@ export default function JobCardDetail() {
                     <Badge intent={history.status}>
                       {history.status?.replace(/_/g, ' ')}
                     </Badge>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">{new Date(history.changedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">{fmtDate(history.changedAt, locale, { day: 'numeric', month: 'short' })}</span>
                   </div>
                   <div className="text-[10px] text-gray-400 font-medium mb-1.5 uppercase tracking-tighter">
                     {new Date(history.changedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {changedBy?.name || 'Staff'}
@@ -514,7 +533,7 @@ export default function JobCardDetail() {
                 </Button>
               )}
               {jobCard.invoice && (
-                <Button variant="primary" size="sm" onClick={() => openInvoice(invoiceId as string)} icon={HiOutlineCurrencyRupee}>
+                <Button variant="primary" size="sm" onClick={() => openInvoice(invoiceId as string)} icon={HiOutlineReceiptTax}>
                   View Invoice
                 </Button>
               )}
@@ -544,8 +563,8 @@ export default function JobCardDetail() {
                             <Tr key={i}>
                               <Td className="font-medium text-gray-900">{p.partName}</Td>
                               <Td>{p.quantity}</Td>
-                              <Td>₹{p.unitPrice?.toLocaleString('en-IN')}</Td>
-                              <Td className="font-bold text-gray-900">₹{p.total?.toLocaleString('en-IN')}</Td>
+                              <Td>{money(p.unitPrice)}</Td>
+                              <Td className="font-bold text-gray-900">{money(p.total)}</Td>
                             </Tr>
                           ))}
                         </Tbody>
@@ -571,8 +590,8 @@ export default function JobCardDetail() {
                             <Tr key={i}>
                               <Td className="font-medium text-gray-900">{l.description}</Td>
                               <Td>{l.hours}</Td>
-                              <Td>₹{l.ratePerHour?.toLocaleString('en-IN')}</Td>
-                              <Td className="font-bold text-gray-900">₹{l.total?.toLocaleString('en-IN')}</Td>
+                              <Td>{money(l.ratePerHour)}</Td>
+                              <Td className="font-bold text-gray-900">{money(l.total)}</Td>
                             </Tr>
                           ))}
                         </Tbody>
@@ -589,26 +608,26 @@ export default function JobCardDetail() {
                     <div className="flex flex-col gap-4">
                       <div className="flex justify-between items-center text-gray-600">
                         <span>Subtotal</span>
-                        <span className="font-semibold text-gray-900">₹{jobCard.estimation.subtotal?.toLocaleString('en-IN')}</span>
+                        <span className="font-semibold text-gray-900">{money(jobCard.estimation.subtotal)}</span>
                       </div>
 
                       {jobCard.estimation.discount > 0 && (
                         <div className="flex justify-between items-center text-green-600">
                           <span>Discount</span>
-                          <span className="font-semibold">-₹{jobCard.estimation.discount?.toLocaleString('en-IN')}</span>
+                          <span className="font-semibold">−{money(jobCard.estimation.discount)}</span>
                         </div>
                       )}
 
                       <div className="flex justify-between items-center text-gray-600">
-                        <span>Tax ({jobCard.estimation.taxRate}%)</span>
-                        <span className="font-semibold text-gray-900">₹{jobCard.estimation.taxAmount?.toLocaleString('en-IN')}</span>
+                        <span>{locale.taxLabel} ({jobCard.estimation.taxRate ?? 0}%)</span>
+                        <span className="font-semibold text-gray-900">{money(jobCard.estimation.taxAmount)}</span>
                       </div>
 
                       <div className="h-px bg-gray-200 my-2" />
 
                       <div className="flex justify-between items-center text-xl font-bold">
                         <span className="text-gray-900">Grand Total</span>
-                        <span className="text-primary-600">₹{jobCard.estimation.grandTotal?.toLocaleString('en-IN')}</span>
+                        <span className="text-primary-600">{money(jobCard.estimation.grandTotal)}</span>
                       </div>
                     </div>
 
@@ -660,11 +679,11 @@ export default function JobCardDetail() {
                       type="number"
                       value={part.unitPrice}
                       onChange={e => updatePart(i, 'unitPrice', parseFloat(e.target.value) || 0)}
-                      placeholder="Unit Price (₹)"
+                      placeholder={`Unit Price (${locale.currency})`}
                       className="w-[120px]"
                     />
                     <div className="font-bold text-gray-900 min-w-[100px] text-right">
-                      ₹{(part.quantity * part.unitPrice).toLocaleString('en-IN')}
+                      {money(part.quantity * part.unitPrice)}
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => removePart(i)} className="text-danger hover:text-danger hover:bg-danger-light">
                       <HiOutlineTrash />
@@ -703,7 +722,7 @@ export default function JobCardDetail() {
                       className="w-[100px]"
                     />
                     <div className="font-bold text-gray-900 min-w-[100px] text-right">
-                      ₹{(labor.hours * labor.ratePerHour).toLocaleString('en-IN')}
+                      {money(labor.hours * labor.ratePerHour)}
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => removeLabor(i)} className="text-danger hover:text-danger hover:bg-danger-light">
                       <HiOutlineTrash />
@@ -718,7 +737,7 @@ export default function JobCardDetail() {
               {/* Discount & Tax */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6 pt-4 border-t border-gray-100">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Discount (₹)</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Discount ({locale.currency})</label>
                   <Input
                     type="number"
                     value={estimation.discount}
@@ -726,7 +745,7 @@ export default function JobCardDetail() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tax Rate (%)</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">{locale.taxLabel} Rate (%)</label>
                   <Input
                     type="number"
                     value={estimation.taxRate}
@@ -739,20 +758,20 @@ export default function JobCardDetail() {
               <div className="bg-primary-50 border border-primary-100 rounded-xl p-5 flex flex-col gap-3">
                 <div className="flex justify-between items-center text-gray-600">
                   <span>Parts Total</span>
-                  <span className="font-semibold text-gray-900">₹{totals.partsTotal.toLocaleString('en-IN')}</span>
+                  <span className="font-semibold text-gray-900">{money(totals.partsTotal)}</span>
                 </div>
                 <div className="flex justify-between items-center text-gray-600">
                   <span>Labor Total</span>
-                  <span className="font-semibold text-gray-900">₹{totals.laborTotal.toLocaleString('en-IN')}</span>
+                  <span className="font-semibold text-gray-900">{money(totals.laborTotal)}</span>
                 </div>
                 <div className="flex justify-between items-center text-gray-600">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-gray-900">₹{totals.subtotal.toLocaleString('en-IN')}</span>
+                  <span className="font-semibold text-gray-900">{money(totals.subtotal)}</span>
                 </div>
                 <div className="h-px bg-primary-200 my-1" />
                 <div className="flex justify-between items-center text-lg font-bold text-gray-900">
                   <span>Grand Total</span>
-                  <span className="text-primary-600">₹{Math.round(totals.grandTotal).toLocaleString('en-IN')}</span>
+                  <span className="text-primary-600">{money(totals.grandTotal)}</span>
                 </div>
               </div>
             </ModalBody>

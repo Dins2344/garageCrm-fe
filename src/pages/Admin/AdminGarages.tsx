@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Trash2 } from 'lucide-react';
 import { getAllGarages, deleteOrphanedGarage, type EnrichedGarage } from '../../services/apiServices/adminService';
+import { formatMoney } from '../../utils/format';
+import { DEFAULT_LOCALE } from '../../utils/locale';
 
 export default function AdminGarages() {
   const [garages, setGarages] = useState<EnrichedGarage[]>([]);
@@ -83,7 +85,11 @@ export default function AdminGarages() {
                 </div>
               </td>
               <td className="px-6 py-5">
-                <div className="text-sm font-bold text-emerald-600">₹{garage._revenue.toLocaleString()}</div>
+                {/* Each garage's own currency — this list spans every tenant,
+                    so one shared symbol would mislabel most of the rows. */}
+                <div className="text-sm font-bold text-emerald-600">
+                  {formatMoney(garage._revenue, garage.locale ?? DEFAULT_LOCALE)}
+                </div>
               </td>
               <td className="px-6 py-5 text-sm text-gray-500 font-medium">
                 {garage.createdAt && new Date(garage.createdAt).toLocaleDateString()}

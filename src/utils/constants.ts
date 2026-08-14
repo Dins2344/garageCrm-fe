@@ -98,9 +98,11 @@ export const FUEL_TYPE_OPTIONS: SelectOption[] = FUEL_TYPES.map((f) => ({
   label: f.charAt(0).toUpperCase() + f.slice(1),
 }));
 
-// ── Currency / Locale ─────────────────────────────────────────
-export const CURRENCY_SYMBOL = '₹';
-export const LOCALE = 'en-IN';
+// Currency and locale are NOT constants — they come from the garage's
+// resolved locale (utils/locale.ts + GarageContext) and are applied through
+// utils/format.ts. The old CURRENCY_SYMBOL/LOCALE pair hardcoded ₹ and en-IN
+// for every tenant; anything reintroducing them would silently re-break
+// non-Indian garages.
 
 // ── Date Formatting ───────────────────────────────────────────
 /** Standard short date format used across the app */

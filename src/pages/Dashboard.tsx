@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useGarage } from '../context/GarageContext';
+import { formatMoney, formatDate as fmtDate } from '../utils/format';
 import { Link } from 'react-router-dom';
 import { getDashboardStats, getChartData, triggerCron as runReminderCron } from '../services/apiServices/dashboardService';
 import type { DashboardStats, ChartData } from '../services/apiServices/dashboardService';
@@ -8,7 +10,7 @@ import {
   HiOutlineUsers,
   HiOutlineTruck,
   HiOutlineClipboardList,
-  HiOutlineCurrencyRupee,
+  HiOutlineReceiptTax,
   HiOutlineClock,
   HiOutlineExclamation,
   HiOutlineCheckCircle,
@@ -49,6 +51,8 @@ const PRESETS: Preset[] = [
 ];
 
 export default function Dashboard() {
+  const { locale } = useGarage();
+  const money = (n?: number) => formatMoney(n, locale);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const { hasRole } = useAuth();
@@ -114,13 +118,16 @@ export default function Dashboard() {
     return <Loader text="Loading dashboard..." />;
   }
 
-  const formatCurrency = (amount?: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount || 0);
-  };
+  const formatCurrency = (amount?: number) => money(amount);
+
+  /**
+   * Compact form for chart axis ticks, where a full "₹12,34,567.00" would
+   * overlap its neighbours. Deliberately hand-rolled rather than
+   * `notation: 'compact'` — that's one of the Intl options Hermes support is
+   * unreliable for, and this file's mobile counterpart uses the same approach.
+   */
+  const axisMoney = (v: number) =>
+    v >= 1000 ? `${locale.currency} ${(v / 1000).toFixed(0)}k` : `${locale.currency} ${v}`;
 
   const content = (
     <div className="flex flex-col gap-7">
@@ -142,8 +149,8 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
         <StatCard title="Active Job Cards" value={stats?.overview?.activeJobCards || 0} icon={HiOutlineClipboardList} colorClass="blue" />
-        <StatCard title="Today's Revenue" value={formatCurrency(stats?.revenue?.today)} icon={HiOutlineCurrencyRupee} colorClass="green" />
-        <StatCard title="Monthly Revenue" value={formatCurrency(stats?.revenue?.month)} icon={HiOutlineCurrencyRupee} colorClass="purple" />
+        <StatCard title="Today's Revenue" value={formatCurrency(stats?.revenue?.today)} icon={HiOutlineReceiptTax} colorClass="green" />
+        <StatCard title="Monthly Revenue" value={formatCurrency(stats?.revenue?.month)} icon={HiOutlineReceiptTax} colorClass="purple" />
         <StatCard title="Pending Estimations" value={stats?.overview?.pendingEstimations || 0} icon={HiOutlineClock} colorClass="orange" />
         <StatCard title="Ready for Pickup" value={stats?.overview?.readyForPickup || 0} icon={HiOutlineCheckCircle} colorClass="teal" />
         <StatCard title={`Unpaid (${formatCurrency(stats?.unpaid?.total)})`} value={stats?.unpaid?.count || 0} icon={HiOutlineExclamation} colorClass="red" />
@@ -283,7 +290,7 @@ export default function Dashboard() {
                     <RecentItemMain>
                       <span className="font-semibold text-sm">{vehicle?.licensePlate}</span>
                       <Badge intent={r.isOverdue ? 'cancelled' : 'estimation_sent'}>
-                        {r.isOverdue ? 'Overdue' : new Date(r.nextServiceDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        {r.isOverdue ? 'Overdue' : fmtDate(r.nextServiceDate, locale, { day: 'numeric', month: 'short' })}
                       </Badge>
                     </RecentItemMain>
                   </RecentItem>
@@ -452,7 +459,7 @@ export default function Dashboard() {
               {chartLoading ? (
                 <Loader />
               ) : chartData?.revenueTrend?.every(d => d.revenue === 0) ? (
-                <EmptyState icon={HiOutlineCurrencyRupee} title="No revenue in this period" />
+                <EmptyState icon={HiOutlineReceiptTax} title="No revenue in this period" />
               ) : (
                 <ResponsiveContainer width="100%" height={220}>
                   <AreaChart data={chartData?.revenueTrend || []} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -472,7 +479,7 @@ export default function Dashboard() {
                     <YAxis
                       tick={{ fontSize: 11, fill: '#9ca3af' }}
                       axisLine={false} tickLine={false}
-                      tickFormatter={v => v >= 1000 ? `₹${(v/1000).toFixed(0)}k` : `₹${v}`}
+                      tickFormatter={axisMoney}
                       width={52}
                     />
                     <Tooltip
@@ -551,7 +558,7 @@ export default function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
                     <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280', fontWeight: 600 }} axisLine={false} tickLine={false} />
                     <YAxis yAxisId="jobs" orientation="left" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={28} label={{ value: 'Jobs', angle: -90, position: 'insideLeft', offset: 10, style: { fontSize: 10, fill: '#9ca3af' } }} />
-                    <YAxis yAxisId="labour" orientation="right" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={52} tickFormatter={v => v >= 1000 ? `₹${(v/1000).toFixed(0)}k` : `₹${v}`} />
+                    <YAxis yAxisId="labour" orientation="right" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={52} tickFormatter={axisMoney} />
                     <Tooltip
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', fontSize: 13 }}
                       formatter={(v, name) => name === 'jobs' ? [`${v} jobs`, 'Job Count'] : [formatCurrency(Number(v)), 'Labour Value']}

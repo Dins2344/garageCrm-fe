@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useGarage } from '../context/GarageContext';
+import { formatMoney, formatDate as fmtDate } from '../utils/format';
 import { useDebounce } from '../hooks/useDebounce';
 import { useNavigate } from 'react-router-dom';
 import { getJobCards, createJobCard } from '../services/apiServices/jobCardService';
@@ -32,7 +34,6 @@ import {
   FUEL_TYPES,
   DEFAULT_PAGE_SIZE,
   DROPDOWN_FETCH_LIMIT,
-  LOCALE,
   DATE_FORMAT_OPTIONS
 } from '../utils/constants';
 import Loader from '../components/Loader';
@@ -66,6 +67,8 @@ interface WorkForm {
 }
 
 export default function JobCards() {
+  const { locale } = useGarage();
+  const money = (n?: number) => formatMoney(n, locale);
   const [jobCards, setJobCards] = useState<JobCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -312,7 +315,7 @@ export default function JobCards() {
 
   const formatDate = (date?: string) => {
     if (!date) return '—';
-    return new Date(date).toLocaleDateString(LOCALE, DATE_FORMAT_OPTIONS);
+    return fmtDate(date, locale, DATE_FORMAT_OPTIONS);
   };
 
   // ============ RENDER ============
@@ -417,7 +420,7 @@ export default function JobCards() {
                 </Td>
                 <Td className="font-semibold text-gray-900">
                   {jc.estimation?.grandTotal
-                    ? `₹${jc.estimation.grandTotal.toLocaleString(LOCALE)}`
+                    ? money(jc.estimation.grandTotal)
                     : '—'}
                 </Td>
                 <Td className="text-sm text-gray-500">

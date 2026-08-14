@@ -1,6 +1,8 @@
 import { useEffect, useState, type ComponentType } from 'react';
 import { getAdminStats, type AdminStats } from '../../services/apiServices/adminService';
-import { Building2, Users, ClipboardList, IndianRupee } from 'lucide-react';
+import { Building2, Users, ClipboardList, Banknote } from 'lucide-react';
+import { formatNumber } from '../../utils/format';
+import { DEFAULT_LOCALE } from '../../utils/locale';
 
 interface StatCardProps {
   label: string;
@@ -39,7 +41,17 @@ export default function AdminOverview() {
     { label: 'Garages', value: stats.counts.garages, icon: Building2, color: 'bg-blue-50 text-blue-600' },
     { label: 'Total Users', value: stats.counts.users, icon: Users, color: 'bg-purple-50 text-purple-600' },
     { label: 'Job Cards', value: stats.counts.jobCards, icon: ClipboardList, color: 'bg-emerald-50 text-emerald-600' },
-    { label: 'Revenue', value: `₹${stats.revenue.total?.toLocaleString()}`, icon: IndianRupee, color: 'bg-amber-50 text-amber-600' },
+    // No currency symbol on purpose. This is a platform-wide sum across every
+    // tenant, and garages can now be in different countries — rendering the
+    // total as "₹X" (or any single currency) would state something false.
+    // Showing a mixed-currency figure needs per-currency subtotals; until
+    // that exists, the honest rendering is a bare number.
+    {
+      label: 'Revenue (all currencies)',
+      value: formatNumber(stats.revenue.total, DEFAULT_LOCALE),
+      icon: Banknote,
+      color: 'bg-amber-50 text-amber-600',
+    },
   ];
 
   return (

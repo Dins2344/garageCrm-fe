@@ -1,5 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { DEFAULT_PAGE_SIZE, LOCALE } from '../utils/constants';
+import { useGarage } from '../context/GarageContext';
+import { formatMoney } from '../utils/format';
+import { DEFAULT_PAGE_SIZE } from '../utils/constants';
 import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useDebounce } from '../hooks/useDebounce';
@@ -38,6 +40,8 @@ const BLANK_FORM: CustomerForm = {
 };
 
 export default function Customers() {
+  const { locale } = useGarage();
+  const money = (n?: number) => formatMoney(n, locale);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -206,7 +210,7 @@ export default function Customers() {
                   </Td>
                   <Td className="text-gray-700">{c.totalVisits}</Td>
                   <Td className="font-semibold text-gray-900">
-                    ₹{(c.totalSpent || 0).toLocaleString(LOCALE)}
+                    {money(c.totalSpent)}
                   </Td>
                   <Td>
                     <div className="flex gap-2">
@@ -246,8 +250,9 @@ export default function Customers() {
               <ModalBody>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Customer Name *</label>
+                    <label htmlFor="customer-name" className="block text-sm font-semibold text-gray-700 mb-1.5">Customer Name *</label>
                     <Input
+                      id="customer-name"
                       type="text"
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
@@ -256,12 +261,13 @@ export default function Customers() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number *</label>
+                    <label htmlFor="customer-phone" className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number *</label>
                     <Input
+                      id="customer-phone"
                       type="tel"
                       value={form.phone}
                       onChange={e => setForm({ ...form, phone: e.target.value })}
-                      placeholder="9876543210"
+                      placeholder={locale.phoneExample}
                       required
                     />
                   </div>

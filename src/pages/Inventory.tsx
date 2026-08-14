@@ -1,5 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { DEFAULT_PAGE_SIZE, LOCALE } from '../utils/constants';
+import { useGarage } from '../context/GarageContext';
+import { formatMoney } from '../utils/format';
+import { DEFAULT_PAGE_SIZE } from '../utils/constants';
 import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useDebounce } from '../hooks/useDebounce';
@@ -60,6 +62,8 @@ const BLANK_FORM: ItemForm = {
 };
 
 export default function Inventory() {
+  const { locale } = useGarage();
+  const money = (n?: number) => formatMoney(n, locale);
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -249,8 +253,8 @@ export default function Inventory() {
                   </span>
                 </Td>
                 <Td className="text-gray-500">{item.threshold}</Td>
-                <Td className="text-gray-700">₹{item.unitPrice?.toLocaleString(LOCALE)}</Td>
-                <Td className="font-semibold text-gray-900">₹{(item.sellingPrice || item.unitPrice)?.toLocaleString(LOCALE)}</Td>
+                <Td className="text-gray-700">{money(item.unitPrice)}</Td>
+                <Td className="font-semibold text-gray-900">{money(item.sellingPrice || item.unitPrice)}</Td>
                 <Td className="text-gray-500">{item.location || '—'}</Td>
                 <Td>
                   <div className="flex gap-2">
@@ -352,7 +356,7 @@ export default function Inventory() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cost Price (₹) *</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cost Price ({locale.currency}) *</label>
                     <Input
                       type="number"
                       value={form.unitPrice}
@@ -362,7 +366,7 @@ export default function Inventory() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Selling Price (₹)</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Selling Price ({locale.currency})</label>
                     <Input
                       type="number"
                       value={form.sellingPrice}
