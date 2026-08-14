@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { ACTIVE_GARAGE_KEY } from '../utils/constants';
-import { listBranches, createBranch, getGarage } from '../services/apiServices/garageService';
+import { listBranches, createBranch, getGarage, deleteBranch, type DeleteBranchPayload } from '../services/apiServices/garageService';
 import { useAuth } from './AuthContext';
 import type { Garage } from '../types/models';
 
@@ -10,6 +10,7 @@ interface GarageContextValue {
   activeGarageName: string | null;
   switchGarage: (garageId: string) => void;
   addBranch: (data: Pick<Garage, 'name' | 'phone'>) => Promise<Garage>;
+  removeBranch: (garageId: string, payload?: DeleteBranchPayload) => Promise<void>;
 }
 
 const GarageContext = createContext<GarageContextValue | null>(null);
@@ -68,8 +69,19 @@ export function GarageProvider({ children }: { children: ReactNode }) {
     return garage;
   };
 
+  const removeBranch = async (garageId: string, payload?: DeleteBranchPayload): Promise<void> => {
+    const { data } = await deleteBranch(garageId, payload);
+    setOwnerGarages(prev => prev.filter(g => g._id !== garageId));
+    // If the deleted branch was the active one, follow the backend's fallback
+    // (the owner's own `garage` ref was just repointed there too) so the app
+    // doesn't keep sending X-Garage-Id for a branch that no longer exists.
+    if (garageId === ownerActiveGarageId) {
+      switchGarage(data.fallbackGarageId);
+    }
+  };
+
   return (
-    <GarageContext.Provider value={{ garages, activeGarageId, activeGarageName, switchGarage, addBranch }}>
+    <GarageContext.Provider value={{ garages, activeGarageId, activeGarageName, switchGarage, addBranch, removeBranch }}>
       {children}
     </GarageContext.Provider>
   );

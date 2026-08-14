@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, type ReactNode, type ComponentType, type FormEvent, type InputHTMLAttributes } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useGarage } from '../context/GarageContext';
 import toast from 'react-hot-toast';
 import {
   getUsers, createUser, updateUser, deleteUser,
 } from '../services/apiServices/userService';
 import { updateProfile, changePassword } from '../services/apiServices/authService';
-import { getGarage, updateGarage } from '../services/apiServices/garageService';
+import { getGarage, updateGarage, getBranchStaff } from '../services/apiServices/garageService';
 import { useConfirm } from '../components/ConfirmModal';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import { Input, Select } from '../components/Form';
@@ -15,7 +16,7 @@ import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import {
   Building2, Users, UserCircle, Lock,
   Pencil, X, Plus, Save, Eye, EyeOff, Trash2,
-  PauseCircle, PlayCircle, Search,
+  PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2,
 } from 'lucide-react';
 import type { User, Garage, Role } from '../types/models';
 
@@ -225,6 +226,127 @@ function StaffModal({ visible, onClose, onSave, editingUser, canSetAdmin }: Staf
   );
 }
 
+// ─── Delete Branch Modal ──────────────────────────────────────────────────────
+
+interface DeleteBranchModalProps {
+  branch: Garage | null;
+  otherBranches: Garage[];
+  onClose: () => void;
+  onConfirm: (payload?: { staffAction?: 'delete' | 'reassign'; reassignToGarageId?: string }) => Promise<void>;
+}
+
+function DeleteBranchModal({ branch, otherBranches, onClose, onConfirm }: DeleteBranchModalProps) {
+  const [checking, setChecking] = useState(true);
+  const [staff, setStaff] = useState<User[]>([]);
+  const [staffChoice, setStaffChoice] = useState<'delete' | 'reassign'>('reassign');
+  const [reassignTarget, setReassignTarget] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (!branch) return;
+    setChecking(true);
+    setStaff([]);
+    setStaffChoice('reassign');
+    setReassignTarget(otherBranches[0]?._id || '');
+    getBranchStaff(branch._id)
+      .then(res => setStaff(res.data))
+      .catch(() => setStaff([]))
+      .finally(() => setChecking(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branch]);
+
+  if (!branch) return null;
+
+  const handleConfirm = async () => {
+    setDeleting(true);
+    try {
+      if (staff.length === 0) {
+        await onConfirm();
+      } else if (staffChoice === 'delete') {
+        await onConfirm({ staffAction: 'delete' });
+      } else {
+        if (!reassignTarget) { toast.error('Please choose a branch to reassign staff to'); setDeleting(false); return; }
+        await onConfirm({ staffAction: 'reassign', reassignToGarageId: reassignTarget });
+      }
+      onClose();
+    } catch (e) {
+      const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      toast.error(message || 'Failed to delete branch');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <Modal className="max-w-lg">
+        <ModalHeader title={`Delete "${branch.name}"?`} onClose={onClose} />
+        <ModalBody>
+          {checking ? (
+            <div className="flex justify-center py-6"><Loader /></div>
+          ) : staff.length === 0 ? (
+            <p className="text-sm text-gray-600 leading-relaxed">
+              This will permanently delete this branch and all of its customers, vehicles, job cards,
+              invoices, inventory, and reminders. This cannot be undone.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-gray-600 leading-relaxed">
+                This branch has <strong>{staff.length}</strong> staff member{staff.length > 1 ? 's' : ''} assigned
+                ({staff.map(s => s.name).join(', ')}). What should happen to them?
+              </p>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    checked={staffChoice === 'reassign'}
+                    onChange={() => setStaffChoice('reassign')}
+                  />
+                  <span className="text-sm font-semibold text-gray-800">Reassign them to another branch</span>
+                </label>
+                {staffChoice === 'reassign' && (
+                  <div className="pl-8">
+                    <Select value={reassignTarget} onChange={e => setReassignTarget(e.target.value)}>
+                      {otherBranches.map(g => (
+                        <option key={g._id} value={g._id}>{g.name}</option>
+                      ))}
+                    </Select>
+                  </div>
+                )}
+                <label className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    checked={staffChoice === 'delete'}
+                    onChange={() => setStaffChoice('delete')}
+                  />
+                  <span className="text-sm font-semibold text-gray-800">Delete their accounts too</span>
+                </label>
+              </div>
+              <p className="text-xs text-gray-400">
+                The branch itself and all of its customers, vehicles, job cards, invoices, inventory,
+                and reminders will be permanently deleted either way.
+              </p>
+            </div>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <div className="flex justify-end gap-3 w-full">
+            <Button variant="ghost" onClick={onClose} disabled={deleting}>Cancel</Button>
+            <Button
+              variant="danger"
+              onClick={handleConfirm}
+              disabled={checking || deleting}
+              icon={Trash2}
+            >
+              {deleting ? 'Deleting...' : 'Delete Branch'}
+            </Button>
+          </div>
+        </ModalFooter>
+      </Modal>
+    </ModalOverlay>
+  );
+}
+
 interface GarageForm {
   name: string;
   phone: string;
@@ -244,6 +366,18 @@ export default function Settings() {
   const { user, hasRole } = useAuth();
   const { confirm, ConfirmModal } = useConfirm();
   const { withLoader } = useGlobalLoader();
+  const { garages, activeGarageId, switchGarage, removeBranch } = useGarage();
+
+  const isOwner = hasRole('owner');
+  const [deleteBranchTarget, setDeleteBranchTarget] = useState<Garage | null>(null);
+
+  const handleDeleteBranch = async (payload?: { staffAction?: 'delete' | 'reassign'; reassignToGarageId?: string }) => {
+    if (!deleteBranchTarget) return;
+    await withLoader(async () => {
+      await removeBranch(deleteBranchTarget._id, payload);
+      toast.success(`Branch "${deleteBranchTarget.name}" deleted`);
+    });
+  };
 
   const canEditGarage = hasRole('owner', 'admin');
   const canManageStaff = hasRole('owner', 'admin');
@@ -561,6 +695,55 @@ export default function Settings() {
         )}
       </SectionCard>
 
+      {/* ── MY BRANCHES (owners only) ── */}
+      {isOwner && (
+        <SectionCard id="my-branches" icon={GitBranch} title="My Branches">
+          <div className="flex flex-col gap-2">
+            {garages.map(g => {
+              const isActive = g._id === activeGarageId;
+              return (
+                <div
+                  key={g._id}
+                  className={`flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-colors ${
+                    isActive ? 'border-primary-200 bg-primary-50/60' : 'border-gray-100 hover:bg-gray-50'
+                  }`}
+                >
+                  <button
+                    onClick={() => switchGarage(g._id)}
+                    disabled={isActive}
+                    className="flex items-center gap-3 flex-1 min-w-0 text-left disabled:cursor-default"
+                  >
+                    {isActive ? (
+                      <CheckCircle2 className="w-5 h-5 text-primary-600 shrink-0" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border-2 border-gray-300 shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className={`text-sm font-bold truncate ${isActive ? 'text-primary-700' : 'text-gray-800'}`}>{g.name}</p>
+                      {isActive && <p className="text-xs text-primary-500 font-semibold">Active branch</p>}
+                    </div>
+                  </button>
+                  {garages.length > 1 && (
+                    <button
+                      onClick={() => setDeleteBranchTarget(g)}
+                      className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title="Delete branch"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {garages.length <= 1 && (
+              <p className="text-xs text-gray-400 mt-1">
+                You need at least one branch — add another branch (from the sidebar) before you can delete this one.
+              </p>
+            )}
+          </div>
+        </SectionCard>
+      )}
+
       {/* ── STAFF MANAGEMENT ── */}
       <SectionCard
         id="staff-management"
@@ -792,6 +975,12 @@ export default function Settings() {
         onSave={handleStaffSave}
         editingUser={editingUser}
         canSetAdmin={canSetAdmin}
+      />
+      <DeleteBranchModal
+        branch={deleteBranchTarget}
+        otherBranches={garages.filter(g => g._id !== deleteBranchTarget?._id)}
+        onClose={() => setDeleteBranchTarget(null)}
+        onConfirm={handleDeleteBranch}
       />
       <ConfirmModal />
     </div>
