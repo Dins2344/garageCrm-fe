@@ -109,4 +109,13 @@ export const deleteUser = async (userId: string): Promise<ApiItemResponse<Delete
   return res.data;
 };
 
+export interface DeleteGarageResult {
+  deletedGarage: { id: string; name: string };
+}
+
+export const deleteOrphanedGarage = async (garageId: string): Promise<ApiItemResponse<DeleteGarageResult>> => {
+  const res = await adminApi.delete(`/garages/${garageId}`);
+  return res.data;
+};
+
 export default adminApi;
