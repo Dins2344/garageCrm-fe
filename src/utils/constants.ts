@@ -8,10 +8,29 @@ import type { Role, JobStatus, ServiceType, ComplaintPriority, FuelType } from '
 export const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // ── Local-storage keys ────────────────────────────────────────
+// Never inline these as string literals — a typo in one of several call sites
+// is silent, and a key that logout forgets to clear leaks between users on a
+// shared device. MIRROR: these names must match mobile/src/utils/constants.ts.
 export const TOKEN_KEY = 'garagepulse_token';
 export const USER_KEY = 'garagepulse_user';
 export const ADMIN_TOKEN_KEY = 'garagepulse_admin_token';
+export const ADMIN_USER_KEY = 'garagepulse_admin_user';
 export const ACTIVE_GARAGE_KEY = 'garagepulse_active_garage';
+
+// ── External links ────────────────────────────────────────────
+/**
+ * Google Play listing for the Android app.
+ *
+ * The `id` query param must match `android.package` in `mobile/app.json`
+ * (currently `com.dctechs.garagepulse`) — if the package is ever renamed, this
+ * URL silently starts resolving to a "not found" page.
+ */
+export const PLAY_STORE_URL =
+  'https://play.google.com/store/apps/details?id=com.dctechs.garagepulse';
+
+/** Decorative carbon-fibre texture used behind dark panels. */
+export const CARBON_FIBRE_TEXTURE_URL =
+  'https://www.transparenttextures.com/patterns/carbon-fibre.png';
 
 // ── Pagination ────────────────────────────────────────────────
 export const DEFAULT_PAGE_SIZE = 10;

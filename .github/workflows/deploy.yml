@@ -52,17 +52,17 @@ jobs:
           script: |
             set -e
 
-            echo "🔐 Logging into Docker Hub..."
+            echo "Logging into Docker Hub..."
             echo "$DH_TOKEN" | docker login -u "$DH_USER" --password-stdin
 
-            echo "📥 Pulling latest frontend image..."
+            echo "Pulling latest frontend image..."
             docker pull "${FE_IMAGE}:latest"
 
-            echo "🔄 Stopping old frontend container..."
+            echo "Stopping old frontend container..."
             docker stop garageflow-frontend 2>/dev/null || true
             docker rm garageflow-frontend 2>/dev/null || true
 
-            echo "🚀 Starting frontend container..."
+            echo "Starting frontend container..."
             docker run -d \
               --name garageflow-frontend \
               --restart unless-stopped \
@@ -72,19 +72,19 @@ jobs:
             echo "⏳ Waiting for startup..."
             sleep 5
 
-            echo "🩺 Checking health..."
-            curl -sf http://localhost:3000/ > /dev/null || (echo "❌ Frontend health check failed!" && docker logs garageflow-frontend && exit 1)
+            echo "Checking health..."
+            curl -sf http://localhost:3000/ > /dev/null || (echo "Frontend health check failed!" && docker logs garageflow-frontend && exit 1)
 
-            echo "🧹 Cleaning up..."
+            echo "Cleaning up..."
             docker image prune -f
 
-            echo "✅ Frontend deployment complete!"
+            echo "Frontend deployment complete!"
 
       - name: Deployment status
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Frontend deployed for commit ${{ github.sha }}"
+            echo "Frontend deployed for commit ${{ github.sha }}"
           else
-            echo "❌ Frontend deployment failed for commit ${{ github.sha }}"
+            echo "Frontend deployment failed for commit ${{ github.sha }}"
           fi

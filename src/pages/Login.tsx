@@ -7,6 +7,7 @@ import Button from '../components/Button';
 import { useCountries } from '../hooks/useCountries';
 import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
 import { ClipboardList, Receipt, Package, Eye, EyeOff } from 'lucide-react';
+import { CARBON_FIBRE_TEXTURE_URL } from '../utils/constants';
 
 interface LoginForm {
   name: string;
@@ -88,7 +89,13 @@ export default function Login() {
 
         {/* Left Side: Features */}
         <div className="hidden lg:flex flex-col justify-between w-5/12 bg-linear-to-br from-gray-900 to-gray-800 p-12 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none" />
+          {/* Inline style, not a Tailwind arbitrary value: Tailwind's scanner only
+                sees class strings written literally in source, so building
+                `bg-[url(${VAR})]` dynamically emits no CSS at all. */}
+            <div
+              className="absolute inset-0 opacity-20 pointer-events-none"
+              style={{ backgroundImage: `url('${CARBON_FIBRE_TEXTURE_URL}')` }}
+            />
 
           <div className="relative z-10 flex items-center gap-3 mb-12">
             <img src="/mainIcon.png" alt="GaragePulse Logo" className="w-10" />

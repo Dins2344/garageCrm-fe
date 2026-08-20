@@ -17,7 +17,7 @@ import { useCountries } from '../hooks/useCountries';
 import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
 import {
   Building2, Users, UserCircle, Lock,
-  Pencil, X, Plus, Save, Eye, EyeOff, Trash2,
+  Pencil, X, Plus, Save, Eye, EyeOff, Trash2, Check,
   PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2,
 } from 'lucide-react';
 import type { User, Garage, Role } from '../types/models';
@@ -1043,8 +1043,12 @@ export default function Settings() {
           </div>
           {/* Password match indicator */}
           {pwdForm.confirm && (
-            <p className={`text-xs font-semibold ${pwdForm.new === pwdForm.confirm ? 'text-emerald-600' : 'text-red-500'}`}>
-              {pwdForm.new === pwdForm.confirm ? '✓ Passwords match' : '✗ Passwords do not match'}
+            <p className={`text-xs font-semibold flex items-center gap-1 ${pwdForm.new === pwdForm.confirm ? 'text-emerald-600' : 'text-red-500'}`}>
+              {pwdForm.new === pwdForm.confirm ? (
+                <><Check className="w-3.5 h-3.5" strokeWidth={3} /> Passwords match</>
+              ) : (
+                <><X className="w-3.5 h-3.5" strokeWidth={3} /> Passwords do not match</>
+              )}
             </p>
           )}
           <div className="flex justify-end">

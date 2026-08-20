@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { adminLogin } from '../../services/apiServices/adminService';
-import { ADMIN_TOKEN_KEY } from '../../utils/constants';
+import { ADMIN_TOKEN_KEY, ADMIN_USER_KEY } from '../../utils/constants';
 import { ShieldCheck } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -17,7 +17,7 @@ export default function AdminLogin() {
     try {
       const { token, data } = await adminLogin(email, password);
       localStorage.setItem(ADMIN_TOKEN_KEY, token);
-      localStorage.setItem('garagepulse_admin_user', JSON.stringify(data));
+      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data));
       toast.success('Admin login successful');
       navigate('/admin/overview');
     } catch (error) {

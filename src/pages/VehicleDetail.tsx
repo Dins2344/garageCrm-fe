@@ -1,6 +1,7 @@
 import { useState, useEffect, type ComponentType } from 'react';
 import { useGarage } from '../context/GarageContext';
 import { formatMoney, formatNumber, formatDate as fmtDate } from '../utils/format';
+import { Check } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getVehicle, getVehicleHistory } from '../services/apiServices/vehicleService';
 
@@ -379,7 +380,9 @@ export default function VehicleDetail() {
                       <p className="text-xs text-gray-300 font-medium">No estimate</p>
                     )}
                     {jc.estimation?.approvedByCustomer && (
-                      <p className="text-[10px] text-emerald-500 font-semibold mt-0.5">✓ Approved</p>
+                      <p className="text-[10px] text-emerald-500 font-semibold mt-0.5 flex items-center gap-1">
+                        <Check className="w-3 h-3" strokeWidth={3} /> Approved
+                      </p>
                     )}
                   </div>
 
