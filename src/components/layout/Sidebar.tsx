@@ -50,7 +50,7 @@ interface SidebarProps {
 
 export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const { user, logout } = useAuth();
-  const { garages, activeGarageId, switchGarage, addBranch } = useGarage();
+  const { garages, activeGarageId, switchGarage, addBranch, locale } = useGarage();
   const { confirm, ConfirmModal } = useConfirm();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [addBranchOpen, setAddBranchOpen] = useState(false);
@@ -267,7 +267,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
                 <Input
                   value={branchForm.phone}
                   onChange={e => setBranchForm(f => ({ ...f, phone: e.target.value }))}
-                  placeholder="10-digit phone number"
+                  placeholder={locale.phoneExample}
                 />
               </FormField>
             </ModalBody>

@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import {
   ClipboardList, Users, Receipt, Package, Bell, BarChart3,
   CheckCircle, ArrowRight, Star, Zap, Shield, Clock, TrendingUp,
-  Wrench, Car, FileText, IndianRupee, ChevronDown, Phone, Mail,
+  Wrench, Car, FileText, ChevronDown, Phone, Mail,
   Building2, Globe, Award, Menu, X
 } from 'lucide-react';
+import { PLAY_STORE_URL, CARBON_FIBRE_TEXTURE_URL } from '../utils/constants';
 
 /* ───── Scroll Reveal Hook ───── */
 function useScrollReveal() {
@@ -66,6 +67,50 @@ function Reveal({ children, delay = 0, direction = 'up', className = '' }: Revea
 /* ───── Logo ───── */
 function Logo({ size = 40 }: { size?: number }) {
   return <img src="/mainIcon.png" alt="GaragePulse Logo" style={{ width: size, height: size }} className="object-contain" />;
+}
+
+/* ───── Play Store ───── */
+interface PlayStoreBadgeProps {
+  /** `sm` for the footer, `md` for the hero. */
+  size?: 'sm' | 'md';
+  className?: string;
+}
+
+/**
+ * Link to the Android app on Google Play, using the official badge artwork
+ * from `public/playstore.png`.
+ *
+ * Opens in a new tab with `rel="noopener noreferrer"` — `noopener` is the
+ * security-relevant half: without it the opened page gets a handle on
+ * `window.opener` and can navigate this tab somewhere else.
+ *
+ * Sized by HEIGHT with `w-auto`: the asset is 582x220 (a 2.65:1 ratio), and
+ * constraining one axis keeps Google's badge proportions intact. Never set
+ * both — a stretched badge breaks their brand guidelines.
+ *
+ * `drop-shadow` rather than `shadow` on hover, because the PNG has
+ * transparent corners; a box-shadow would draw a rectangle behind the rounded
+ * badge, while drop-shadow follows the alpha channel.
+ */
+function PlayStoreBadge({ size = 'md', className = '' }: PlayStoreBadgeProps) {
+  const isSmall = size === 'sm';
+  return (
+    <a
+      href={PLAY_STORE_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Download GaragePulse for Android on Google Play (opens in a new tab)"
+      className={`inline-block transition-all duration-300 hover:scale-105 hover:drop-shadow-xl ${className}`}
+    >
+      <img
+        src="/playstore.png"
+        // Empty alt on purpose: the anchor's aria-label already names this
+        // link, and a second description would be announced twice.
+        alt=""
+        className={`w-auto object-contain ${isSmall ? 'h-10' : 'h-14'}`}
+      />
+    </a>
+  );
 }
 
 /* ───── Feature Card ───── */
@@ -293,7 +338,7 @@ export default function HomePage() {
     { icon: Car, title: 'Vehicle Intake', desc: 'Log customer & vehicle details instantly.' },
     { icon: FileText, title: 'Estimation', desc: 'Build parts + labor estimates, send for approval.' },
     { icon: Wrench, title: 'Repair & Track', desc: 'Assign mechanics, track progress live.' },
-    { icon: IndianRupee, title: 'Invoice & Deliver', desc: 'Generate invoice, collect payment, deliver.' },
+    { icon: Receipt, title: 'Invoice & Deliver', desc: 'Generate invoice, collect payment, deliver.' },
   ];
 
   const testimonials = [
@@ -526,6 +571,20 @@ export default function HomePage() {
             </div>
           </Reveal>
 
+          {/* Android app availability */}
+          <Reveal delay={280}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14 -mt-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-500">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                Now live on Android — take your garage with you
+              </div>
+              <PlayStoreBadge />
+            </div>
+          </Reveal>
+
           {/* Floating trust badges */}
           <Reveal delay={320}>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400 font-medium">
@@ -616,7 +675,7 @@ export default function HomePage() {
                         'Missed service due dates',
                       ].map((item, i) => (
                         <li key={i} className="flex items-start gap-2">
-                          <span className="text-red-400 font-bold mt-0.5">✕</span>
+                          <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" strokeWidth={3} />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -757,7 +816,13 @@ export default function HomePage() {
       <section className="max-w-5xl mx-auto px-6 pb-28">
         <Reveal>
           <div className="relative rounded-3xl bg-gradient-to-br from-gray-900 to-gray-800 p-12 md:p-16 text-center overflow-hidden">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none" />
+            {/* Inline style, not a Tailwind arbitrary value: Tailwind's scanner only
+                sees class strings written literally in source, so building
+                `bg-[url(${VAR})]` dynamically emits no CSS at all. */}
+            <div
+              className="absolute inset-0 opacity-20 pointer-events-none"
+              style={{ backgroundImage: `url('${CARBON_FIBRE_TEXTURE_URL}')` }}
+            />
             <div className="absolute top-0 right-0 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-56 h-56 bg-purple-500/20 rounded-full blur-3xl" />
 
@@ -811,6 +876,10 @@ export default function HomePage() {
                 <Phone className="w-4 h-4" />
                 <Mail className="w-4 h-4" />
                 <Globe className="w-4 h-4" />
+              </div>
+              <div className="mt-6">
+                <p className="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-3">Get the app</p>
+                <PlayStoreBadge size="sm" />
               </div>
             </div>
 

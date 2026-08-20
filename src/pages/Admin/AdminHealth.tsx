@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { Check } from 'lucide-react';
 import { getSystemHealth, type SystemHealth } from '../../services/apiServices/adminService';
 
 function HealthSection({ title, children }: { title: string; children: ReactNode }) {
@@ -41,7 +42,7 @@ export default function AdminHealth() {
     <div className="space-y-8">
       <div className="flex items-center gap-4 bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
         <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white animate-pulse">
-          ✓
+          <Check className="w-5 h-5" strokeWidth={3} />
         </div>
         <div>
           <h4 className="font-bold text-emerald-800">Operational</h4>

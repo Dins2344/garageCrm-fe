@@ -5,7 +5,7 @@
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 frontend/
@@ -74,7 +74,7 @@ Every `.tsx`/`.ts` file may have a colocated `*.test.tsx`/`*.test.ts` sibling �
 
 ---
 
-## 🧱 Architecture Rules
+## Architecture Rules
 
 ### Component Hierarchy
 
@@ -118,7 +118,7 @@ App.tsx (routing + providers, pages lazy-loaded via React.lazy)
 
 ---
 
-## 📛 Naming Conventions
+## Naming Conventions
 
 ### Files
 
@@ -137,22 +137,22 @@ App.tsx (routing + providers, pages lazy-loaded via React.lazy)
 ### Components & Functions
 
 ```javascript
-// ✅ Components are PascalCase function declarations or arrow functions
+// Components are PascalCase function declarations or arrow functions
 export default function CustomerList({ customers }) { ... }
 export function Card({ children, className }) { ... }
 
-// ✅ Hooks start with "use"
+// Hooks start with "use"
 function useDebounce(value, delay) { ... }
 
-// ✅ Event handlers start with "handle"
+// Event handlers start with "handle"
 const handleSubmit = () => { ... };
 const handleDeleteCustomer = () => { ... };
 
-// ✅ Boolean state starts with "is" or "has"
+// Boolean state starts with "is" or "has"
 const [isModalOpen, setIsModalOpen] = useState(false);
 const [hasPermission, setHasPermission] = useState(false);
 
-// ❌ Avoid generic names
+// Avoid generic names
 const [data, setData] = useState(null);     // Too vague
 const [flag, setFlag] = useState(false);    // What flag?
 ```
@@ -162,31 +162,31 @@ const [flag, setFlag] = useState(false);    // What flag?
 Since we use **Tailwind CSS 4**, avoid custom CSS class names unless defining theme-level tokens in `index.css`.
 
 ```javascript
-// ✅ Tailwind utility classes
+// Tailwind utility classes
 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
 
-// ✅ Composing via props
+// Composing via props
 <Button variant="primary" size="md">Save</Button>
 
-// ❌ Don't create custom CSS classes for one-off styling
+// Don't create custom CSS classes for one-off styling
 <div className="my-custom-card-wrapper">  // Use Tailwind instead
 ```
 
 ---
 
-## 🎨 Design System & Styling Rules
+## Design System & Styling Rules
 
 ### Theme Tokens (defined in `index.css`)
 
 All color tokens live in the `@theme` block in `index.css`. **Always use design tokens, never hardcode colors.**
 
 ```javascript
-// ✅ Use theme colors via Tailwind classes
+// Use theme colors via Tailwind classes
 <div className="bg-primary-500 text-white">
 <span className="text-danger">Error</span>
 <div className="bg-gray-50 border-gray-200">
 
-// ❌ Never hardcode hex values in JSX
+// Never hardcode hex values in JSX
 <div style={{ backgroundColor: '#3b5ff8' }}>
 <span style={{ color: '#ef4444' }}>
 ```
@@ -278,7 +278,7 @@ Always use the `Button` component. Available variants:
 
 ---
 
-## 📡 API Service Rules
+## API Service Rules
 
 ### File Structure
 
@@ -301,7 +301,7 @@ import api from './apiInterceptor';
 import type { ApiListResponse, ApiItemResponse } from '../../types/api';
 import type { Customer } from '../../types/models';
 
-// ✅ Correct pattern — export named functions, typed params + return
+// Correct pattern — export named functions, typed params + return
 export const getCustomers = (params: { search?: string; page?: number; limit?: number }) =>
   api.get<ApiListResponse<Customer>>('/customers', { params }).then((res) => res.data);
 export const getCustomer = (id: string) =>
@@ -322,7 +322,7 @@ export const deleteCustomer = (id: string) => api.delete(`/customers/${id}`).the
 
 ---
 
-## 🔀 Routing Rules
+## Routing Rules
 
 All routes are defined in `App.tsx`. Every page is imported via `React.lazy(() => import('./pages/X'))` and rendered inside a single `<Suspense>` boundary — see **Performance Conventions** below.
 
@@ -368,7 +368,7 @@ All routes are defined in `App.tsx`. Every page is imported via `React.lazy(() =
 
 ---
 
-## 🔄 State Management Rules
+## State Management Rules
 
 ### Local State (Default)
 Use `useState` / `useReducer` for component-level state. This is the default for most data.
@@ -404,35 +404,64 @@ export const useXxx = () => {
 
 ---
 
-## 📋 Constants & Enums
+## Constants & Enums
 
 All application-wide constants live in `utils/constants.ts`.
 
 ### What Goes Here:
 - API base URL
-- LocalStorage keys (`TOKEN_KEY`, `USER_KEY`)
+- LocalStorage keys (`TOKEN_KEY`, `USER_KEY`, `ADMIN_TOKEN_KEY`, `ACTIVE_GARAGE_KEY`)
+- External URLs (`PLAY_STORE_URL`, `CARBON_FIBRE_TEXTURE_URL`)
+- Limits and page sizes (`DEFAULT_PAGE_SIZE`, `DROPDOWN_FETCH_LIMIT`)
 - Enum objects (`ROLES`, `JOB_STATUSES`, `SERVICE_TYPES`)
 - Select/dropdown option arrays (`JOB_STATUS_OPTIONS`, `FUEL_TYPE_OPTIONS`)
-- Formatting constants (`CURRENCY_SYMBOL`, `LOCALE`, `DATE_FORMAT_OPTIONS`)
+- Shared formatting options (`DATE_FORMAT_OPTIONS`)
 - Branding (`APP_NAME`, `APP_VERSION`)
+
+### What Does NOT Go Here:
+
+- **One-off UI copy.** A heading, button label, placeholder or toast used in
+  exactly one place reads better inline. `<h2>Garage Information</h2>` beats
+  `GARAGE_INFO_HEADING`; a constants file full of display strings is a
+  translation layer without the translation.
+- **Currency symbol, locale, tax labels, phone examples.** These resolve from
+  the garage's `country` at runtime through `utils/locale.ts` and
+  `utils/format.ts`. There used to be a `CURRENCY_SYMBOL`/`LOCALE` pair here
+  and it hardcoded `₹`/`en-IN` for every tenant — reintroducing either would
+  silently re-break non-Indian garages.
+
+**The test:** would changing this value in one place, and having it apply
+everywhere, be *correct*? If yes, extract it. If the same word appearing on two
+screens is a coincidence rather than shared meaning, leave both inline.
 
 ### Rules:
 - Enum objects use `UPPER_SNAKE_CASE` keys with `lower_snake_case` values (matching backend)
 - Option arrays have `{ value, label }` shape
-- Always import from constants — never hardcode enum values in components:
+- Always import from constants — never hardcode enum values, storage keys, or
+  external URLs in components:
 
 ```javascript
-// ✅ Good
-import { JOB_STATUSES } from '../utils/constants';
+// Good
+import { JOB_STATUSES, TOKEN_KEY, PLAY_STORE_URL } from '../utils/constants';
 if (status === JOB_STATUSES.APPROVED) { ... }
+localStorage.getItem(TOKEN_KEY);
+<a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">
 
-// ❌ Bad — hardcoded magic string
+// Bad — hardcoded magic strings
 if (status === 'approved') { ... }
+localStorage.getItem('garagepulse_token');
+<a href="https://play.google.com/store/apps/details?id=...">
 ```
+
+**One Tailwind caveat:** a URL used inside an arbitrary value
+(`bg-[url('...')]`) cannot be interpolated from a constant — Tailwind's scanner
+only sees class strings written literally in source, so a dynamic one emits no
+CSS at all. Use an inline `style={{ backgroundImage }}` with the constant
+instead; that is the one sanctioned exception to the no-inline-styles rule.
 
 ---
 
-## 🧩 Component Patterns
+## Component Patterns
 
 ### Page-Level Data Fetching
 
@@ -468,13 +497,13 @@ export default function CustomersPage() {
 ```javascript
 import toast from 'react-hot-toast';
 
-// ✅ Success after mutation
+// Success after mutation
 toast.success('Customer created successfully');
 
-// ✅ Error on catch
+// Error on catch
 toast.error(err.response?.data?.message || 'Something went wrong');
 
-// ❌ Don't use alert() or console.log for user feedback
+// Don't use alert() or console.log for user feedback
 alert('Success!');
 ```
 
@@ -497,40 +526,128 @@ const handleClose = () => {
 
 ---
 
-## 🚫 Anti-Patterns to Avoid
+## No Emoji — Use Icon Components
+
+Emoji are not used anywhere in this app: not in JSX text, headings, toast
+messages, button labels, comments, or commit messages. They render from the
+user's OS font, so they look different on every machine and sit inconsistently
+beside the app's icon set.
+
+`[glyph]` below stands in for a literal emoji or symbol character — this file
+stays free of them so a repo-wide scan finds zero hits.
+
+```jsx
+// Don't use emoji or bare glyph characters as icons
+<p className="text-emerald-500">[glyph] Approved</p>
+<span className="text-red-400">[glyph]</span>
+
+// Use lucide-react (or react-icons/hi where a file already uses it)
+<p className="text-emerald-500 flex items-center gap-1">
+  <Check className="w-3 h-3" strokeWidth={3} /> Approved
+</p>
+<X className="w-4 h-4 text-red-400" strokeWidth={3} />
+```
+
+Bare glyph characters — check marks, crosses, warning triangles, arrows — count
+as emoji for this rule **when they are standing in for an icon**. Punctuation
+inside a sentence (an em dash, a middot) is fine; the test is whether the
+character is doing an icon's job.
+
+**Currency symbols are never hardcoded** for a different reason — they come
+from the garage's locale via `utils/format.ts`. See **Design System & Styling
+Rules**.
+
+---
+
+## Reuse Components Before Building New Ones
+
+`src/components/` is a real component library. A new component built from
+Tailwind defaults — square corners, `border-gray-300`, no shadow — looks
+obviously bolted on and quietly forks the design system.
+
+**Check these first:**
+
+| Need                        | Use                                          |
+| --------------------------- | -------------------------------------------- |
+| Modal / dialog              | `Modal`, `ModalOverlay`, `ModalHeader`, `ModalBody`, `ModalFooter` |
+| Confirmation prompt         | `useConfirm` from `ConfirmModal`             |
+| Form input / select / field | `Input`, `Select`, `Textarea`, `FormField` from `Form` |
+| Button                      | `Button` (has `variant`, `size`, `icon`)     |
+| Card / panel                | `Card`, `CardHeader`, `CardBody`             |
+| Table                       | `Table`, `Thead`, `Th`, `Tbody`, `Tr`, `Td`  |
+| Status pill                 | `Badge` (takes a `JobStatus` as `intent`)    |
+| Empty list state            | `EmptyState`                                 |
+| Loading state               | `Loader`                                     |
+| Stat tile                   | `StatCard`                                   |
+| Paginated list              | `Pagination`, `ListComponents`               |
+| Page title bar              | `PageHeader`                                 |
+
+**The order of preference:**
+
+1. Use the existing component.
+2. Add a prop to it, if it is nearly right.
+3. Only then write a new one — styled from the theme tokens in **Design System
+   & Styling Rules**, never from defaults.
+
+```jsx
+// Don't hand-roll a modal when Modal exists
+<div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+
+// Don't build a second button with its own styling
+<button className="px-4 py-2 bg-blue-500 text-white rounded">Save</button>
+// Use <Button variant="primary">Save</Button>
+
+// Don't duplicate a card's look in a one-off div
+<div className="bg-white border border-gray-300 p-4">
+// Use <Card> — it carries the shared radius and shadow
+```
+
+Two components that look 95% alike will drift apart, and that drift is what
+makes an app feel machine-assembled.
+
+---
+
+## Anti-Patterns to Avoid
 
 ```javascript
-// ❌ Don't use inline styles (use Tailwind)
+// Don't use emoji or glyph characters as icons
+<span className="text-emerald-500">[glyph] Approved</span>
+// Use a lucide-react icon component
+
+// Don't create a new component without checking components/ first
+// Reuse or extend — Button, Card, Modal, Form, Table, Badge, EmptyState
+
+// Don't use inline styles (use Tailwind)
 <div style={{ marginTop: 20, color: 'red' }}>
 
-// ❌ Don't hardcode colors
+// Don't hardcode colors
 <div className="bg-[#3b5ff8]">  // Use bg-primary-500 instead
 
-// ❌ Don't skip the loading state
+// Don't skip the loading state
 const [data, setData] = useState(null);
 // Always show a Loader while fetching
 
-// ❌ Don't nest ternaries for conditional rendering
+// Don't nest ternaries for conditional rendering
 {a ? (b ? <X /> : <Y />) : <Z />}
 // Use early returns or separate variables
 
-// ❌ Don't create god components (> 400 lines)
+// Don't create god components (> 400 lines)
 // Extract sub-components or custom hooks
 
-// ❌ Don't use index as key for dynamic lists
+// Don't use index as key for dynamic lists
 {items.map((item, i) => <Item key={i} />)}  // Use item._id instead
 
-// ❌ Don't ignore the response envelope
+// Don't ignore the response envelope
 const customers = res.data;           // This is { success, count, data: [...] }
-const customers = res.data.data;      // ✅ Correct
+const customers = res.data.data;      // Correct
 
-// ❌ Don't use console.log in committed code
+// Don't use console.log in committed code
 console.log('debug:', data);          // Remove before committing
 ```
 
 ---
 
-## 🔷 TypeScript Conventions
+## TypeScript Conventions
 
 The whole frontend is TypeScript (`strict: true` in `tsconfig.json`). No new `.jsx`/`.js` files — everything is `.tsx`/`.ts`.
 
@@ -545,7 +662,7 @@ The whole frontend is TypeScript (`strict: true` in `tsconfig.json`). No new `.j
 
 ---
 
-## 🧪 Testing Conventions
+## Testing Conventions
 
 Tests use **Vitest** + **React Testing Library** + **user-event**, with API service modules mocked via `vi.mock(...)` — tests never hit a real network or a real backend.
 
@@ -568,7 +685,7 @@ npm run test:watch # watch mode while developing
 
 ---
 
-## ⚡ Performance Conventions
+## Performance Conventions
 
 - **Every route-level page must be lazy-loaded.** `App.tsx` imports pages via `React.lazy(() => import('./pages/X'))` and renders `<Routes>` inside a single `<Suspense fallback={<Loader variant="page" />}>`. This keeps the initial bundle to the app shell instead of shipping every page (including the entire admin console) to every visitor before first paint. When adding a new page, add it the same way — a plain top-level `import Page from './pages/Page'` defeats the code-splitting.
 - **Don't add `React.memo`/`useMemo`/`useCallback` speculatively.** Add them when profiling (React DevTools Profiler) actually shows a render-cost problem, with a comment noting what was measured. Unmeasured memoization mostly adds risk (stale-closure bugs from wrong dependency arrays) without a proven benefit.
@@ -577,8 +694,11 @@ npm run test:watch # watch mode while developing
 
 ---
 
-## ✅ Pre-Push Checklist
+## Pre-Push Checklist
 
+- [ ] No emoji anywhere — UI text, toasts, comments, or commit messages
+- [ ] No inline storage keys, external URLs, or magic numbers — import from `constants.ts`
+- [ ] No new component that duplicates one already in `src/components/`
 - [ ] No `console.log` statements
 - [ ] No hardcoded hex colors — use Tailwind theme tokens
 - [ ] No inline `style={}` — use Tailwind classes

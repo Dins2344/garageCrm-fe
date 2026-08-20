@@ -2,12 +2,19 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import { ACTIVE_GARAGE_KEY } from '../utils/constants';
 import { listBranches, createBranch, getGarage, deleteBranch, type DeleteBranchPayload } from '../services/apiServices/garageService';
 import { useAuth } from './AuthContext';
-import type { Garage } from '../types/models';
+import { DEFAULT_LOCALE } from '../utils/locale';
+import type { Garage, ResolvedLocale } from '../types/models';
 
 interface GarageContextValue {
   garages: Garage[];
   activeGarageId: string | null;
   activeGarageName: string | null;
+  /** Active garage's server-resolved locale; DEFAULT_LOCALE until it loads. */
+  locale: ResolvedLocale;
+  /** The full active garage, once loaded — null during first paint. */
+  activeGarage: Garage | null;
+  /** Re-fetch the active garage, e.g. after Settings saves a new country. */
+  refreshGarage: () => Promise<void>;
   switchGarage: (garageId: string) => void;
   addBranch: (data: Pick<Garage, 'name' | 'phone'>) => Promise<Garage>;
   removeBranch: (garageId: string, payload?: DeleteBranchPayload) => Promise<void>;
@@ -44,18 +51,32 @@ export function GarageProvider({ children }: { children: ReactNode }) {
     ? (user.role === 'owner' ? (ownerActiveGarageId ?? user.garage) : user.garage)
     : null;
 
-  // Owners already have the name for free once their branch list has loaded;
-  // everyone else (and owners during that brief loading window) needs a
-  // single direct fetch of whichever garage is currently active.
-  const [fetchedGarageName, setFetchedGarageName] = useState<string | null>(null);
-  const garageFromList = garages.find(g => g._id === activeGarageId)?.name ?? null;
+  // Owners already have the active garage for free once their branch list has
+  // loaded; everyone else (and owners during that brief loading window) needs
+  // a single direct fetch of whichever garage is currently active.
+  const [fetchedGarage, setFetchedGarage] = useState<Garage | null>(null);
+  const garageFromList = garages.find(g => g._id === activeGarageId) ?? null;
+
+  const refreshGarage = async () => {
+    const { data } = await getGarage();
+    setFetchedGarage(data);
+    setOwnerGarages(prev => prev.map(g => (g._id === data._id ? data : g)));
+  };
 
   useEffect(() => {
     if (garageFromList || !activeGarageId) return;
-    getGarage().then(({ data }) => setFetchedGarageName(data.name)).catch(() => {});
+    getGarage().then(({ data }) => setFetchedGarage(data)).catch(() => {});
   }, [activeGarageId, garageFromList]);
 
-  const activeGarageName = garageFromList ?? fetchedGarageName;
+  // Only trust the fetched garage while it still matches the active branch —
+  // switching branches leaves the previous fetch in state for a moment.
+  const activeGarage =
+    garageFromList ?? (fetchedGarage?._id === activeGarageId ? fetchedGarage : null);
+  const activeGarageName = activeGarage?.name ?? null;
+
+  // The server resolves this; the client never derives a currency or tax name
+  // itself. DEFAULT_LOCALE covers first paint only.
+  const locale = activeGarage?.locale ?? DEFAULT_LOCALE;
 
   const switchGarage = (garageId: string) => {
     setOwnerActiveGarageId(garageId);
@@ -81,7 +102,10 @@ export function GarageProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <GarageContext.Provider value={{ garages, activeGarageId, activeGarageName, switchGarage, addBranch, removeBranch }}>
+    <GarageContext.Provider value={{
+      garages, activeGarageId, activeGarageName, activeGarage, locale,
+      refreshGarage, switchGarage, addBranch, removeBranch
+    }}>
       {children}
     </GarageContext.Provider>
   );

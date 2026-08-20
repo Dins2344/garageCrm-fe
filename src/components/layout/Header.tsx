@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { HiOutlineMenuAlt2, HiOutlineOfficeBuilding } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import { useGarage } from '../../context/GarageContext';
+import { formatDate } from '../../utils/format';
 import { Hand } from 'lucide-react';
 
 const pageTitles: Record<string, string> = {
@@ -21,7 +22,7 @@ interface HeaderProps {
 export default function Header({ onMobileMenuOpen }: HeaderProps) {
   const location = useLocation();
   const { user } = useAuth();
-  const { activeGarageName } = useGarage();
+  const { activeGarageName, locale } = useGarage();
 
   const getTitle = () => {
     const path = location.pathname;
@@ -72,12 +73,7 @@ export default function Header({ onMobileMenuOpen }: HeaderProps) {
 
       <div className="flex items-center gap-4">
         <div className="hidden sm:flex items-center text-sm font-medium text-gray-600 bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
-          {new Date().toLocaleDateString('en-IN', {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-          })}
+          {formatDate(new Date(), locale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
         </div>
       </div>
     </header>

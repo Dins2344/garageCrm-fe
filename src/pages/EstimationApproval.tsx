@@ -2,10 +2,16 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getEstimationByToken, approveEstimationByToken } from '../services/apiServices/publicService';
 import Loader from '../components/Loader';
-import type { JobCard, Vehicle, Customer, Garage, ComplaintPriority } from '../types/models';
+import { formatMoney, formatDate } from '../utils/format';
+import { DEFAULT_LOCALE } from '../utils/locale';
+import type { JobCard, Vehicle, Customer, Garage, ComplaintPriority, ResolvedLocale } from '../types/models';
 
-const fmt = (n?: number) =>
-  `₹${Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/**
+ * This page is unauthenticated, so it has no GarageContext to read a locale
+ * from. The API resolves one server-side and returns it on the payload — see
+ * backend/usecases/publicUsecase.ts.
+ */
+type PublicEstimation = JobCard & { locale?: ResolvedLocale };
 
 const priorityColors: Record<ComplaintPriority, string> = {
   low: '#10b981',
@@ -16,11 +22,15 @@ const priorityColors: Record<ComplaintPriority, string> = {
 
 export default function EstimationApproval() {
   const { token } = useParams<{ token: string }>();
-  const [data, setData] = useState<JobCard | null>(null);
+  const [data, setData] = useState<PublicEstimation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [approving, setApproving] = useState(false);
   const [approved, setApproved] = useState(false);
+
+  // India only until the payload lands, matching the server's own fallback.
+  const locale = data?.locale ?? DEFAULT_LOCALE;
+  const fmt = (n?: number) => formatMoney(n, locale);
 
   useEffect(() => {
     (async () => {
@@ -243,7 +253,7 @@ export default function EstimationApproval() {
             )}
             {estimation?.taxRate > 0 && (
               <div className="flex justify-between text-sm text-slate-500">
-                <span>GST ({estimation.taxRate}%)</span><span>{fmt(estimation?.taxAmount)}</span>
+                <span>{locale.taxLabel} ({estimation.taxRate ?? 0}%)</span><span>{fmt(estimation?.taxAmount)}</span>
               </div>
             )}
             <div className="flex justify-between items-center pt-3 border-t border-slate-200">
@@ -285,7 +295,7 @@ export default function EstimationApproval() {
           Powered by <span className="font-semibold text-slate-500">GaragePulse CRM</span>
           {estimation?.approvedAt && approved && (
             <span className="block mt-1">
-              Approved on {new Date(estimation.approvedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              Approved on {formatDate(estimation.approvedAt, locale, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
         </p>

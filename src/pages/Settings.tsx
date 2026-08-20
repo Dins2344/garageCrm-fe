@@ -13,9 +13,11 @@ import { Input, Select } from '../components/Form';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
+import { useCountries } from '../hooks/useCountries';
+import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
 import {
   Building2, Users, UserCircle, Lock,
-  Pencil, X, Plus, Save, Eye, EyeOff, Trash2,
+  Pencil, X, Plus, Save, Eye, EyeOff, Trash2, Check,
   PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2,
 } from 'lucide-react';
 import type { User, Garage, Role } from '../types/models';
@@ -130,6 +132,9 @@ interface StaffModalProps {
 }
 
 function StaffModal({ visible, onClose, onSave, editingUser, canSetAdmin }: StaffModalProps) {
+  // The phone placeholder has to follow the garage's country — a UK garage
+  // adding staff was being shown an Indian 10-digit example.
+  const { locale } = useGarage();
   const BLANK: StaffForm = { name: '', email: '', phone: '', password: '', role: 'mechanic' };
   const [form, setForm] = useState<StaffForm>(BLANK);
   const [saving, setSaving] = useState(false);
@@ -188,7 +193,7 @@ function StaffModal({ visible, onClose, onSave, editingUser, canSetAdmin }: Staf
                   <Input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="email@example.com" required autoCapitalize="none" />
                 </FormField>
                 <FormField label="Phone" required>
-                  <Input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="10-digit phone" required />
+                  <Input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder={locale.phoneExample} required />
                 </FormField>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -354,6 +359,8 @@ interface GarageForm {
   gstNumber: string;
   taxRate: string;
   laborRatePerHour: string;
+  country: string;
+  timezone: string;
   street: string;
   city: string;
   state: string;
@@ -366,7 +373,8 @@ export default function Settings() {
   const { user, hasRole } = useAuth();
   const { confirm, ConfirmModal } = useConfirm();
   const { withLoader } = useGlobalLoader();
-  const { garages, activeGarageId, switchGarage, removeBranch } = useGarage();
+  const { garages, activeGarageId, switchGarage, removeBranch, refreshGarage } = useGarage();
+  const { countries } = useCountries();
 
   const isOwner = hasRole('owner');
   const [deleteBranchTarget, setDeleteBranchTarget] = useState<Garage | null>(null);
@@ -391,9 +399,27 @@ export default function Settings() {
   const [garageForm, setGarageForm] = useState<GarageForm>({
     name: '', phone: '', email: '', gstNumber: '',
     taxRate: '18', laborRatePerHour: '500',
+    country: DEFAULT_LOCALE.country, timezone: '',
     street: '', city: '', state: '', pincode: '',
   });
   const [savingGarage, setSavingGarage] = useState(false);
+
+  // Labels follow the country being EDITED, not the saved one, so switching
+  // the picker to United Kingdom relabels "GSTIN" to "VAT No." immediately —
+  // the owner sees what they're choosing before they commit to it.
+  const selectedCountry = countries.find(c => c.code === garageForm.country);
+  const timezoneOptions = timezoneChoicesFor(garageForm.country);
+  const needsTimezone = (selectedCountry?.requiresTimezoneChoice ?? false) && timezoneOptions.length > 0;
+  // Falls back to the saved locale, then India, so nothing renders blank while
+  // the country list is still loading.
+  const labels = {
+    tax: selectedCountry?.taxLabel ?? garage?.locale?.taxLabel ?? DEFAULT_LOCALE.taxLabel,
+    taxId: selectedCountry?.taxIdLabel ?? garage?.locale?.taxIdLabel ?? DEFAULT_LOCALE.taxIdLabel,
+    postal: selectedCountry?.postalLabel ?? garage?.locale?.postalLabel ?? DEFAULT_LOCALE.postalLabel,
+    postalInputMode: selectedCountry?.postalInputMode ?? garage?.locale?.postalInputMode ?? DEFAULT_LOCALE.postalInputMode,
+    currency: selectedCountry?.currency ?? garage?.locale?.currency ?? DEFAULT_LOCALE.currency,
+    phoneExample: selectedCountry?.phoneExample ?? garage?.locale?.phoneExample ?? DEFAULT_LOCALE.phoneExample,
+  };
 
   // ── Profile state ──
   const [profileForm, setProfileForm] = useState({ name: user?.name || '', phone: user?.phone || '' });
@@ -433,6 +459,10 @@ export default function Settings() {
       gstNumber: g.gstNumber || '',
       taxRate: String(g.settings?.taxRate ?? 18),
       laborRatePerHour: String(g.settings?.laborRatePerHour ?? 500),
+      // Garages created before country support have no `country` key at all;
+      // the server resolves them to India, so the form must show the same.
+      country: g.country || g.locale?.country || DEFAULT_LOCALE.country,
+      timezone: g.settings?.timezone || '',
       street: g.address?.street || '',
       city: g.address?.city || '',
       state: g.address?.state || '',
@@ -450,16 +480,26 @@ export default function Settings() {
           phone: garageForm.phone.trim(),
           email: garageForm.email.trim(),
           gstNumber: garageForm.gstNumber.trim(),
+          country: garageForm.country,
           address: { street: garageForm.street, city: garageForm.city, state: garageForm.state, pincode: garageForm.pincode },
+          // Send only the settings this form actually edits. The API merges
+          // partial `settings` (dotted-path $set), so omitted keys — currency,
+          // serviceReminderDays — are preserved rather than wiped. Previously
+          // this resent every key, which hardcoded `currency: 'INR'` and
+          // overwrote it on every save.
           settings: {
-            currency: 'INR',
-            taxRate: Number(garageForm.taxRate) || 18,
-            laborRatePerHour: Number(garageForm.laborRatePerHour) || 500,
-            serviceReminderDays: garage?.settings?.serviceReminderDays ?? 180
+            taxRate: Number(garageForm.taxRate) || 0,
+            laborRatePerHour: Number(garageForm.laborRatePerHour) || 0,
+            // '' clears the override so the country table applies. Only
+            // multi-zone countries ever set it.
+            timezone: needsTimezone ? garageForm.timezone : '',
           },
         });
         setGarage(data);
         setEditingGarage(false);
+        // The whole app formats money and dates from context locale, so a
+        // country change has to propagate beyond this page.
+        await refreshGarage().catch(() => {});
         toast.success('Garage info updated!');
       } catch (e) {
         const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -638,21 +678,53 @@ export default function Settings() {
             </FormField>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="Phone">
-                <Input type="tel" value={garageForm.phone} onChange={e => setGarageForm(f => ({ ...f, phone: e.target.value }))} placeholder="Garage contact number" />
+                <Input type="tel" value={garageForm.phone} onChange={e => setGarageForm(f => ({ ...f, phone: e.target.value }))} placeholder={labels.phoneExample} />
               </FormField>
               <FormField label="Email">
                 <Input type="email" value={garageForm.email} onChange={e => setGarageForm(f => ({ ...f, email: e.target.value }))} placeholder="Garage email address" />
               </FormField>
             </div>
-            <FormField label="GST Number">
-              <Input value={garageForm.gstNumber} onChange={e => setGarageForm(f => ({ ...f, gstNumber: e.target.value }))} placeholder="15-digit GST number" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="Country">
+                <Select
+                  value={garageForm.country}
+                  // Clear any zone chosen for the previous country — a US zone
+                  // on a garage that just moved to Australia is worse than none.
+                  onChange={e => setGarageForm(f => ({ ...f, country: e.target.value, timezone: '' }))}
+                >
+                  {countries.length === 0 ? (
+                    <option value={garageForm.country}>{garage?.locale?.country ?? DEFAULT_LOCALE.country}</option>
+                  ) : (
+                    countries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)
+                  )}
+                </Select>
+              </FormField>
+              {needsTimezone ? (
+                <FormField label="Timezone">
+                  <Select value={garageForm.timezone} onChange={e => setGarageForm(f => ({ ...f, timezone: e.target.value }))}>
+                    <option value="">Select a timezone</option>
+                    {timezoneOptions.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
+                  </Select>
+                </FormField>
+              ) : (
+                <FormField label="Currency">
+                  {/* Derived from the country, not editable here — an override
+                      exists on the API for the rare garage that needs one. */}
+                  <Input value={labels.currency} disabled readOnly />
+                </FormField>
+              )}
+            </div>
+
+            <FormField label={`${labels.taxId} (optional)`}>
+              <Input value={garageForm.gstNumber} onChange={e => setGarageForm(f => ({ ...f, gstNumber: e.target.value }))} placeholder={`Your ${labels.taxId}`} />
             </FormField>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Default Tax Rate (%)">
-                <Input type="number" value={garageForm.taxRate} onChange={e => setGarageForm(f => ({ ...f, taxRate: e.target.value }))} placeholder="18" min="0" max="100" />
+              <FormField label={`Default ${labels.tax} Rate (%)`}>
+                <Input type="number" value={garageForm.taxRate} onChange={e => setGarageForm(f => ({ ...f, taxRate: e.target.value }))} placeholder="0" min="0" max="100" />
               </FormField>
-              <FormField label="Labor Rate (₹/hr)">
-                <Input type="number" value={garageForm.laborRatePerHour} onChange={e => setGarageForm(f => ({ ...f, laborRatePerHour: e.target.value }))} placeholder="500" min="0" />
+              <FormField label={`Labor Rate (${labels.currency}/hr)`}>
+                <Input type="number" value={garageForm.laborRatePerHour} onChange={e => setGarageForm(f => ({ ...f, laborRatePerHour: e.target.value }))} placeholder="0" min="0" />
               </FormField>
             </div>
 
@@ -669,8 +741,19 @@ export default function Settings() {
                   <FormField label="State">
                     <Input value={garageForm.state} onChange={e => setGarageForm(f => ({ ...f, state: e.target.value }))} placeholder="State" />
                   </FormField>
-                  <FormField label="Pincode">
-                    <Input type="number" value={garageForm.pincode} onChange={e => setGarageForm(f => ({ ...f, pincode: e.target.value }))} placeholder="6-digit" />
+                  <FormField label={labels.postal}>
+                    {/* Never type="number": it makes alphanumeric postcodes
+                        (UK "SW1A 1AA", Canadian "K1A 0B1") impossible to type,
+                        and even for India it accepts 'e'/'+'/'-' and renders
+                        spinners. inputMode still gives phones a numeric keypad
+                        where the country's codes are digits-only. */}
+                    <Input
+                      type="text"
+                      inputMode={labels.postalInputMode}
+                      value={garageForm.pincode}
+                      onChange={e => setGarageForm(f => ({ ...f, pincode: e.target.value }))}
+                      placeholder={labels.postal}
+                    />
                   </FormField>
                 </div>
               </div>
@@ -687,9 +770,13 @@ export default function Settings() {
             <InfoRow label="Garage Name" value={garage?.name} />
             <InfoRow label="Phone" value={garage?.phone} />
             <InfoRow label="Email" value={garage?.email} />
-            <InfoRow label="GST Number" value={garage?.gstNumber} />
-            <InfoRow label="Default Tax Rate" value={garage?.settings?.taxRate ? `${garage.settings.taxRate}%` : '18%'} />
-            <InfoRow label="Labor Rate / Hour" value={garage?.settings?.laborRatePerHour ? `₹${garage.settings.laborRatePerHour}` : '₹500'} />
+            <InfoRow label="Country" value={selectedCountry?.name ?? garage?.locale?.country} />
+            <InfoRow label={labels.taxId} value={garage?.gstNumber} />
+            <InfoRow label={`Default ${labels.tax} Rate`} value={`${garage?.settings?.taxRate ?? 0}%`} />
+            <InfoRow
+              label="Labor Rate / Hour"
+              value={`${labels.currency} ${garage?.settings?.laborRatePerHour ?? 0}`}
+            />
             <InfoRow label="Address" value={garageAddress || null} last />
           </div>
         )}
@@ -956,8 +1043,12 @@ export default function Settings() {
           </div>
           {/* Password match indicator */}
           {pwdForm.confirm && (
-            <p className={`text-xs font-semibold ${pwdForm.new === pwdForm.confirm ? 'text-emerald-600' : 'text-red-500'}`}>
-              {pwdForm.new === pwdForm.confirm ? '✓ Passwords match' : '✗ Passwords do not match'}
+            <p className={`text-xs font-semibold flex items-center gap-1 ${pwdForm.new === pwdForm.confirm ? 'text-emerald-600' : 'text-red-500'}`}>
+              {pwdForm.new === pwdForm.confirm ? (
+                <><Check className="w-3.5 h-3.5" strokeWidth={3} /> Passwords match</>
+              ) : (
+                <><X className="w-3.5 h-3.5" strokeWidth={3} /> Passwords do not match</>
+              )}
             </p>
           )}
           <div className="flex justify-end">

@@ -15,6 +15,21 @@ vi.mock('../context/GlobalLoaderContext', () => ({
   useGlobalLoader: () => ({ withLoader: async (fn: () => Promise<unknown>) => fn() })
 }));
 
+// The page formats money and phone placeholders from the garage's locale.
+// `locale` is never undefined in the real provider (it falls back to
+// DEFAULT_LOCALE), so the mock has to honour that.
+vi.mock('../context/GarageContext', async () => {
+  const { DEFAULT_LOCALE } = await import('../utils/locale');
+  return {
+    useGarage: () => ({
+      garages: [], activeGarageId: 'g1', activeGarageName: 'Test Garage',
+      activeGarage: null, locale: DEFAULT_LOCALE,
+      refreshGarage: vi.fn(), switchGarage: vi.fn(),
+      addBranch: vi.fn(), removeBranch: vi.fn(),
+    })
+  };
+});
+
 const sampleCustomer: Customer = {
   _id: 'c1',
   name: 'Rahul Sharma',
@@ -65,8 +80,11 @@ describe('Customers page', () => {
 
     await user.click(screen.getByRole('button', { name: /add customer/i }));
 
-    await user.type(screen.getByPlaceholderText('Full name'), 'Rahul Sharma');
-    await user.type(screen.getByPlaceholderText('9876543210'), '9876543210');
+    // Selected by label, not placeholder: the phone placeholder is now the
+    // garage country's example number, so using it as a selector would tie
+    // this test to user-facing copy that legitimately varies per tenant.
+    await user.type(screen.getByLabelText(/customer name/i), 'Rahul Sharma');
+    await user.type(screen.getByLabelText(/phone number/i), '9876543210');
 
     // Two "Add Customer" buttons exist once the modal is open (the page
     // header button that opened it, and the modal's own submit button) —
