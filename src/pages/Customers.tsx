@@ -304,7 +304,7 @@ export default function Customers() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label>
                   <textarea
-                    className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-lg text-[15px] text-gray-800 bg-white outline-none focus:border-primary-400 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.1)] min-h-[100px] resize-y placeholder:text-gray-400"
+                    className="w-full px-3.5 py-2.5 border-2 border-bone-200 rounded-lg text-[15px] text-gray-800 bg-bone-50 outline-none focus:border-primary-400 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.1)] min-h-[100px] resize-y placeholder:text-gray-400"
                     value={form.notes}
                     onChange={e => setForm({ ...form, notes: e.target.value })}
                     placeholder="Any notes about this customer..."

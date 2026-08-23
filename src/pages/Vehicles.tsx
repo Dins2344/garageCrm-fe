@@ -219,7 +219,7 @@ export default function Vehicles() {
                 return (
                 <Tr key={v._id} className=" hover:bg-blue-50/40 transition-colors" onClick={() => navigate(`/vehicles/${v._id}`)}>
                   <Td>
-                    <span className="font-bold bg-gray-100 px-2.5 py-1 rounded-md tracking-wider text-sm text-gray-800">
+                    <span className="font-bold bg-bone-200 px-2.5 py-1 rounded-md tracking-wider text-sm text-gray-800">
                       {v.licensePlate}
                     </span>
                   </Td>
@@ -227,7 +227,7 @@ export default function Vehicles() {
                   <Td className="text-gray-700">{v.model}</Td>
                   <Td className="text-gray-700">{v.year || '—'}</Td>
                   <Td>
-                    <Badge className={fuelBadges[v.fuelType || ''] || 'bg-gray-100 text-gray-600'}>
+                    <Badge className={fuelBadges[v.fuelType || ''] || 'bg-bone-200 text-gray-600'}>
                       {v.fuelType}
                     </Badge>
                   </Td>

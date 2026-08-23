@@ -80,7 +80,7 @@ export default function EstimationApproval() {
   if (error || !data) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center">
+        <div className="bg-bone-50 rounded-2xl shadow-lg p-10 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-5">
             <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -103,18 +103,22 @@ export default function EstimationApproval() {
   const laborTotal = estimation?.labor?.reduce((s, l) => s + (l.total || 0), 0) || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-bone-100 py-8 px-4 font-sans">
       {/* Max-width container */}
       <div className="w-full max-w-2xl mx-auto space-y-5">
 
         {/* ── Header ── */}
-        <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl p-8 text-white text-center shadow-xl">
-
-          <p className="text-primary-200 text-xs uppercase tracking-widest mb-1">Service Estimation</p>
-          <h1 className="text-2xl font-bold">{garage?.name || 'Your Garage'}</h1>
-          {garage?.phone && (
-            <p className="text-primary-200 text-sm mt-1">{garage.phone}</p>
-          )}
+        {/* The kicker above the heading is gone — a craft-floor ban, and the
+            page title already says what this is. */}
+        <div className="on-ink relative overflow-hidden bg-ink-900 p-8 text-white">
+          <div aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0" />
+          <div className="relative z-10">
+            <h1 className="font-display text-2xl font-bold tracking-tight">{garage?.name || 'Your Garage'}</h1>
+            <p className="mt-1 text-white/60">Service estimation</p>
+            {garage?.phone && (
+              <p className="mt-3 text-sm text-white/70">{garage.phone}</p>
+            )}
+          </div>
         </div>
 
         {/* ── Status Banner ── */}
@@ -145,7 +149,7 @@ export default function EstimationApproval() {
         )}
 
         {/* ── Vehicle & Job Card ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <div className="bg-bone-50 rounded-2xl shadow-sm border border-bone-200 p-6">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Vehicle Details</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -171,7 +175,7 @@ export default function EstimationApproval() {
 
         {/* ── Complaints ── */}
         {complaints?.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+          <div className="bg-bone-50 rounded-2xl shadow-sm border border-bone-200 p-6">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Service Requests</p>
             <ul className="space-y-2.5">
               {complaints.map((c, i) => (
@@ -192,7 +196,7 @@ export default function EstimationApproval() {
         )}
 
         {/* ── Estimation Breakdown ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <div className="bg-bone-50 rounded-2xl shadow-sm border border-bone-200 p-6">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Estimation Breakdown</p>
 
           {/* Parts */}
@@ -269,7 +273,7 @@ export default function EstimationApproval() {
             onClick={handleApprove}
             disabled={approving}
             className="w-full py-4 rounded-2xl font-bold text-white text-lg shadow-lg shadow-primary-200 transition-all
-              bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800
+              bg-accent-500 text-ink-900 hover:bg-accent-400
               disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.99]"
           >
             {approving ? (

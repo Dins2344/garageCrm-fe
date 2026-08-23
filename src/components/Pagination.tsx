@@ -1,3 +1,5 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 interface PaginationProps {
   page: number;
   pages: number;
@@ -13,10 +15,8 @@ export default function Pagination({ page, pages, onPageChange, className = '' }
       <button
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
-        className="min-w-[36px] h-9 rounded-lg font-medium text-sm text-gray-600 bg-white border border-gray-200 transition-all duration-150 hover:bg-gray-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        ‹
-      </button>
+        className="min-w-[36px] h-9 font-medium text-sm text-gray-700 bg-bone-50 border border-bone-400 transition-colors duration-150 hover:bg-bone-100 hover:border-ink-900 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed"
+      ><ChevronLeft className="w-4 h-4 mx-auto" strokeWidth={2} /></button>
 
       {Array.from({ length: pages }, (_, i) => {
         const pageNum = i + 1;
@@ -25,10 +25,10 @@ export default function Pagination({ page, pages, onPageChange, className = '' }
           <button
             key={pageNum}
             onClick={() => onPageChange(pageNum)}
-            className={`min-w-[36px] h-9 rounded-lg font-medium text-sm transition-all duration-150 border ${
+            className={`min-w-[36px] h-9 font-medium text-sm transition-colors duration-150 border ${
               isActive
-                ? 'bg-primary-500 text-white border-primary-500 shadow-sm'
-                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-primary-300 hover:text-primary-600'
+                ? 'bg-primary-600 text-white border-primary-600'
+                : 'bg-bone-50 text-gray-700 border-bone-400 hover:bg-bone-100 hover:border-ink-900 hover:text-gray-900'
             }`}
           >
             {pageNum}
@@ -39,10 +39,8 @@ export default function Pagination({ page, pages, onPageChange, className = '' }
       <button
         disabled={page >= pages}
         onClick={() => onPageChange(page + 1)}
-        className="min-w-[36px] h-9 rounded-lg font-medium text-sm text-gray-600 bg-white border border-gray-200 transition-all duration-150 hover:bg-gray-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        ›
-      </button>
+        className="min-w-[36px] h-9 font-medium text-sm text-gray-700 bg-bone-50 border border-bone-400 transition-colors duration-150 hover:bg-bone-100 hover:border-ink-900 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed"
+      ><ChevronRight className="w-4 h-4 mx-auto" strokeWidth={2} /></button>
     </div>
   );
 }

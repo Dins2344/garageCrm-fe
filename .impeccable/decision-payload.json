@@ -1,0 +1,113 @@
+{
+  "title": "Choose the visual world for the GaragePulse landing page",
+  "question": "The roll assigned The Interchange Catalogue. Keep it, take the alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Interchange Catalogue",
+      "kicker": "THE ROLL",
+      "lineage": "the parts interchange book at every trade counter",
+      "thesis": "The page is the reference book the parts counter already trusts: ruled rows, part-number figures, thumb-index tabs, and a market column where one row serves many jurisdictions. It refuses the SaaS gradient hero with a floating browser screenshot, and refuses its opposite, the black-and-neon dev-tool page.",
+      "palette": ["#14161c", "#1f4fd8", "#e8a317", "#d0331f", "#eceae4"],
+      "materials": ["multi-part form stock", "press black ink", "index tabs", "ruled tabular figures"],
+      "viewport": "No hero card. A full-bleed index page: an oversized section numeral, the claim set as a catalogue entry, and immediately beneath it a real ruled interchange table whose right-hand columns are IN, GB, AE, AU showing the same job priced in each market's own currency and tax label. Thumb tabs run down the right edge as the page nav. Primary action sits inline in the table's first row, where a part number would be.",
+      "risk": "Density is the point and also the danger: set timidly it reads as a plain table rather than a designed reference page, and a visitor scanning on a phone must still get the claim in one line before the data arrives.",
+      "raised": [
+        {
+          "from": "challenger-hypercard",
+          "raise": "The interchange table is manipulable, not decorative: the visitor switches the market column and every figure in the page re-prints. Reading and operating are the same object."
+        },
+        {
+          "from": "challenger-poster",
+          "raise": "Scale is billing. One element commands the first viewport at poster scale rather than an even grid of equal rows."
+        },
+        {
+          "from": "challenger-leather",
+          "raise": "Material honesty: printed stock with real ink weight, tab thickness and rule hairlines, never flat CSS panels pretending to be paper."
+        }
+      ],
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "The Job Docket",
+      "kicker": "IMPECCABLE'S PICK",
+      "lineage": "the carbon-copy work order the software replaces",
+      "thesis": "The whole page is one triplicate job docket: pre-printed grid, tick boxes, rubber-stamp status, and the carbon layers peeling to reveal what the software does with each copy.",
+      "palette": ["#14161c", "#f2e9d0", "#c9436b", "#2f6f4e"],
+      "materials": ["NCR carbonless stock", "rubber stamp", "ballpoint", "perforation"],
+      "viewport": "A docket filling the viewport, hand-filled fields resolving into live data as you read down it.",
+      "risk": "It is my top-ranked candidate and the most obvious one for this subject, which is exactly why most runs would land here. Highest recognition, lowest surprise.",
+      "board": "https://impeccable.style/worlds/cards/digital-design-canon-skeuomorph-leather-studio.webp"
+    },
+    {
+      "id": "challenger-splitflap",
+      "label": "The Departures Board",
+      "verdict": "competitive",
+      "lineage": "rail concourse split-flap board at rush hour",
+      "thesis": "Every vehicle in the workshop is a row on a live board: fixed columns, rows ranked by promised time, status cascading character by character as work moves.",
+      "palette": ["#0d0d0f", "#f4f4f2", "#e0a500", "#8c2f2f"],
+      "materials": ["matte flap faces", "brushed steel frame", "amber row lamps"],
+      "viewport": "A full-width board of live job cards, reg numbers in fixed cells, one row flipping from IN PROGRESS to READY as you watch.",
+      "case": "Holds product clarity outright: a workshop status whiteboard genuinely is a departures board, and job cards really are time-ranked rows with changing status. Loses on the positioning, because a transport artifact has no way to express one owner operating across several countries.",
+      "risk": "Reads as retro novelty unless the grid stays strict, and the flip animation must never delay the claim.",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse.webp",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse-hero.webp"
+    },
+    {
+      "id": "challenger-hypercard",
+      "label": "HyperCard Shoebox Stack",
+      "verdict": "declined",
+      "lineage": "one-bit card stacks linked by painted buttons",
+      "thesis": "The catalogue as a stack of black-and-white cards you click through.",
+      "palette": ["#000000", "#ffffff"],
+      "materials": ["one-bit dither", "pixel menus"],
+      "viewport": "A fixed card with hand-drawn borders and painted buttons.",
+      "case": "Declined: no cultural foothold for a 2026 workshop audience, and one-bit cannot carry job status, which the product expresses in colour.",
+      "kept": "Its discipline that reading and authoring are the same object became the assigned direction's manipulable interchange table.",
+      "board": "https://impeccable.style/worlds/cards/medium-native-hypercard-stack-shoebox.webp"
+    },
+    {
+      "id": "challenger-poster",
+      "label": "Bombay Painted Poster",
+      "verdict": "declined",
+      "lineage": "hand-painted film hoardings",
+      "thesis": "Airbrushed montage at impossible scale, bilingual outlined display lettering carrying the billing.",
+      "palette": ["#b3242a", "#e6b422", "#25306b"],
+      "materials": ["airbrush", "painted vignette", "outlined lettering"],
+      "viewport": "A giant painted portrait anchoring orbiting scene vignettes.",
+      "case": "Declined: genuinely high resonance for an India-first audience, but montage cannot express tabular branch data, and it needs photography and painted artwork that do not exist for this product.",
+      "kept": "Its rule that scale is billing became the assigned direction's single commanding element in the first viewport.",
+      "board": "https://impeccable.style/worlds/cards/pop-culture-shelf-bollywood-painted-poster.webp"
+    },
+    {
+      "id": "challenger-leather",
+      "label": "Skeuomorph Leather Studio",
+      "verdict": "declined",
+      "lineage": "tooled saddle headers, linen ground, torn paper edges",
+      "thesis": "Digital things rendered as loved physical objects on real wood.",
+      "palette": ["#8a5a34", "#cfc6b4", "#3b2a1d"],
+      "materials": ["saddle leather", "linen", "torn paper", "walnut"],
+      "viewport": "A shelf of objects under lamplight, pages curling at the corner.",
+      "case": "Declined: a workshop is not a gentleman's study, and this is precisely the warm cream-and-lamplight rendition the calibration warns is already spent.",
+      "kept": "Its material honesty became the assigned direction's insistence on real ink weight, tab thickness and rule hairlines rather than flat panels.",
+      "board": "https://impeccable.style/worlds/cards/digital-design-canon-skeuomorph-leather-studio.webp"
+    }
+  ],
+  "canonCard": {
+    "id": "canon",
+    "label": "The Category Standard",
+    "kicker": "PLAYED STRAIGHT",
+    "lineage": "the modern B2B SaaS landing page",
+    "thesis": "Centred gradient hero, product screenshot in a floating browser frame, three-column feature grid, logo strip, FAQ, footer. Executed at full craft, without irony.",
+    "palette": ["#3b5ff8", "#0f172a", "#f8fafc", "#64748b"],
+    "materials": ["soft shadow", "rounded cards", "gradient mesh"],
+    "viewport": "Headline, subcopy, two buttons, screenshot below the fold line.",
+    "risk": "Indistinguishable from every competitor including the reference site, which is the trade you are making."
+  },
+  "reroll": {
+    "enabled": true,
+    "steer": true,
+    "registers": ["plain", "safer", "bolder"]
+  }
+}

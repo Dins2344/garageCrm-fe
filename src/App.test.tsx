@@ -35,7 +35,10 @@ describe('App routing guards', () => {
 
     render(<App />);
 
-    await waitFor(() => expect(screen.getByRole('heading', { name: /Run your garage/i })).toBeInTheDocument(), { timeout: 3000 });
+    // The landing page's h1 is the marker that we bounced to /home. Matched on a
+    // fragment rather than the full string because the headline is broken across
+    // <br /> elements, so the accessible name concatenates the lines.
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: /Run every branch/i })).toBeInTheDocument(), { timeout: 3000 });
   });
 
   it('redirects a role-gated route away when the user lacks the required role', async () => {

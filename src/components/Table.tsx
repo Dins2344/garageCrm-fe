@@ -7,7 +7,7 @@ interface TableProps {
 
 export function Table({ children, className = '' }: TableProps) {
   return (
-    <div className={`overflow-x-auto rounded-xl border border-gray-200 bg-white ${className}`}>
+    <div className={`overflow-x-auto border border-bone-200 bg-bone-50 ${className}`}>
       <table className="w-full border-collapse">
         {children}
       </table>
@@ -17,7 +17,7 @@ export function Table({ children, className = '' }: TableProps) {
 
 export function Thead({ children }: { children: ReactNode }) {
   return (
-    <thead className="bg-gray-50 uppercase tracking-wide text-[13px] font-semibold text-gray-600">
+    <thead className="bg-bone-100 uppercase tracking-wide text-[12px] font-bold text-gray-700">
       {children}
     </thead>
   );
@@ -30,7 +30,7 @@ interface ThProps {
 
 export function Th({ children, className = '' }: ThProps) {
   return (
-    <th className={`px-4 py-3.5 text-left border-b-2 border-gray-200 whitespace-nowrap ${className}`}>
+    <th className={`px-4 py-3 text-left border-b border-bone-300 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -38,7 +38,7 @@ export function Th({ children, className = '' }: ThProps) {
 
 export function Tbody({ children }: { children: ReactNode }) {
   return (
-    <tbody className="text-[15px] divide-y divide-gray-100">
+    <tbody className="text-[15px] divide-y divide-bone-200">
       {children}
     </tbody>
   );
@@ -52,7 +52,7 @@ interface TrProps {
 
 export function Tr({ children, className = '', onClick }: TrProps) {
   return (
-    <tr className={`hover:bg-gray-50 transition-colors ${className}`} onClick={onClick}>
+    <tr className={`hover:bg-bone-100 transition-colors ${className}`} onClick={onClick}>
       {children}
     </tr>
   );
@@ -65,7 +65,7 @@ interface TdProps {
 
 export function Td({ children, className = '' }: TdProps) {
   return (
-    <td className={`px-6 py-4 text-[15px] border-b border-gray-100 ${className}`}>
+    <td className={`px-6 py-4 text-[15px] ${className}`}>
       {children}
     </td>
   );

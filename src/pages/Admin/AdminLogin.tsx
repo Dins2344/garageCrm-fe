@@ -29,36 +29,36 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 font-sans">
+    <div className="on-ink min-h-screen bg-ink-900 flex items-center justify-center p-6 font-sans">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 shadow-lg shadow-primary-500/30 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 border border-white/20 bg-white/10 mb-4">
              <ShieldCheck className="w-8 h-8 text-white" strokeWidth={1.5} />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Platform Admin</h1>
-          <p className="text-gray-400 mt-2">GaragePulse Control Center</p>
+          <h1 className="font-display text-2xl font-bold text-white tracking-tight">Platform Admin</h1>
+          <p className="text-white/60 mt-2">GaragePulse Control Center</p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+        <div className="bg-white/5 border border-white/15 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Admin Email</label>
+              <label className="block text-sm font-semibold text-white/80 mb-2">Admin Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                className="w-full px-4 py-3 bg-ink-800 border border-white/20 text-white focus:outline-none focus:border-accent-400 transition-colors"
                 placeholder="admin@garagepulse.com"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Security Key</label>
+              <label className="block text-sm font-semibold text-white/80 mb-2">Security Key</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                className="w-full px-4 py-3 bg-ink-800 border border-white/20 text-white focus:outline-none focus:border-accent-400 transition-colors"
                 placeholder="••••••••"
                 required
               />
@@ -66,7 +66,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-primary-600 to-purple-600 text-white font-bold text-lg hover:from-primary-500 hover:to-purple-500 transition-all disabled:opacity-50 shadow-lg shadow-primary-900/20"
+              className="w-full py-4 bg-accent-500 text-ink-900 font-bold text-lg hover:bg-accent-400 transition-colors disabled:opacity-50"
             >
               {loading ? 'Verifying...' : 'Access Command Center'}
             </button>

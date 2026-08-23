@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { forgotPassword } from '../services/apiServices/authService';
 import { Input } from '../components/Form';
 import Button from '../components/Button';
+import AuthLayout from '../components/layout/AuthLayout';
+import { ArrowLeft } from 'lucide-react';
 
 type Step = 'confirm' | 'not-owner' | 'email' | 'sent';
 
@@ -31,127 +33,122 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-50 flex items-center justify-center p-4 overflow-hidden font-sans">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-linear-to-br from-primary-400/20 to-purple-500/20 blur-3xl opacity-60 mix-blend-multiply" />
-        <div className="absolute -bottom-[20%] -left-[10%] w-[60vw] h-[60vw] rounded-full bg-linear-to-tr from-accent-400/20 to-blue-500/20 blur-3xl opacity-60 mix-blend-multiply" />
-      </div>
-
-      <div className="relative z-10 w-full max-w-md bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl p-8 sm:p-10">
-        <div className="flex justify-center mb-8">
-          <img src="/mainIcon.png" alt="GaragePulse Logo" className="w-14" />
-        </div>
-
-        {/* ── Step 1: confirm role ── */}
-        {step === 'confirm' && (
-          <>
-            <div className="mb-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Forgot your password?</h2>
-              <p className="text-gray-500 text-sm">
-                Are you the owner of your garage account?
-              </p>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Button
-                type="button"
-                variant="primary"
-                className="w-full py-3.5 text-base shadow-lg shadow-primary-500/30"
-                onClick={() => setStep('email')}
-              >
-                Yes, I'm the owner
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full py-3.5 text-base"
-                onClick={() => setStep('not-owner')}
-              >
-                No, I'm a staff member
-              </Button>
-            </div>
-          </>
-        )}
-
-        {/* ── Not the owner: no email collected, no request sent ── */}
-        {step === 'not-owner' && (
-          <>
-            <div className="mb-6 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Ask your owner or admin</h2>
-            </div>
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 text-center">
-              <p className="text-gray-700 text-sm leading-relaxed">
-                Staff passwords are managed by the garage. Ask your owner or an admin to reset your password from Settings → Staff.
-              </p>
-            </div>
-            <button
+    <AuthLayout>
+      {/* ── Step 1: confirm role ── */}
+      {step === 'confirm' && (
+        <>
+          <h2 className="font-display text-3xl font-extrabold leading-[1.1] tracking-[-0.03em] text-gray-900 sm:text-4xl">
+            Forgot your password?
+          </h2>
+          <p className="mt-3 text-gray-600">
+            Only the garage owner can reset a password by email. Which are you?
+          </p>
+          <div className="mt-8 flex flex-col gap-3">
+            <Button
               type="button"
-              onClick={() => setStep('confirm')}
-              className="mt-6 w-full text-center text-primary-600 hover:text-primary-700 font-medium text-sm"
+              variant="accent"
+              className="w-full py-4 text-base"
+              onClick={() => setStep('email')}
             >
-              Back
-            </button>
-          </>
-        )}
-
-        {/* ── Step 2: owner enters email ── */}
-        {step === 'email' && (
-          <>
-            <div className="mb-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Reset your password</h2>
-              <p className="text-gray-500 text-sm">
-                Enter your account email and we'll send you a link to reset your password.
-              </p>
-            </div>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
-                <Input
-                  type="email"
-                  name="email"
-                  value={email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  required
-                  className="py-3"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full py-3.5 text-base shadow-lg shadow-primary-500/30 mt-2"
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  'Send Reset Link'
-                )}
-              </Button>
-            </form>
-            <button
+              I&rsquo;m the owner
+            </Button>
+            <Button
               type="button"
-              onClick={() => setStep('confirm')}
-              className="mt-4 w-full text-center text-gray-500 hover:text-gray-700 font-medium text-sm"
+              variant="secondary"
+              className="w-full py-4 text-base"
+              onClick={() => setStep('not-owner')}
             >
-              Back
-            </button>
-          </>
-        )}
-
-        {/* ── Step 3: result of the reset request ── */}
-        {step === 'sent' && (
-          <div className="bg-primary-50 border border-primary-100 rounded-xl p-5 text-center">
-            <p className="text-gray-700 text-sm leading-relaxed">{message}</p>
+              I&rsquo;m a staff member
+            </Button>
           </div>
-        )}
+        </>
+      )}
 
-        <div className="mt-8 text-center">
-          <Link to="/login" className="text-primary-600 hover:text-primary-700 font-bold transition-colors hover:underline text-sm">
-            Back to Sign In
-          </Link>
-        </div>
+      {/* ── Not the owner: no email collected, no request sent ── */}
+      {step === 'not-owner' && (
+        <>
+          <h2 className="font-display text-3xl font-extrabold leading-[1.1] tracking-[-0.03em] text-gray-900 sm:text-4xl">
+            Ask your owner or admin
+          </h2>
+          <p className="mt-6 border-t border-bone-200 pt-6 leading-relaxed text-gray-600">
+            Staff passwords are managed by the garage. Ask your owner or an admin to reset
+            yours from Settings, under Staff.
+          </p>
+          <button
+            type="button"
+            onClick={() => setStep('confirm')}
+            className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+            Back
+          </button>
+        </>
+      )}
+
+      {/* ── Step 2: owner enters email ── */}
+      {step === 'email' && (
+        <>
+          <h2 className="font-display text-3xl font-extrabold leading-[1.1] tracking-[-0.03em] text-gray-900 sm:text-4xl">
+            Reset your password
+          </h2>
+          <p className="mt-3 text-gray-600">
+            Enter your account email and we&rsquo;ll send you a link to set a new password.
+          </p>
+          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+            <div>
+              <label htmlFor="reset-email" className="mb-2 block text-sm font-semibold text-gray-900">
+                Email Address
+              </label>
+              <Input
+                id="reset-email"
+                type="email"
+                name="email"
+                value={email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+
+            <Button type="submit" variant="accent" className="mt-1 w-full py-4 text-base" disabled={loading}>
+              {loading ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-ink-900/25 border-t-ink-900" />
+              ) : (
+                'Send Reset Link'
+              )}
+            </Button>
+          </form>
+          <button
+            type="button"
+            onClick={() => setStep('confirm')}
+            className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+            Back
+          </button>
+        </>
+      )}
+
+      {/* ── Step 3: result of the reset request ── */}
+      {step === 'sent' && (
+        <>
+          <h2 className="font-display text-3xl font-extrabold leading-[1.1] tracking-[-0.03em] text-gray-900 sm:text-4xl">
+            Check your email
+          </h2>
+          {/* The server deliberately returns the same message whether or not the
+              address exists, so this is the whole answer the user gets. */}
+          <p className="mt-6 border-t border-bone-200 pt-6 leading-relaxed text-gray-600">{message}</p>
+        </>
+      )}
+
+      <div className="mt-10 border-t border-bone-200 pt-6">
+        <Link
+          to="/login"
+          className="text-sm font-bold text-primary-600 transition-colors hover:text-primary-700 hover:underline"
+        >
+          Back to Sign In
+        </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

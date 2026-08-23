@@ -34,9 +34,9 @@ export default function AdminGarages() {
   if (loading) return <div>Loading garage data...</div>;
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-bone-50 rounded-3xl border border-bone-200 shadow-sm overflow-hidden">
       <table className="w-full text-left">
-        <thead className="bg-gray-50/50 text-xs font-bold text-gray-400 uppercase tracking-widest">
+        <thead className="bg-bone-100/50 text-xs font-bold text-gray-400 uppercase tracking-widest">
           <tr>
             <th className="px-6 py-4">Garage Name</th>
             <th className="px-6 py-4">Owner</th>
@@ -50,7 +50,7 @@ export default function AdminGarages() {
           {garages.map((garage) => {
             const owner = typeof garage.owner === 'string' ? null : garage.owner;
             return (
-            <tr key={garage._id} className="hover:bg-gray-50/50 transition-colors">
+            <tr key={garage._id} className="hover:bg-bone-100/50 transition-colors">
               <td className="px-6 py-5">
                 <div className="font-bold text-gray-900 text-sm">{garage.name}</div>
                 <div className="text-xs text-gray-400">{garage.address?.city}, {garage.address?.state}</div>

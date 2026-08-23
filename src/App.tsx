@@ -69,21 +69,28 @@ function App() {
       <BrowserRouter>
         <Toaster
           position="bottom-right"
+          // react-hot-toast styles its surface through an inline style object,
+          // so the theme's radius and shadow overrides cannot reach it — the
+          // toast has to be brought onto the system by hand. Values come from
+          // the CSS custom properties `@theme` emits on :root, so this stays a
+          // reader of the palette rather than a second copy of it.
           toastOptions={{
             duration: 3000,
             style: {
-              borderRadius: '12px',
-              background: '#1e293b',
+              borderRadius: '0',
+              background: 'var(--color-ink-900)',
               color: '#fff',
-              padding: '12px 20px',
+              border: '1px solid rgba(255,255,255,0.15)',
+              padding: '12px 16px',
+              fontFamily: 'var(--font-sans)',
               fontSize: '0.9375rem',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+              boxShadow: 'none'
             },
             success: {
-              iconTheme: { primary: '#10b981', secondary: '#fff' }
+              iconTheme: { primary: 'var(--color-success)', secondary: 'var(--color-ink-900)' }
             },
             error: {
-              iconTheme: { primary: '#ef4444', secondary: '#fff' }
+              iconTheme: { primary: 'var(--color-danger)', secondary: 'var(--color-ink-900)' }
             }
           }}
         />

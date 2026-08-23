@@ -49,9 +49,9 @@ export default function AdminUsers() {
   if (loading) return <div>Fetching global user list...</div>;
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-bone-50 rounded-3xl border border-bone-200 shadow-sm overflow-hidden">
       <table className="w-full text-left">
-        <thead className="bg-gray-50/50 text-xs font-bold text-gray-400 uppercase tracking-widest">
+        <thead className="bg-bone-100/50 text-xs font-bold text-gray-400 uppercase tracking-widest">
           <tr>
             <th className="px-6 py-4">User</th>
             <th className="px-6 py-4">Role</th>
@@ -65,10 +65,10 @@ export default function AdminUsers() {
           {users.map((user) => {
             const garage = typeof user.garage === 'string' ? null : (user.garage as unknown as Garage | null);
             return (
-            <tr key={user._id} className="hover:bg-gray-50/50 transition-colors text-sm">
+            <tr key={user._id} className="hover:bg-bone-100/50 transition-colors text-sm">
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-400">
+                  <div className="w-9 h-9 rounded-full bg-bone-200 flex items-center justify-center font-bold text-gray-400">
                     {user.name.charAt(0)}
                   </div>
                   <div>
@@ -89,7 +89,7 @@ export default function AdminUsers() {
                 <span className={
                   user.isActive
                     ? 'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700'
-                    : 'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600'
+                    : 'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-bone-200 text-gray-600'
                 }>
                   <span className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
                   {user.isActive ? 'Active' : 'Inactive'}
@@ -115,7 +115,7 @@ export default function AdminUsers() {
 
       {deleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+          <div className="bg-bone-50 rounded-2xl shadow-2xl w-full max-w-md p-6">
             <div className="flex items-start gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -150,14 +150,14 @@ export default function AdminUsers() {
               value={deleteModal.confirmText}
               onChange={(e) => setDeleteModal({ ...deleteModal, confirmText: e.target.value })}
               placeholder={deleteModal.user.email}
-              className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-lg text-sm outline-none focus:border-red-400"
+              className="w-full px-3.5 py-2.5 border-2 border-bone-200 rounded-lg text-sm outline-none focus:border-red-400"
               autoFocus
             />
 
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setDeleteModal(null)}
-                className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-gray-600 bg-bone-200 hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>

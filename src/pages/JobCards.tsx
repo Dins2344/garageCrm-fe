@@ -452,7 +452,7 @@ export default function JobCards() {
         <ModalOverlay onClose={() => setShowModal(false)}>
           <Modal className="max-w-[860px]">
             {/* Stepper Header */}
-            <div className="flex items-center justify-center p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl">
+            <div className="flex items-center justify-center p-6 border-b border-bone-200 bg-bone-100/50 rounded-t-2xl">
               <div className={`flex items-center flex-1 ${step === 1 ? 'opacity-100' : 'opacity-60'}`}>
                 <div className="flex flex-col items-center flex-1">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${step === 1 ? 'bg-primary-500 text-white shadow-md' : 'bg-primary-100 text-primary-600'
@@ -519,15 +519,15 @@ export default function JobCards() {
                     </div>
                   ) : (
                     <>
-                      <div className="flex p-1 bg-gray-100 rounded-lg mb-4">
+                      <div className="flex p-1 bg-bone-200 rounded-lg mb-4">
                         <button
-                          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${customerMode === 'existing' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${customerMode === 'existing' ? 'bg-bone-50 text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                           onClick={() => setCustomerMode('existing')}
                         >
                           Select Existing
                         </button>
                         <button
-                          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${customerMode === 'new' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${customerMode === 'new' ? 'bg-bone-50 text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                           onClick={() => setCustomerMode('new')}
                         >
                           Add New Customer
@@ -545,7 +545,7 @@ export default function JobCards() {
                               className="pl-10"
                             />
                           </div>
-                          <div className="max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl bg-white divide-y divide-gray-100">
+                          <div className="max-h-[220px] overflow-y-auto border border-bone-200 rounded-xl bg-bone-50 divide-y divide-bone-200">
                             {filteredCustomers.length === 0 ? (
                               <div className="p-4 text-center text-gray-500">
                                 No customers found.{' '}
@@ -556,7 +556,7 @@ export default function JobCards() {
                             ) : filteredCustomers.map(c => (
                               <div
                                 key={c._id}
-                                className="p-3 cursor-pointer hover:bg-gray-50 transition-colors flex justify-between items-center"
+                                className="p-3 cursor-pointer hover:bg-bone-100 transition-colors flex justify-between items-center"
                                 onClick={() => {
                                   setSelectedCustomer(c);
                                   setCustomerSearch('');
@@ -657,15 +657,15 @@ export default function JobCards() {
                     </div>
                   ) : (
                     <>
-                      <div className="flex p-1 bg-gray-100 rounded-lg mb-4">
+                      <div className="flex p-1 bg-bone-200 rounded-lg mb-4">
                         <button
-                          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${vehicleMode === 'existing' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${vehicleMode === 'existing' ? 'bg-bone-50 text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                           onClick={() => setVehicleMode('existing')}
                         >
                           Select Existing
                         </button>
                         <button
-                          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${vehicleMode === 'new' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${vehicleMode === 'new' ? 'bg-bone-50 text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                           onClick={() => setVehicleMode('new')}
                         >
                           Add New Vehicle
@@ -688,7 +688,7 @@ export default function JobCards() {
                               Showing vehicles for {selectedCustomer.name}. Clear search to see all.
                             </p>
                           )}
-                          <div className="max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl bg-white divide-y divide-gray-100">
+                          <div className="max-h-[220px] overflow-y-auto border border-bone-200 rounded-xl bg-bone-50 divide-y divide-bone-200">
                             {filteredVehicles.length === 0 ? (
                               <div className="p-4 text-center text-gray-500">
                                 No vehicles found.{' '}
@@ -699,7 +699,7 @@ export default function JobCards() {
                             ) : filteredVehicles.map(v => (
                               <div
                                 key={v._id}
-                                className="p-3 cursor-pointer hover:bg-gray-50 transition-colors flex justify-between items-center"
+                                className="p-3 cursor-pointer hover:bg-bone-100 transition-colors flex justify-between items-center"
                                 onClick={() => {
                                   setSelectedVehicle(v);
                                   setVehicleSearch('');
@@ -796,8 +796,8 @@ export default function JobCards() {
                 <>
                   {/* Summary of selected customer & vehicle */}
                   <div className="flex flex-wrap gap-4 mb-6">
-                    <div className="flex-1 min-w-[220px] p-3 border border-gray-200 bg-gray-50 rounded-xl flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white text-gray-500 flex items-center justify-center shadow-sm">
+                    <div className="flex-1 min-w-[220px] p-3 border border-bone-200 bg-bone-100 rounded-xl flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-bone-50 text-gray-500 flex items-center justify-center shadow-sm">
                         <HiOutlineUser />
                       </div>
                       <div>
@@ -809,8 +809,8 @@ export default function JobCards() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex-1 min-w-[220px] p-3 border border-gray-200 bg-gray-50 rounded-xl flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white text-gray-500 flex items-center justify-center shadow-sm">
+                    <div className="flex-1 min-w-[220px] p-3 border border-bone-200 bg-bone-100 rounded-xl flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-bone-50 text-gray-500 flex items-center justify-center shadow-sm">
                         <HiOutlineTruck />
                       </div>
                       <div>
@@ -899,14 +899,14 @@ export default function JobCards() {
                       Customer Complaints / Service Requests *
                     </label>
                     {workForm.complaints.map((complaint, index) => (
-                      <div key={index} className="flex gap-3 mb-3 items-center bg-gray-50/80 p-2.5 rounded-xl border border-gray-100/80">
+                      <div key={index} className="flex gap-3 mb-3 items-center bg-bone-100/80 p-2.5 rounded-xl border border-bone-200">
                         <div className="flex-1 min-w-0">
                           <Input
                             value={complaint.description}
                             onChange={e => updateComplaint(index, 'description', e.target.value)}
                             placeholder="Describe the complaint or service needed..."
                             required={index === 0}
-                            className="bg-white border-gray-200"
+                            className="bg-bone-50 border-bone-200"
                           />
                         </div>
                         <Select
@@ -940,7 +940,7 @@ export default function JobCards() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Internal Notes</label>
                     <textarea
-                      className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-lg text-[15px] text-gray-800 bg-white outline-none focus:border-primary-400 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.1)] min-h-[80px] resize-y placeholder:text-gray-400"
+                      className="w-full px-3.5 py-2.5 border-2 border-bone-200 rounded-lg text-[15px] text-gray-800 bg-bone-50 outline-none focus:border-primary-400 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.1)] min-h-[80px] resize-y placeholder:text-gray-400"
                       value={workForm.internalNotes}
                       onChange={e => setWorkForm({ ...workForm, internalNotes: e.target.value })}
                       placeholder="Any internal notes for this job..."
@@ -950,7 +950,7 @@ export default function JobCards() {
               )}
             </ModalBody>
 
-            <ModalFooter className="bg-gray-50 border-t border-gray-100 rounded-b-2xl pt-4">
+            <ModalFooter className="bg-bone-100 border-t border-bone-200 rounded-b-2xl pt-4">
               <div className="flex justify-between w-full">
                 <Button variant="ghost" onClick={() => setShowModal(false)}>
                   Cancel

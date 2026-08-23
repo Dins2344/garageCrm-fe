@@ -135,9 +135,9 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
     return (
       <>
       <ModalOverlay onClose={closeViewer}>
-        <Modal className="max-w-[800px] p-0 overflow-hidden bg-white">
+        <Modal className="max-w-[800px] p-0 overflow-hidden bg-bone-50">
           {/* Custom Header to accommodate actions */}
-          <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex justify-between items-center p-4 sm:p-6 border-b border-bone-200 bg-bone-100/50">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <HiOutlineReceiptTax className="text-primary-600 text-2xl" />
               {inv?.invoiceNumber || 'Loading...'}
@@ -191,9 +191,9 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                 <p className="mt-4 text-gray-500 font-medium">Loading invoice...</p>
               </div>
             ) : inv ? (
-              <div className="max-w-4xl mx-auto bg-white">
+              <div className="max-w-4xl mx-auto bg-bone-50">
                 {/* ── Header: Branding + Invoice Meta ── */}
-                <div className="flex flex-col md:flex-row justify-between items-start mb-12 pb-8 border-b border-gray-100 gap-6">
+                <div className="flex flex-col md:flex-row justify-between items-start mb-12 pb-8 border-b border-bone-200 gap-6">
                   <div>
                     <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
                       {garage?.name || 'GaragePulse'}
@@ -217,7 +217,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                       )}
                     </div>
                   </div>
-                  <div className="md:text-right bg-gray-50 p-4 rounded-xl border border-gray-100 shrink-0">
+                  <div className="md:text-right bg-bone-100 p-4 rounded-xl border border-bone-200 shrink-0">
                     <p className="text-2xl font-bold text-gray-900 mb-1">{inv.invoiceNumber}</p>
                     <p className="text-gray-500 text-sm">
                       Date: <span className="font-medium text-gray-700">{formatDateLong(inv.createdAt)}</span>
@@ -232,7 +232,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
 
                 {/* ── Customer & Vehicle Info ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                  <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
+                  <div className="bg-bone-100/50 p-5 rounded-2xl border border-bone-200">
                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Bill To</h4>
                     <div className="text-lg font-bold text-gray-900 mb-2">{customer?.name || '—'}</div>
                     <div className="text-gray-600 text-sm space-y-1">
@@ -249,7 +249,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                       )}
                     </div>
                   </div>
-                  <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
+                  <div className="bg-bone-100/50 p-5 rounded-2xl border border-bone-200">
                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Vehicle Details</h4>
                     <div className="text-lg font-bold text-gray-900 mb-2">{vehicle?.licensePlate || '—'}</div>
                     <div className="text-gray-600 text-sm space-y-1">
@@ -270,7 +270,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                 {/* ── Parts Table ── */}
                 {inv.parts?.length > 0 && (
                   <div className="mb-10">
-                    <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Parts & Materials</h4>
+                    <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 border-b border-bone-200 pb-2">Parts & Materials</h4>
                     <Table>
                       <Thead>
                         <Tr>
@@ -297,7 +297,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                 {/* ── Labor Table ── */}
                 {inv.labor?.length > 0 && (
                   <div className="mb-12">
-                    <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Labor Charges</h4>
+                    <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 border-b border-bone-200 pb-2">Labor Charges</h4>
                     <Table>
                       <Thead>
                         <Tr>
@@ -345,7 +345,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                           </div>
                         )}
                         {inv.paymentStatus === 'partial' && (
-                          <div className="text-red-700 font-bold bg-white/50 inline-block px-2 py-1 rounded-md mt-1">
+                          <div className="text-red-700 font-bold bg-bone-50 inline-block px-2 py-1 rounded-md mt-1">
                             Due: {formatCurrency(inv.grandTotal - inv.amountPaid)}
                           </div>
                         )}
@@ -354,7 +354,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                   </div>
 
                   {/* Totals Box */}
-                  <div className="w-full md:w-80 bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                  <div className="w-full md:w-80 bg-bone-100 rounded-2xl p-6 border border-bone-200">
                     <div className="space-y-3">
                       <div className="flex justify-between items-center text-gray-600 text-sm font-medium">
                         <span>Subtotal</span>
@@ -393,7 +393,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                   </div>
                 )}
 
-                <div className="mt-12 pt-8 border-t border-dashed border-gray-200 text-center text-gray-400 text-sm font-medium">
+                <div className="mt-12 pt-8 border-t border-dashed border-bone-200 text-center text-gray-400 text-sm font-medium">
                   Thank you for your business!
                 </div>
               </div>

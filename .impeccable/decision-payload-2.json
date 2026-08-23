@@ -1,0 +1,119 @@
+{
+  "title": "Bolder hand — foreign forms only",
+  "question": "The VU Meter Bridge beat the dealt leader on both axes and becomes the build candidate. Keep it, take an alternate, or re-roll again.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Meter Bridge",
+      "kicker": "WINS THE HAND",
+      "lineage": "the row of ballistic VU needles across a recording desk",
+      "thesis": "Every branch is a channel on one bridge. You read the whole workshop by sweeping the row, never by opening a single meter, and one needle leaning past zero is the only thing that asks for you. The instrument's own rule governs the page: the arc past zero is the only red allowed anywhere.",
+      "palette": ["#191b1f", "#3f3227", "#efe7d6", "#c8321f", "#e8a317"],
+      "materials": ["glass-fronted meter faces", "walnut and steel desk frame", "black scale arcs", "amber lamp glow"],
+      "viewport": "No hero card and no screenshot in a browser frame. A full-bleed meter bridge spans the viewport: identical glass-fronted faces in a row, each labelled with a branch and its country, needles at rest at their left pins. On load the row wakes together with true ballistics, mass and overshoot, and settles at different angles, because the branches are not having the same day. One needle sits past zero in red. The claim is set on the desk frame beneath the row as a strip label, and the primary action is the single amber-lit key on that frame, the one warm thing on the whole instrument.",
+      "risk": "Instrument worlds die when the motion is faked: instant needle jumps read as decoration and destroy the whole conceit, so the ballistics must carry real mass and damping. The row must also stay legible when it collapses to bars on a phone.",
+      "raised": [
+        {
+          "from": "challenger-cracktro",
+          "raise": "Enclosure discipline: no rounded cards anywhere. Hierarchy comes from scale, rule weight and space on the desk frame, never from a box drawn around content."
+        },
+        {
+          "from": "challenger-lcars",
+          "raise": "Flat colour at full commitment, zero gradients and zero glow. The warmest tone is reserved for the one action that matters."
+        },
+        {
+          "from": "challenger-cephalopod",
+          "raise": "State is drawn onto the material itself, needle angle and lamp, never a pill badge floating above it."
+        },
+        {
+          "from": "challenger-versailles",
+          "raise": "From the beaten leader: one axial sightline governs the scroll, so the page reads as a single instrument bench rather than stacked sections."
+        }
+      ],
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-vu-meter-bridge.webp",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-vu-meter-bridge-hero.webp"
+    },
+    {
+      "id": "challenger-hardware",
+      "label": "The Desk Instrument",
+      "verdict": "competitive",
+      "lineage": "creator hardware: keycaps, knurled knobs, one safety-orange key",
+      "thesis": "The product as a bench instrument. A strict keycap grid in gunmetal, dye-sub mono legends, a knurled knob for anything continuous, an amber status screen reporting one value at a time, and a single safety-orange key that is obviously the point.",
+      "palette": ["#2b2e33", "#cfc9bd", "#1a1a1a", "#f26522", "#e8a317"],
+      "materials": ["bone and putty keycaps", "gunmetal chassis", "knurled aluminium", "amber screen"],
+      "viewport": "A chassis filling the viewport, features as labelled keys in a grid, one orange key committing the primary action.",
+      "case": "Holds outright on call-to-action clarity: nothing states a primary action more plainly than the one orange key on a bone-grey board, and the tool register genuinely suits a workshop. Loses to the bridge on the positioning, because a keycap grid has no way to say one owner, several branches, several countries.",
+      "risk": "A grid of keys can flatten into an ordinary icon grid if the chassis, legends and travel are not built with real tactility.",
+      "board": "https://impeccable.style/worlds/cards/design-canon-creator-hardware-bench.webp"
+    },
+    {
+      "id": "challenger-versailles",
+      "label": "The Axial Garden Plan",
+      "verdict": "competitive",
+      "lineage": "Versailles: axial vistas, parterres, concealed bosquets",
+      "thesis": "The workflow as a formal garden plan. One axial sightline runs intake to invoice, parterres hold the branch grid in mirrored symmetry, and each section is a green room you enter off the axis.",
+      "palette": ["#2f4032", "#c9bd9a", "#b08d3f", "#f2f0e9"],
+      "materials": ["clipped hedge", "raked gravel", "gilt bronze", "engraved plan capitals"],
+      "viewport": "An engraved plan seen from the terrace, the workflow axis running to a vanishing point.",
+      "case": "Was the dealt leader and holds on structure alone: the axial sightline is a genuinely good spine for a workflow page, and it donated that spine to the bridge. Loses both on identification, a workshop owner has no relationship with French formal gardens, and on buildability, since it wants garden imagery this product does not have.",
+      "risk": "Reads as luxury heritage branding, the opposite of a tool that gets oil on it.",
+      "board": "https://impeccable.style/worlds/cards/architecture-inhabitable-space-versailles-bosquet-vistas.webp",
+      "hero": "https://impeccable.style/worlds/cards/architecture-inhabitable-space-versailles-bosquet-vistas-hero.webp"
+    },
+    {
+      "id": "challenger-cracktro",
+      "label": "Cracktro Scroller Queue",
+      "verdict": "declined",
+      "lineage": "demoscene title screens, depth as rank",
+      "thesis": "Ivory bitmap baselines over an emissive void, rank expressed as depth, nothing ever enclosed.",
+      "palette": ["#000000", "#efe9dc", "#e8a317"],
+      "materials": ["bitmap face", "drifting dust fields"],
+      "viewport": "One still ivory line over three drifting grey fields.",
+      "case": "Declined: demoscene culture has no foothold with a garage owner, and bitmap ivory on black is hostile to a phone screen in a bright workshop.",
+      "kept": "Its refusal of enclosure became the bridge's ban on rounded cards.",
+      "board": "https://impeccable.style/worlds/cards/operate-c-cracktro-scroller-queue.webp"
+    },
+    {
+      "id": "challenger-lcars",
+      "label": "Elbow Panel Console",
+      "verdict": "declined",
+      "lineage": "pill-cornered starship wall panels",
+      "thesis": "Flat pastel blocks on pure black, sweeping elbows as the only layout grid, numeric codes as labels.",
+      "palette": ["#000000", "#c9a0dc", "#f0a884", "#e8c547"],
+      "materials": ["flat colour blocks", "pill corners"],
+      "viewport": "A black wall of pastel pills framed by a lilac elbow.",
+      "case": "Declined: recognisable but worn as costume, and numeric code clusters as labels actively damage comprehension on a page whose job is to be understood in seconds.",
+      "kept": "Its flat-colour commitment, no gradients and no glow with the warmest tone reserved for the active element, became the bridge's colour law.",
+      "board": "https://impeccable.style/worlds/cards/pop-culture-shelf-elbow-panel-console.webp"
+    },
+    {
+      "id": "challenger-cephalopod",
+      "label": "Chromatophore Skin",
+      "verdict": "declined",
+      "lineage": "cephalopod skin as a living display",
+      "thesis": "Signals drawn directly onto a living surface, patterns travelling as waves, type weight tracking pigment expansion.",
+      "palette": ["#e8ded0", "#8a4b3a", "#2fa8a0"],
+      "materials": ["chromatophores", "iridophore flash", "skin ridges"],
+      "viewport": "A pale mantle crossing patterned stone, becoming waves and eyes.",
+      "case": "Declined: no audience foothold, and a workshop needs exact figures rather than pattern waves. GPU cellular shaders are also a poor trade on a marketing page's performance budget.",
+      "kept": "Its principle that state is a property of the material became the bridge's needle-and-lamp states, replacing badges.",
+      "board": "https://impeccable.style/worlds/cards/reefs-bioluminescent-nocturnal-chromatophore-skin-language.webp"
+    }
+  ],
+  "canonCard": {
+    "id": "canon",
+    "label": "The Category Standard",
+    "kicker": "PLAYED STRAIGHT",
+    "lineage": "the modern B2B SaaS landing page",
+    "thesis": "Centred gradient hero, product screenshot in a floating browser frame, three-column feature grid, logo strip, FAQ, footer. Executed at full craft, without irony.",
+    "palette": ["#3b5ff8", "#0f172a", "#f8fafc", "#64748b"],
+    "materials": ["soft shadow", "rounded cards", "gradient mesh"],
+    "viewport": "Headline, subcopy, two buttons, screenshot below the fold line.",
+    "risk": "Indistinguishable from every competitor including the reference site, which is the trade you are making."
+  },
+  "reroll": {
+    "enabled": true,
+    "steer": true,
+    "registers": ["plain", "safer", "bolder"]
+  }
+}

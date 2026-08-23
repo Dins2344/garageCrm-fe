@@ -36,7 +36,7 @@ export function GlobalLoaderProvider({ children }: { children: ReactNode }) {
       {/* Full-screen blocking overlay */}
       {active && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/45 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/45"
           aria-label="Loading, please wait"
         >
           <div className="flex flex-col items-center gap-4">

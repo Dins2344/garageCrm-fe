@@ -1,915 +1,618 @@
-import { useState, useEffect, useRef, type ReactNode, type ComponentType } from 'react';
+import { useState, useEffect, type ReactNode, type ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   ClipboardList, Users, Receipt, Package, Bell, BarChart3,
-  CheckCircle, ArrowRight, Star, Zap, Shield, Clock, TrendingUp,
-  Wrench, Car, FileText, ChevronDown, Phone, Mail,
-  Building2, Globe, Award, Menu, X
+  ArrowRight, Shield, Wrench, Car, FileText, Menu, X,
+  Building2, ScanLine, Boxes, ShoppingCart, Timer, MessageSquare,
+  Lock, KeyRound, Fingerprint, LifeBuoy, BookOpen, DatabaseZap,
 } from 'lucide-react';
-import { PLAY_STORE_URL, CARBON_FIBRE_TEXTURE_URL } from '../utils/constants';
+import { PLAY_STORE_URL } from '../utils/constants';
+import { formatMoney } from '../utils/format';
 
-/* ───── Scroll Reveal Hook ───── */
-function useScrollReveal() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [revealed, setRevealed] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setRevealed(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.12 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  return { ref, revealed };
-}
-
-/* ───── Reveal Wrapper ───── */
-interface RevealProps {
-  children: ReactNode;
-  delay?: number;
-  direction?: 'up' | 'left' | 'right';
-  className?: string;
-}
-
-function Reveal({ children, delay = 0, direction = 'up', className = '' }: RevealProps) {
-  const { ref, revealed } = useScrollReveal();
-
-  const baseStyle = {
-    opacity: revealed ? 1 : 0,
-    transform: revealed
-      ? 'none'
-      : direction === 'up'
-      ? 'translateY(32px)'
-      : direction === 'left'
-      ? 'translateX(-32px)'
-      : 'translateX(32px)',
-    transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
-  };
-
-  return (
-    <div ref={ref} style={baseStyle} className={className}>
-      {children}
-    </div>
-  );
-}
-
-/* ───── Logo ───── */
-function Logo({ size = 40 }: { size?: number }) {
-  return <img src="/mainIcon.png" alt="GaragePulse Logo" style={{ width: size, height: size }} className="object-contain" />;
-}
-
-/* ───── Play Store ───── */
-interface PlayStoreBadgeProps {
-  /** `sm` for the footer, `md` for the hero. */
-  size?: 'sm' | 'md';
-  className?: string;
-}
-
-/**
- * Link to the Android app on Google Play, using the official badge artwork
- * from `public/playstore.png`.
- *
- * Opens in a new tab with `rel="noopener noreferrer"` — `noopener` is the
- * security-relevant half: without it the opened page gets a handle on
- * `window.opener` and can navigate this tab somewhere else.
- *
- * Sized by HEIGHT with `w-auto`: the asset is 582x220 (a 2.65:1 ratio), and
- * constraining one axis keeps Google's badge proportions intact. Never set
- * both — a stretched badge breaks their brand guidelines.
- *
- * `drop-shadow` rather than `shadow` on hover, because the PNG has
- * transparent corners; a box-shadow would draw a rectangle behind the rounded
- * badge, while drop-shadow follows the alpha channel.
- */
-function PlayStoreBadge({ size = 'md', className = '' }: PlayStoreBadgeProps) {
-  const isSmall = size === 'sm';
+/* ───── Play Store badge ─────
+   The one piece of external proof this product genuinely has. */
+function PlayStoreBadge({ className = '' }: { className?: string }) {
   return (
     <a
       href={PLAY_STORE_URL}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Download GaragePulse for Android on Google Play (opens in a new tab)"
-      className={`inline-block transition-all duration-300 hover:scale-105 hover:drop-shadow-xl ${className}`}
+      className={`inline-block transition-transform duration-300 hover:scale-105 ${className}`}
     >
-      <img
-        src="/playstore.png"
-        // Empty alt on purpose: the anchor's aria-label already names this
-        // link, and a second description would be announced twice.
-        alt=""
-        className={`w-auto object-contain ${isSmall ? 'h-10' : 'h-14'}`}
-      />
+      <img src="/playstore.png" alt="" className="h-11 w-auto object-contain" />
     </a>
   );
 }
 
-/* ───── Feature Card ───── */
-interface FeatureCardProps {
-  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
-  title: string;
-  desc: string;
-  gradient: string;
-  delay: number;
-}
+/* ───── Product photograph ─────
+   Real workshop photography with a real screenshot of the product composited
+   onto the device — no invented UI. Square-cornered and unframed like every
+   other element: no rounded corner, no shadow, no browser chrome.
 
-function FeatureCard({ icon: Icon, title, desc, gradient, delay }: FeatureCardProps) {
+   Intrinsic width/height are declared so the browser reserves the space before
+   the file arrives and the section does not jump on load. */
+function ProductImage({ src, alt, width, height, className = '' }: {
+  src: string; alt: string; width: number; height: number; className?: string;
+}) {
   return (
-    <Reveal delay={delay}>
-      <div className="group relative bg-white border border-gray-200/80 rounded-2xl p-7 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden">
-        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${gradient}`} />
-        <div className="relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
-            <Icon className="w-7 h-7 text-primary-600" strokeWidth={1.5} />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
-        </div>
-      </div>
-    </Reveal>
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      loading="lazy"
+      decoding="async"
+      className={`w-full border border-bone-200 bg-bone-100 object-cover ${className}`}
+    />
   );
 }
 
-/* ───── Stat Item ───── */
-interface StatItemProps {
-  value: string;
-  label: string;
-  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
-}
+/* ───── Market switcher ─────
+   The page's one authored interaction, and the only honest way to demonstrate
+   the positioning: the same job total, re-printed through the real
+   `formatMoney` the product ships, in each market's own currency and tax
+   vocabulary. Nothing here is mocked — this is the function the invoices use. */
+const MARKETS = [
+  { code: 'IN', country: 'India',          locale: 'en-IN', currency: 'INR', taxLabel: 'GST',  taxRate: 18, taxId: 'GSTIN' },
+  { code: 'GB', country: 'United Kingdom', locale: 'en-GB', currency: 'GBP', taxLabel: 'VAT',  taxRate: 20, taxId: 'VAT No.' },
+  { code: 'AE', country: 'UAE',            locale: 'en-AE', currency: 'AED', taxLabel: 'VAT',  taxRate: 5,  taxId: 'TRN' },
+  { code: 'AU', country: 'Australia',      locale: 'en-AU', currency: 'AUD', taxLabel: 'GST',  taxRate: 10, taxId: 'ABN' },
+] as const;
 
-function StatItem({ value, label, icon: Icon }: StatItemProps) {
+const SUBTOTAL = 12500;
+
+function MarketSwitcher() {
+  const [index, setIndex] = useState(0);
+  const market = MARKETS[index];
+  const tax = Math.round(SUBTOTAL * (market.taxRate / 100) * 100) / 100;
+  const total = Math.round((SUBTOTAL + tax) * 100) / 100;
+
   return (
-    <div className="text-center flex flex-col items-center gap-2">
-      <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center mb-1">
-        <Icon className="w-6 h-6 text-primary-600" strokeWidth={1.5} />
+    <div className="w-full max-w-md">
+      <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Choose a market">
+        {MARKETS.map((m, i) => {
+          const active = i === index;
+          return (
+            <button
+              key={m.code}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setIndex(i)}
+              className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors duration-200 ${
+                active
+                  ? 'bg-accent-500 text-ink-900'
+                  : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+              }`}
+            >
+              {m.code}
+            </button>
+          );
+        })}
       </div>
-      <div className="text-4xl md:text-5xl font-extrabold text-primary-600">
-        {value}
+
+      <div className="mt-4 border border-white/15 bg-white/5 p-5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/55">
+          Invoice preview &middot; {market.country}
+        </p>
+        <dl className="mt-4 flex flex-col gap-2.5 text-sm">
+          <div className="flex items-baseline justify-between gap-4">
+            <dt className="text-white/60">Parts and labour</dt>
+            <dd className="tabular font-semibold text-white">{formatMoney(SUBTOTAL, market)}</dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-4">
+            <dt className="text-white/60">
+              {market.taxLabel} ({market.taxRate}%)
+            </dt>
+            <dd className="tabular font-semibold text-white">{formatMoney(tax, market)}</dd>
+          </div>
+          <div className="mt-1 flex items-baseline justify-between gap-4 border-t border-white/15 pt-3">
+            <dt className="font-semibold text-white">Total</dt>
+            <dd className="tabular font-display text-2xl font-bold text-accent-400">{formatMoney(total, market)}</dd>
+          </div>
+        </dl>
+        <p className="mt-4 text-xs leading-relaxed text-white/60">
+          Same job card. The tax name, the rate, the currency and the number format all follow the
+          branch&rsquo;s country &mdash; and the PDF prints <span className="text-white/70">{market.taxId}</span> on it.
+        </p>
       </div>
-      <div className="text-gray-500 text-sm font-medium">{label}</div>
     </div>
   );
 }
 
-/* ───── Workflow Step ───── */
-interface StepCardProps {
-  num: number;
-  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
-  title: string;
-  desc: string;
-  delay: number;
-}
+/* ───── Navigation ───── */
+const NAV_LINKS = [
+  { label: 'Product', href: '#product' },
+  { label: 'Capabilities', href: '#capabilities' },
+  { label: 'Multi-branch', href: '#branches' },
+  { label: 'Security', href: '#security' },
+];
 
-function StepCard({ num, icon: Icon, title, desc, delay }: StepCardProps) {
-  return (
-    <Reveal delay={delay}>
-      <div className="flex flex-col items-center text-center group">
-        <div className="relative mb-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center shadow-lg shadow-primary-500/30 group-hover:scale-110 transition-transform duration-300">
-            <Icon className="w-8 h-8 text-white" strokeWidth={1.5} />
-          </div>
-          <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-primary-500 flex items-center justify-center text-[11px] font-extrabold text-primary-600">
-            {num}
-          </div>
-        </div>
-        <h4 className="font-bold text-gray-900 mb-1">{title}</h4>
-        <p className="text-gray-500 text-xs leading-relaxed max-w-[150px]">{desc}</p>
-      </div>
-    </Reveal>
-  );
-}
-
-/* ───── Testimonial Card ───── */
-interface TestimonialCardProps {
-  name: string;
-  garage: string;
-  location: string;
-  quote: string;
-  rating: number;
-  delay: number;
-}
-
-function TestimonialCard({ name, garage, location, quote, rating, delay }: TestimonialCardProps) {
-  return (
-    <Reveal delay={delay}>
-      <div className="bg-white rounded-2xl border border-gray-200/80 p-7 hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-        <div className="flex gap-1 mb-4">
-          {Array.from({ length: rating }).map((_, i) => (
-            <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
-          ))}
-        </div>
-        <p className="text-gray-600 text-sm leading-relaxed flex-1 italic mb-6">"{quote}"</p>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
-            {name.charAt(0)}
-          </div>
-          <div>
-            <p className="font-bold text-gray-900 text-sm">{name}</p>
-            <p className="text-xs text-gray-400">{garage} · {location}</p>
-          </div>
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-/* ───── Pricing Card ───── */
-interface PricingCardProps {
-  plan: string;
-  price: string;
-  description: string;
-  features: string[];
-  highlighted: boolean;
-  cta: string;
-  delay: number;
-}
-
-function PricingCard({ plan, price, description, features, highlighted, cta, delay }: PricingCardProps) {
-  return (
-    <Reveal delay={delay}>
-      <div className={`relative rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 ${
-        highlighted
-          ? 'bg-gradient-to-br from-primary-600 to-purple-700 text-white shadow-2xl shadow-primary-500/30'
-          : 'bg-white border border-gray-200/80 hover:shadow-xl'
-      }`}>
-        {highlighted && (
-          <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-400 text-gray-900 text-xs font-extrabold rounded-full uppercase tracking-wider">
-            Most Popular
-          </div>
-        )}
-        <div className="mb-6">
-          <p className={`text-sm font-bold uppercase tracking-widest mb-2 ${highlighted ? 'text-primary-200' : 'text-primary-600'}`}>
-            {plan}
-          </p>
-          <div className="flex items-end gap-1 mb-2">
-            <span className={`text-4xl font-extrabold ${highlighted ? 'text-white' : 'text-gray-900'}`}>{price}</span>
-            {price !== 'Free' && price !== 'Custom' && (
-              <span className={`text-sm mb-1.5 ${highlighted ? 'text-primary-200' : 'text-gray-400'}`}>/month</span>
-            )}
-          </div>
-          <p className={`text-sm ${highlighted ? 'text-primary-100' : 'text-gray-500'}`}>{description}</p>
-        </div>
-
-        <ul className="flex flex-col gap-3 flex-1 mb-8">
-          {features.map((f, i) => (
-            <li key={i} className="flex items-start gap-2.5">
-              <CheckCircle className={`w-4 h-4 mt-0.5 shrink-0 ${highlighted ? 'text-primary-200' : 'text-primary-500'}`} strokeWidth={2} />
-              <span className={`text-sm ${highlighted ? 'text-primary-100' : 'text-gray-600'}`}>{f}</span>
-            </li>
-          ))}
-        </ul>
-
-        <Link
-          to="/login?register=true"
-          className={`w-full py-3 rounded-xl font-bold text-sm text-center transition-all duration-200 ${
-            highlighted
-              ? 'bg-white text-primary-700 hover:bg-primary-50 shadow-lg'
-              : 'bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200'
-          }`}
-        >
-          {cta}
-        </Link>
-      </div>
-    </Reveal>
-  );
-}
-
-/* ═══════════════ MAIN PAGE ═══════════════ */
-export default function HomePage() {
+function NavBar() {
   const { user } = useAuth();
+  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener('scroll', onScroll);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const features = [
-    {
-      icon: ClipboardList,
-      title: 'Job Card Management',
-      desc: 'Track every vehicle from intake to delivery with an organized, status-driven workflow.',
-      gradient: 'bg-gradient-to-br from-primary-50/80 to-blue-50/80',
-    },
-    {
-      icon: Users,
-      title: 'Customer CRM',
-      desc: 'Maintain detailed customer and vehicle history for personalized, repeat service.',
-      gradient: 'bg-gradient-to-br from-lime-50/80 to-green-50/80',
-    },
-    {
-      icon: Receipt,
-      title: 'Estimations & Invoices',
-      desc: 'Generate professional, GST-ready estimations and invoices in seconds.',
-      gradient: 'bg-gradient-to-br from-emerald-50/80 to-teal-50/80',
-    },
-    {
-      icon: Package,
-      title: 'Inventory Control',
-      desc: 'Real-time stock tracking with low-threshold alerts so you never run dry.',
-      gradient: 'bg-gradient-to-br from-amber-50/80 to-orange-50/80',
-    },
-    {
-      icon: Bell,
-      title: 'Service Reminders',
-      desc: 'Automated reminders keep customers coming back for timely maintenance.',
-      gradient: 'bg-gradient-to-br from-rose-50/80 to-pink-50/80',
-    },
-    {
-      icon: BarChart3,
-      title: 'Insights Dashboard',
-      desc: 'Revenue charts, active jobs, and KPI tracking — all at a glance.',
-      gradient: 'bg-gradient-to-br from-cyan-50/80 to-sky-50/80',
-    },
-  ];
-
-  const steps = [
-    { icon: Car, title: 'Vehicle Intake', desc: 'Log customer & vehicle details instantly.' },
-    { icon: FileText, title: 'Estimation', desc: 'Build parts + labor estimates, send for approval.' },
-    { icon: Wrench, title: 'Repair & Track', desc: 'Assign mechanics, track progress live.' },
-    { icon: Receipt, title: 'Invoice & Deliver', desc: 'Generate invoice, collect payment, deliver.' },
-  ];
-
-  const testimonials = [
-    {
-      name: 'Arjun Mehta',
-      garage: 'Mehta Auto Works',
-      location: 'Pune, MH',
-      rating: 5,
-      quote: "GaragePulse completely transformed how I run my workshop. Job cards that used to take 20 minutes now take 2. My customers love getting WhatsApp reminders too!",
-    },
-    {
-      name: 'Priya Nair',
-      garage: 'Nair Motors',
-      location: 'Kochi, KL',
-      rating: 5,
-      quote: "The estimation and invoice module alone saved us from so many billing disputes. Professional, GST-ready invoices in literally seconds. Highly recommend!",
-    },
-    {
-      name: 'Rajesh Gupta',
-      garage: 'RG Service Centre',
-      location: 'Jaipur, RJ',
-      rating: 5,
-      quote: "I manage 3 branches and the dashboard gives me a real-time view of all operations. The staff achievement board motivates my mechanics too!",
-    },
-  ];
-
-  const pricingPlans = [
-    {
-      plan: 'Starter',
-      price: 'Free',
-      description: 'Perfect for small garages just getting started.',
-      features: [
-        'Up to 50 job cards/month',
-        '1 user account',
-        'Customer & vehicle records',
-        'Basic invoicing',
-        'Email support',
-      ],
-      cta: 'Get Started Free',
-      highlighted: false,
-    },
-    {
-      plan: 'Professional',
-      price: '₹1,499',
-      description: 'The full GaragePulse experience for growing workshops.',
-      features: [
-        'Unlimited job cards',
-        'Up to 10 staff accounts',
-        'GST estimations & invoices',
-        'Inventory management',
-        'Automated service reminders',
-        'Advanced dashboard & reports',
-        'Priority support',
-      ],
-      cta: 'Start Free Trial',
-      highlighted: true,
-    },
-    {
-      plan: 'Enterprise',
-      price: 'Custom',
-      description: 'Multi-branch support and white-label solutions.',
-      features: [
-        'Unlimited everything',
-        'Multi-branch management',
-        'Custom branding & domain',
-        'API access & integrations',
-        'Dedicated account manager',
-        '24/7 premium support',
-      ],
-      cta: 'Contact Sales',
-      highlighted: false,
-    },
-  ];
-
-  const whyReasons = [
-    { icon: Zap, title: 'Lightning Fast Setup', desc: 'Go live in under 10 minutes. No installation, no IT team required.' },
-    { icon: Shield, title: 'Secure & Reliable', desc: '99.9% uptime SLA with enterprise-grade data encryption at rest and in transit.' },
-    { icon: Globe, title: 'Works Anywhere', desc: 'Cloud-based — access your garage from any device, browser, or location.' },
-    { icon: TrendingUp, title: 'Grow with You', desc: 'From a single bay to multi-branch operations, GaragePulse scales seamlessly.' },
-    { icon: Award, title: 'GST Compliant', desc: 'Auto-calculated GST on all estimations and invoices. Stay audit-ready.' },
-    { icon: Clock, title: '24/7 Data Access', desc: 'Your job cards, invoices, and customer data — available round the clock.' },
-  ];
-
-  const navLinks = [
-    { href: '#features', label: 'Features' },
-    { href: '#why', label: 'Why Us' },
-    { href: '#testimonials', label: 'Reviews' },
-    { href: '#pricing', label: 'Pricing' },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 font-sans overflow-x-hidden">
+    <header
+      className={`sticky top-0 z-50 border-b transition-colors duration-300 ${
+        scrolled ? 'border-bone-200 bg-bone-50/95 backdrop-blur' : 'border-transparent bg-bone-50'
+      }`}
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-5 sm:px-8">
+        <Link to="/home" className="flex shrink-0 items-center gap-2.5">
+          <img src="/mainIcon.png" alt="" className="h-8 w-8 object-contain" />
+          <span className="font-display text-lg font-bold tracking-tight text-gray-900">GaragePulse</span>
+        </Link>
 
-      {/* ─── NAVBAR ─── */}
-      <nav
-        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled
-          ? 'bg-white/90 backdrop-blur-xl shadow-lg shadow-gray-900/5 border-b border-gray-200/50'
-          : 'bg-transparent'
-          }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/home" className="flex items-center gap-2.5 group">
-            <Logo size={36} />
-            <span className="text-xl font-bold tracking-tight text-gray-900">
-              Garage<span className="text-primary-600">Pulse</span>
-            </span>
-          </Link>
-
-          {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-6">
-            {navLinks.map(link => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-gray-600 hover:text-primary-600 font-medium text-sm transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3">
-            {user ? (
-              <Link
-                to="/"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold text-sm shadow-lg shadow-primary-500/30 hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
-              >
-                Dashboard <ArrowRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="hidden sm:block px-5 py-2.5 rounded-xl text-gray-700 font-semibold text-sm hover:text-primary-600 hover:bg-gray-100 transition-all duration-200"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/login?register=true"
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold text-sm shadow-lg shadow-primary-500/30 hover:shadow-xl hover:scale-105 transition-all duration-300"
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
-            {/* Mobile menu toggle */}
-            <button
-              className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        <nav className="hidden flex-1 items-center gap-7 lg:flex">
+          {NAV_LINKS.map(l => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
+              {l.label}
+            </a>
+          ))}
+        </nav>
 
-        {/* Mobile dropdown */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-100 px-6 py-4 flex flex-col gap-3">
-            {navLinks.map(link => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-gray-700 hover:text-primary-600 font-medium text-sm py-2 transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
-            {!user && (
-              <Link
-                to="/login"
-                className="text-gray-700 font-medium text-sm py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign In
+        <div className="ml-auto hidden items-center gap-3 lg:flex">
+          {user ? (
+            <Link
+              to="/"
+              className="bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ink-800"
+            >
+              Open dashboard
+            </Link>
+          ) : (
+            <>
+              <Link to="/login" className="text-sm font-semibold text-gray-700 transition-colors hover:text-gray-900">
+                Sign in
               </Link>
-            )}
-          </div>
-        )}
-      </nav>
-
-      {/* ─── HERO ─── */}
-      <section className="relative pt-32 pb-24 md:pt-48 md:pb-36 px-6 overflow-hidden">
-        {/* Background blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-[30%] -right-[15%] w-[70vw] h-[70vw] rounded-full bg-gradient-to-br from-primary-400/20 to-purple-500/20 blur-3xl opacity-60" />
-          <div className="absolute -bottom-[30%] -left-[15%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-tr from-accent-400/15 to-blue-500/15 blur-3xl opacity-50" />
-          <div className="absolute top-[40%] left-[50%] w-[30vw] h-[30vw] rounded-full bg-gradient-to-r from-emerald-400/10 to-primary-300/10 blur-3xl opacity-40" />
-        </div>
-
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <Reveal delay={0}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-50 border border-primary-200 text-primary-700 text-sm font-semibold mb-8">
-              <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-              Built for modern garages
-            </div>
-          </Reveal>
-
-          <Reveal delay={80}>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-6">
-              Run your garage{' '}
-              <span className="text-accent-600">
-                like a pro
-              </span>
-            </h1>
-          </Reveal>
-
-          <Reveal delay={160}>
-            <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed mb-10">
-              GaragePulse is the all-in-one workshop management platform — from job cards and estimations
-              to invoicing and inventory. Spend less time on paperwork, more time fixing cars.
-            </p>
-          </Reveal>
-
-          <Reveal delay={240}>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <Link
                 to="/login?register=true"
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-purple-600 text-white font-bold text-lg shadow-xl shadow-primary-500/30 hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
-                id="hero-cta"
+                className="bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ink-800"
               >
-                Start Free Trial <ArrowRight className="w-5 h-5" />
+                Get started
+              </Link>
+            </>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          className="ml-auto p-2 text-gray-700 lg:hidden"
+        >
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {open && (
+        <div className="border-t border-bone-200 bg-bone-50 lg:hidden">
+          <nav className="mx-auto flex max-w-7xl flex-col px-5 py-2 sm:px-8">
+            {NAV_LINKS.map(l => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="border-b border-gray-100 py-3.5 text-sm font-medium text-gray-700"
+              >
+                {l.label}
+              </a>
+            ))}
+            <div className="flex gap-3 py-4">
+              <Link to="/login" className="flex-1 border border-bone-200 py-2.5 text-center text-sm font-semibold text-gray-800">
+                Sign in
+              </Link>
+              <Link to="/login?register=true" className="flex-1 bg-gray-900 py-2.5 text-center text-sm font-semibold text-white">
+                Get started
+              </Link>
+            </div>
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+}
+
+/* ───── Section heading ─────
+   No eyebrow label above it. The heading carries its own weight; a small-caps
+   category tag above every section is the tell of a template. */
+function SectionHeading({ title, lead, align = 'left' }: { title: ReactNode; lead?: string; align?: 'left' | 'center' }) {
+  return (
+    <div className={align === 'center' ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'}>
+      <h2 className="font-display text-3xl font-bold leading-[1.1] tracking-tight text-gray-900 sm:text-4xl md:text-[2.75rem]">
+        {title}
+      </h2>
+      {lead && <p className="mt-5 max-w-[68ch] text-base leading-relaxed text-gray-600 sm:text-lg">{lead}</p>}
+    </div>
+  );
+}
+
+/* ───── Alternating product block ───── */
+interface ProductBlockProps {
+  title: string;
+  lead: string;
+  points: { icon: ComponentType<{ className?: string; strokeWidth?: number }>; title: string; body: string }[];
+  image: { src: string; alt: string; width: number; height: number };
+  flip?: boolean;
+}
+
+function ProductBlock({ title, lead, points, image, flip }: ProductBlockProps) {
+  return (
+    <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+      <div className={flip ? 'lg:order-2' : ''}>
+        <h3 className="font-display text-2xl font-bold leading-tight tracking-tight text-gray-900 sm:text-3xl">
+          {title}
+        </h3>
+        <p className="mt-4 max-w-[60ch] leading-relaxed text-gray-600">{lead}</p>
+        <ul className="mt-8 flex flex-col">
+          {points.map(({ icon: Icon, title: t, body }) => (
+            <li key={t} className="flex gap-4 border-t border-bone-200 py-5 first:border-t-0 first:pt-0">
+              <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary-600" strokeWidth={1.75} />
+              <div>
+                <p className="font-semibold text-gray-900">{t}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{body}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className={flip ? 'lg:order-1' : ''}>
+        <ProductImage {...image} />
+      </div>
+    </div>
+  );
+}
+
+/* ───── Capability row ─────
+   A ruled list, not a grid of identical icon cards. Same information, far less
+   chrome, and it survives long labels without every tile growing to match. */
+function CapabilityRow({
+  icon: Icon, title, body,
+}: { icon: ComponentType<{ className?: string; strokeWidth?: number }>; title: string; body: string }) {
+  return (
+    <div className="flex gap-5 border-t border-bone-200 py-7">
+      <Icon className="mt-1 h-5 w-5 shrink-0 text-primary-600" strokeWidth={1.75} />
+      <div>
+        <h3 className="font-semibold text-gray-900">{title}</h3>
+        <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-gray-600">{body}</p>
+      </div>
+    </div>
+  );
+}
+
+const CAPABILITIES = [
+  { icon: ClipboardList, title: 'Job cards', body: 'Open a card at intake, record complaints and odometer, assign a technician, and move it through a status pipeline that keeps its own audit trail.' },
+  { icon: FileText, title: 'Estimations', body: 'Build parts and labour into an estimate, send it for approval, and let the customer accept it from a link without creating an account.' },
+  { icon: Receipt, title: 'Invoicing', body: 'Convert an approved estimate into an invoice, track part payments, and export a PDF that prints the right tax label for the branch.' },
+  { icon: Boxes, title: 'Inventory', body: 'Stock deducts itself when parts go onto a job card. Low-stock thresholds surface what to reorder before a bay is waiting.' },
+  { icon: Users, title: 'Customers and vehicles', body: 'Every vehicle keeps its own service history, so the last job on that registration is one tap away at the counter.' },
+  { icon: Bell, title: 'Service reminders', body: 'Scheduled email and SMS reminders go out at nine in the morning in each branch’s own timezone, not yours.' },
+  { icon: ScanLine, title: 'Vehicle inspections', body: 'Record inspection findings against the vehicle so the customer sees what was checked, not just what was charged.' },
+  { icon: ShoppingCart, title: 'Procurement', body: 'Track what was ordered, from whom, and what it cost, against the job that consumed it.' },
+  { icon: BarChart3, title: 'Dashboards', body: 'Revenue, active work, pending approvals and unpaid invoices, per branch, without exporting anything.' },
+];
+
+/* ───── Page ───── */
+export default function HomePage() {
+  // One authored entrance, on the first viewport only, and it runs from CSS
+  // rather than from state: every section animating identically on scroll is the
+  // same effect eleven times, and an entrance that starts at opacity 0 renders a
+  // blank hero for anyone whose animation never runs. See `.hero-rise`.
+  return (
+    <div className="min-h-screen bg-bone-50 font-sans">
+      <NavBar />
+
+      {/* ─── HERO ─── */}
+      <section className="on-ink relative overflow-hidden bg-ink-900 text-white">
+        <div aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0" />
+        <div className="relative mx-auto grid max-w-7xl gap-14 px-5 pb-20 pt-16 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-16 lg:pb-28 lg:pt-24">
+          <div className="hero-rise">
+            <h1 className="font-display text-[2.5rem] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-5xl lg:text-[3.75rem]">
+              Run every branch
+              <br />
+              of your garage
+              <br />
+              <span className="text-accent-400">from one login.</span>
+            </h1>
+            <p className="mt-7 max-w-[58ch] text-lg leading-relaxed text-white/70">
+              Job cards, estimates, invoicing, inventory and reminders for independent workshops.
+              Add a second branch, or a branch in another country, and GaragePulse keeps each one&rsquo;s
+              currency, tax rules and paperwork straight.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/login?register=true"
+                className="group inline-flex items-center justify-center gap-2 bg-accent-500 px-7 py-4 text-base font-bold text-ink-900 transition-colors duration-200 hover:bg-accent-400"
+              >
+                Get started
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
               <a
-                href="#features"
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-bold text-lg hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50/50 transition-all duration-300 flex items-center justify-center gap-2"
+                href="#demo"
+                className="inline-flex items-center justify-center gap-2 border border-white/25 px-7 py-4 text-base font-semibold text-white transition-colors duration-200 hover:border-white/50 hover:bg-white/5"
               >
-                See Features <ChevronDown className="w-5 h-5" />
+                Book a demo
               </a>
             </div>
-          </Reveal>
-
-          {/* Android app availability */}
-          <Reveal delay={280}>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14 -mt-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-gray-500">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                Now live on Android — take your garage with you
-              </div>
+            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
               <PlayStoreBadge />
+              <p className="max-w-[30ch] text-sm leading-snug text-white/50">
+                The technician app is live on Android.
+              </p>
             </div>
-          </Reveal>
+          </div>
 
-          {/* Floating trust badges */}
-          <Reveal delay={320}>
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400 font-medium">
-              <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> No credit card required</span>
-              <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> Setup in 10 minutes</span>
-              <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> Cancel anytime</span>
-            </div>
-          </Reveal>
+          <div className="hero-rise-delayed lg:justify-self-end">
+            <MarketSwitcher />
+          </div>
         </div>
       </section>
 
-      {/* ─── STATS BAR ─── */}
-      <section className="relative z-10 max-w-5xl mx-auto -mt-4 mb-24 px-6">
-        <Reveal>
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-gray-200/60 shadow-2xl shadow-gray-900/5 px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatItem value="500+" label="Garages Onboarded" icon={Building2} />
-            <StatItem value="1.2M" label="Job Cards Created" icon={ClipboardList} />
-            <StatItem value="99.9%" label="Uptime SLA" icon={Shield} />
-            <StatItem value="4.9" label="Customer Rating" icon={Star} />
-          </div>
-        </Reveal>
+      {/* ─── PRODUCT ─── */}
+      <section id="product" className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
+        <SectionHeading
+          title={<>Everything a workshop does in a day, in one place</>}
+          lead="Intake to invoice without re-typing the same vehicle into three different tools."
+        />
+        <div className="mt-16 flex flex-col gap-20 lg:gap-28">
+          <ProductBlock
+            title="Control the floor and the stockroom together"
+            lead="A job card knows what parts it consumed, so your inventory is right without a stock-take."
+            image={{
+              src: '/landing/01.webp',
+              alt: 'A service advisor and the garage owner reviewing a GaragePulse job card on a laptop at the workshop counter, with a car on the lift behind them.',
+              width: 1448,
+              height: 1086,
+            }}
+            points={[
+              { icon: ClipboardList, title: 'One card per vehicle, start to finish', body: 'Complaints, odometer, technician, status and notes, with a timeline of who changed what and when.' },
+              { icon: Package, title: 'Stock that deducts itself', body: 'Parts added to an estimate come off inventory when the job is invoiced. Thresholds flag what to reorder.' },
+              { icon: Timer, title: 'No second job card for the same vehicle', body: 'The system refuses to open a duplicate card while one is still open, so two advisors cannot work the same car apart.' },
+            ]}
+          />
+          <ProductBlock
+            flip
+            title="Keep the customer in the loop without chasing them"
+            lead="Estimates go out as a link. The customer approves from their phone, no account, no app."
+            image={{
+              src: '/landing/02.webp',
+              alt: 'A customer standing in the workshop reading the estimate on their phone, with the parts, labour, GST and grand total listed and an Approve Estimation button.',
+              width: 1086,
+              height: 1448,
+            }}
+            points={[
+              { icon: MessageSquare, title: 'Approval without an account', body: 'A tokenised link opens the estimate. Approve or decline is one tap, and the job card updates the moment they do.' },
+              { icon: Bell, title: 'Reminders that fire in local time', body: 'Service reminders send at 09:00 in the branch’s own timezone, by email and SMS.' },
+              { icon: Car, title: 'History against the registration', body: 'Every past job on that vehicle is on one screen when the customer asks what you did last time.' },
+            ]}
+          />
+          <ProductBlock
+            title="Built for the person holding the spanner"
+            lead="The job card opens on the phone in the bay, so the work gets updated where it happens. There is a native Android build on the Play Store too."
+            image={{
+              src: '/landing/03.webp',
+              alt: 'A technician at an open bonnet reading the GaragePulse job card on a phone, with the status pipeline and vehicle details on screen.',
+              width: 1448,
+              height: 1086,
+            }}
+            points={[
+              { icon: Wrench, title: 'Works on the floor', body: 'Assigned jobs, status updates and estimates from the bay, one-handed, without walking to the office PC.' },
+              { icon: Users, title: 'Roles that mean something', body: 'Advisors quote, technicians work, receptionists book. Each role sees what it needs and nothing else.' },
+              { icon: Building2, title: 'Switch branch without signing out', body: 'Owners move between branches from the app, and every screen re-scopes to the branch they picked.' },
+            ]}
+          />
+        </div>
       </section>
 
-      {/* ─── FEATURES ─── */}
-      <section id="features" className="max-w-7xl mx-auto px-6 pb-28">
-        <Reveal>
-          <div className="text-center mb-16">
-            <p className="text-primary-600 font-bold text-sm uppercase tracking-widest mb-3">Features</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
-              Everything your workshop needs
+      {/* ─── CAPABILITIES ─── */}
+      <section id="capabilities" className="border-t border-bone-200 bg-bone-100">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
+          <SectionHeading
+            title="The whole workshop, not a slice of it"
+            lead="Replacing a stack of tools only helps if nothing is left behind in the old ones."
+          />
+          <div className="mt-14 grid gap-x-16 md:grid-cols-2 lg:grid-cols-3">
+            {CAPABILITIES.map(c => (
+              <CapabilityRow key={c.title} {...c} />
+            ))}
+          </div>
+          <div className="mt-14 flex flex-col gap-3 sm:flex-row">
+            <Link
+              to="/login?register=true"
+              className="inline-flex items-center justify-center gap-2 bg-gray-900 px-7 py-4 text-base font-bold text-white transition-colors hover:bg-ink-800"
+            >
+              Get started
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a
+              href="#demo"
+              className="inline-flex items-center justify-center border border-bone-400 px-7 py-4 text-base font-semibold text-gray-800 transition-colors hover:border-ink-900 hover:bg-bone-50"
+            >
+              Book a demo
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── MULTI-BRANCH ─── */}
+      <section id="branches" className="on-ink bg-ink-900 text-white">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
+          <div className="max-w-3xl">
+            <h2 className="font-display text-3xl font-bold leading-[1.1] tracking-tight sm:text-4xl md:text-[2.75rem]">
+              One garage or nine. One country or four.
             </h2>
-            <p className="text-gray-500 mt-4 max-w-xl mx-auto">
-              One platform to manage every aspect of your garage — from the moment a vehicle arrives to the moment it leaves.
+            <p className="mt-5 max-w-[68ch] text-lg leading-relaxed text-white/70">
+              Most workshop software assumes one shop in one country. GaragePulse treats the branch as the
+              unit: data is isolated per branch, and every branch carries its own country.
             </p>
           </div>
-        </Reveal>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((f, i) => (
-            <FeatureCard key={f.title} icon={f.icon} title={f.title} desc={f.desc} gradient={f.gradient} delay={i * 80} />
+
+          <div className="mt-14 grid gap-px border border-white/10 bg-white/10 md:grid-cols-3">
+            {[
+              {
+                icon: Building2,
+                title: 'Branches are genuinely separate',
+                body: 'Customers, vehicles, job cards, invoices and stock belong to a branch. Staff see their own branch; owners switch between them without signing out.',
+              },
+              {
+                icon: Receipt,
+                title: 'Local paperwork, automatically',
+                body: 'Currency, tax name, tax rate, tax-ID label and date format resolve from the branch’s country. A UK branch prints VAT and GBP while an Indian branch prints GST and INR.',
+              },
+              {
+                icon: Users,
+                title: 'One team, one account',
+                body: 'Add a branch, move staff between branches, or close one down, without a second subscription or a second login to remember.',
+              },
+            ].map(({ icon: Icon, title, body }) => (
+              <div key={title} className="bg-ink-900 p-8">
+                <Icon className="h-6 w-6 text-accent-400" strokeWidth={1.75} />
+                <h3 className="mt-5 font-display text-lg font-bold">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-white/60">{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── SUPPORT ─── */}
+      <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
+        <SectionHeading
+          title="Getting on to it is the part most software gets wrong"
+          lead="Moving a workshop off paper and spreadsheets is a real job. We do that part with you."
+        />
+        <div className="mt-14 grid gap-10 md:grid-cols-3">
+          {[
+            { icon: DatabaseZap, title: 'We move your data', body: 'Send us the customer and vehicle records you already have, in whatever shape they are in, and we bring them across before you go live.' },
+            { icon: LifeBuoy, title: 'A person answers', body: 'Support from people who know what a job card is, on the channels you already use.' },
+            { icon: BookOpen, title: 'Guides for the whole team', body: 'Short walkthroughs for each role, so an advisor or a technician can be useful on day one.' },
+          ].map(({ icon: Icon, title, body }) => (
+            <div key={title} className="border-t-2 border-gray-900 pt-6">
+              <Icon className="h-6 w-6 text-gray-900" strokeWidth={1.75} />
+              <h3 className="mt-5 font-display text-lg font-bold text-gray-900">{title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-gray-600">{body}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* ─── WHY GARAGEPULSE ─── */}
-      <section id="why" className="bg-gradient-to-b from-gray-100/60 to-white py-28 px-6">
-        <div className="max-w-7xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-16">
-              <p className="text-primary-600 font-bold text-sm uppercase tracking-widest mb-3">Why GaragePulse</p>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
-                The smarter way to run your workshop
-              </h2>
-              <p className="text-gray-500 mt-4 max-w-xl mx-auto">
-                Ditch the spreadsheets and paper job cards. GaragePulse gives you everything you need to run a professional, efficient, and profitable garage.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Left: reasons grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {whyReasons.map((reason, i) => (
-                <Reveal key={reason.title} delay={i * 70}>
-                  <div className="bg-white rounded-2xl p-6 border border-gray-200/80 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                    <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center mb-3">
-                      <reason.icon className="w-5 h-5 text-primary-600" strokeWidth={1.5} />
-                    </div>
-                    <h4 className="font-bold text-gray-900 text-sm mb-1">{reason.title}</h4>
-                    <p className="text-gray-500 text-xs leading-relaxed">{reason.desc}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-
-            {/* Right: before/after comparison */}
-            <Reveal direction="right">
-              <div className="bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden">
-                <div className="grid grid-cols-2 divide-x divide-gray-200">
-                  <div className="p-6 bg-red-50/40">
-                    <p className="text-xs font-extrabold uppercase tracking-widest text-red-500 mb-4">Before</p>
-                    <ul className="flex flex-col gap-3 text-sm text-gray-600">
-                      {[
-                        'Paper job cards lost or illegible',
-                        'Excel sheets for inventory',
-                        'Manual GST calculations',
-                        'No customer follow-ups',
-                        'No visibility on revenue',
-                        'Missed service due dates',
-                      ].map((item, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" strokeWidth={3} />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="p-6 bg-emerald-50/40">
-                    <p className="text-xs font-extrabold uppercase tracking-widest text-emerald-600 mb-4">After</p>
-                    <ul className="flex flex-col gap-3 text-sm text-gray-600">
-                      {[
-                        'Digital job cards, tracked in real-time',
-                        'Automated inventory alerts',
-                        'GST invoices in one click',
-                        'Auto WhatsApp & email reminders',
-                        'Live revenue dashboard',
-                        'Scheduled service reminders',
-                      ].map((item, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" strokeWidth={2} />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div className="px-6 py-4 bg-gradient-to-r from-primary-50 to-purple-50 border-t border-gray-100 text-center">
-                  <p className="text-sm font-bold text-gray-700">Join <span className="text-primary-600">500+</span> garages already making the switch</p>
-                </div>
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── HOW IT WORKS ─── */}
-      <section className="py-28 px-6">
-        <div className="max-w-5xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-16">
-              <p className="text-primary-600 font-bold text-sm uppercase tracking-widest mb-3">Workflow</p>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
-                Simplified in 4 steps
-              </h2>
-              <p className="text-gray-500 mt-4 max-w-lg mx-auto">
-                From vehicle drop-off to payment — GaragePulse guides your team through every step of the service process.
-              </p>
-            </div>
-          </Reveal>
-
-          {/* Desktop: horizontal steps with connectors */}
-          <div className="hidden md:flex items-start justify-center gap-0 max-w-4xl mx-auto">
-            {steps.map((s, i) => (
-              <div key={s.title} className="flex items-start">
-                <StepCard num={i + 1} icon={s.icon} title={s.title} desc={s.desc} delay={i * 100} />
-                {i < steps.length - 1 && (
-                  <div className="flex items-center self-start pt-8 mx-2">
-                    <div className="w-16 h-0.5 bg-gradient-to-r from-primary-300 to-purple-300 rounded-full" />
-                    <ArrowRight className="w-4 h-4 text-primary-300 -ml-2" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Mobile: vertical steps */}
-          <div className="flex md:hidden flex-col items-center gap-2">
-            {steps.map((s, i) => (
-              <div key={s.title} className="flex flex-col items-center">
-                <StepCard num={i + 1} icon={s.icon} title={s.title} desc={s.desc} delay={i * 100} />
-                {i < steps.length - 1 && (
-                  <div className="w-0.5 h-8 bg-gradient-to-b from-primary-300 to-purple-300 rounded-full my-1" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── TESTIMONIALS ─── */}
-      <section id="testimonials" className="bg-gradient-to-b from-gray-100/60 to-white py-28 px-6">
-        <div className="max-w-7xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-16">
-              <p className="text-primary-600 font-bold text-sm uppercase tracking-widest mb-3">Customer Stories</p>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
-                Loved by garage owners across India
-              </h2>
-              <p className="text-gray-500 mt-4 max-w-xl mx-auto">
-                Don't just take our word for it — hear from real workshops using GaragePulse every day.
-              </p>
-            </div>
-          </Reveal>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <TestimonialCard key={t.name} {...t} delay={i * 100} />
-            ))}
-          </div>
-          <Reveal delay={300}>
-            <div className="mt-12 text-center">
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-sm font-semibold">
-                <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map(i => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}
-                </div>
-                4.9/5 average rating across 500+ garages
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ─── PRICING ─── */}
-      <section id="pricing" className="py-28 px-6">
-        <div className="max-w-7xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-16">
-              <p className="text-primary-600 font-bold text-sm uppercase tracking-widest mb-3">Pricing</p>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
-                Simple, transparent pricing
-              </h2>
-              <p className="text-gray-500 mt-4 max-w-xl mx-auto">
-                Start free and scale as your garage grows. No hidden fees, no lock-in contracts.
-              </p>
-            </div>
-          </Reveal>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-5xl mx-auto">
-            {pricingPlans.map((plan, i) => (
-              <PricingCard key={plan.plan} {...plan} delay={i * 100} />
-            ))}
-          </div>
-          <Reveal delay={300}>
-            <p className="text-center text-gray-400 text-sm mt-8">
-              All plans include a <strong className="text-gray-600">14-day free trial</strong>. No credit card required to start.
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ─── CTA BANNER ─── */}
-      <section className="max-w-5xl mx-auto px-6 pb-28">
-        <Reveal>
-          <div className="relative rounded-3xl bg-gradient-to-br from-gray-900 to-gray-800 p-12 md:p-16 text-center overflow-hidden">
-            {/* Inline style, not a Tailwind arbitrary value: Tailwind's scanner only
-                sees class strings written literally in source, so building
-                `bg-[url(${VAR})]` dynamically emits no CSS at all. */}
-            <div
-              className="absolute inset-0 opacity-20 pointer-events-none"
-              style={{ backgroundImage: `url('${CARBON_FIBRE_TEXTURE_URL}')` }}
+      {/* ─── SECURITY ─── */}
+      <section id="security" className="border-t border-bone-200 bg-bone-100">
+        <div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-2 lg:gap-20 lg:py-28">
+          <div>
+            <SectionHeading
+              title="Your customer list is your business. It stays yours."
+              lead="A workshop's records are commercially sensitive: who owns what, what they paid, when they are due back."
             />
-            <div className="absolute top-0 right-0 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-56 h-56 bg-purple-500/20 rounded-full blur-3xl" />
+          </div>
+          <ul className="flex flex-col">
+            {[
+              { icon: Lock, title: 'Encrypted in transit and at rest', body: 'Traffic runs over TLS, and stored data is encrypted by the infrastructure it sits on.' },
+              { icon: KeyRound, title: 'Access scoped to a role and a branch', body: 'Every request is checked against the signed-in user’s role and their branch. A staff account cannot read another branch’s records.' },
+              { icon: Fingerprint, title: 'Sessions that expire', body: 'Tokens are short-lived and idle sessions sign out, which matters on a shared machine at the counter.' },
+              { icon: Shield, title: 'Deletion means deletion', body: 'Removing an account removes the records scoped to it, rather than hiding them behind a flag.' },
+            ].map(({ icon: Icon, title, body }) => (
+              <li key={title} className="flex gap-4 border-t border-bone-200 py-6 first:border-t-0 first:pt-0">
+                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary-600" strokeWidth={1.75} />
+                <div>
+                  <p className="font-semibold text-gray-900">{title}</p>
+                  <p className="mt-1.5 max-w-[58ch] text-sm leading-relaxed text-gray-600">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/80 text-sm font-semibold mb-6">
-                <Zap className="w-4 h-4 text-amber-400" />
-                Get started in minutes
-              </div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-4">
-                Ready to transform your workshop?
+      {/* ─── CLOSE ─── */}
+      <section id="demo" className="on-ink bg-ink-900 text-white">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-end lg:gap-20">
+            <div>
+              <h2 className="font-display text-3xl font-bold leading-[1.1] tracking-tight sm:text-4xl md:text-[3rem]">
+                See it against your own workshop.
               </h2>
-              <p className="text-gray-400 text-lg max-w-xl mx-auto mb-8">
-                Join hundreds of garage owners who ditched spreadsheets and paper job cards for GaragePulse.
+              <p className="mt-5 max-w-[56ch] text-lg leading-relaxed text-white/70">
+                Bring a real job you ran last week. We will set it up in GaragePulse on the call, in your
+                currency and your tax rules, and you can decide from there.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
-                  to="/login?register=true"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-primary-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-primary-500/40 hover:shadow-2xl hover:scale-105 transition-all duration-300"
-                  id="cta-bottom"
-                >
-                  Get Started — It's Free <ArrowRight className="w-5 h-5" />
-                </Link>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-white/20 text-white/80 font-semibold text-base hover:bg-white/10 transition-all duration-300"
-                >
-                  Sign In Instead
-                </Link>
-              </div>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
+              <Link
+                to="/login?register=true"
+                className="group inline-flex items-center justify-center gap-2 bg-accent-500 px-7 py-4 text-base font-bold text-ink-900 transition-colors hover:bg-accent-400"
+              >
+                Get started
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+              </Link>
+              <a
+                href="mailto:hello@garagepulse.com?subject=GaragePulse%20demo"
+                className="inline-flex items-center justify-center border border-white/25 px-7 py-4 text-base font-semibold text-white transition-colors hover:border-white/50 hover:bg-white/5"
+              >
+                Book a demo
+              </a>
             </div>
           </div>
-        </Reveal>
+        </div>
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer className="border-t border-gray-200 bg-white/60 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
-            {/* Brand */}
+      <footer className="border-t border-bone-200 bg-bone-50">
+        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8">
+          <div className="grid gap-10 md:grid-cols-4">
             <div className="md:col-span-2">
-              <div className="flex items-center gap-2 mb-3">
-                <Logo size={28} />
-                <span className="font-bold text-gray-900">
-                  Garage<span className="text-primary-600">Pulse</span>
-                </span>
+              <div className="flex items-center gap-2.5">
+                <img src="/mainIcon.png" alt="" className="h-7 w-7 object-contain" />
+                <span className="font-display font-bold text-gray-900">GaragePulse</span>
               </div>
-              <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-                The all-in-one workshop management platform built for modern garages across India.
+              <p className="mt-4 max-w-[42ch] text-sm leading-relaxed text-gray-500">
+                Workshop management for independent garages, across branches and borders.
               </p>
-              <div className="flex gap-4 mt-4 text-gray-400">
-                <Phone className="w-4 h-4" />
-                <Mail className="w-4 h-4" />
-                <Globe className="w-4 h-4" />
-              </div>
               <div className="mt-6">
-                <p className="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-3">Get the app</p>
-                <PlayStoreBadge size="sm" />
+                <PlayStoreBadge />
               </div>
             </div>
-
-            {/* Product links */}
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-4">Product</p>
-              <ul className="flex flex-col gap-2.5 text-sm font-medium text-gray-500">
-                <li><a href="#features" className="hover:text-primary-600 transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-primary-600 transition-colors">Pricing</a></li>
-                <li><a href="#testimonials" className="hover:text-primary-600 transition-colors">Reviews</a></li>
-                <li><a href="#why" className="hover:text-primary-600 transition-colors">Why Us</a></li>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Product</p>
+              <ul className="mt-4 flex flex-col gap-2.5 text-sm font-medium text-gray-600">
+                {NAV_LINKS.map(l => (
+                  <li key={l.href}>
+                    <a href={l.href} className="transition-colors hover:text-primary-600">{l.label}</a>
+                  </li>
+                ))}
               </ul>
             </div>
-
-            {/* Company links */}
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-4">Account</p>
-              <ul className="flex flex-col gap-2.5 text-sm font-medium text-gray-500">
-                <li><Link to="/login" className="hover:text-primary-600 transition-colors">Sign In</Link></li>
-                <li><Link to="/login?register=true" className="hover:text-primary-600 transition-colors">Register</Link></li>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Account</p>
+              <ul className="mt-4 flex flex-col gap-2.5 text-sm font-medium text-gray-600">
+                <li><Link to="/login" className="transition-colors hover:text-primary-600">Sign in</Link></li>
+                <li><Link to="/login?register=true" className="transition-colors hover:text-primary-600">Register</Link></li>
+                <li>
+                  <a href="mailto:hello@garagepulse.com" className="transition-colors hover:text-primary-600">Contact</a>
+                </li>
               </ul>
             </div>
           </div>
-
-          <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-gray-400 text-sm">© {new Date().getFullYear()} GaragePulse. All rights reserved.</p>
-            <div className="flex gap-6 text-sm font-medium text-gray-400">
-              <a href="#features" className="hover:text-primary-600 transition-colors">Privacy Policy</a>
-              <a href="#features" className="hover:text-primary-600 transition-colors">Terms of Service</a>
-            </div>
+          {/* The Play Store badge sits directly above this bar; a second line
+              restating it in words was the third mention of the app on one page. */}
+          <div className="mt-12 border-t border-bone-200 pt-6">
+            <p className="text-sm text-gray-500">
+              &copy; {new Date().getFullYear()} GaragePulse. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>

@@ -1,0 +1,437 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-23T17:27:39.003Z",
+  "title": "Design System: GaragePulse",
+  "extensions": {
+    "colorMeta": {
+      "signal-orange": {
+        "role": "primary",
+        "displayName": "Signal Orange",
+        "canonical": "#f97316",
+        "tonalRamp": [
+          "#431407",
+          "#7c2d12",
+          "#9a3412",
+          "#c2410c",
+          "#ea580c",
+          "#f97316",
+          "#fdba74",
+          "#ffedd5"
+        ]
+      },
+      "signal-orange-lit": {
+        "role": "primary",
+        "displayName": "Signal Orange Lit",
+        "canonical": "#fb923c",
+        "tonalRamp": [
+          "#7c2d12",
+          "#9a3412",
+          "#c2410c",
+          "#ea580c",
+          "#f97316",
+          "#fb923c",
+          "#fed7aa",
+          "#fff7ed"
+        ]
+      },
+      "workshop-blue": {
+        "role": "secondary",
+        "displayName": "Workshop Blue",
+        "canonical": "#3b5ff8",
+        "tonalRamp": [
+          "#1e288b",
+          "#1e2ab0",
+          "#1d30da",
+          "#2540ed",
+          "#3b5ff8",
+          "#6083fc",
+          "#93aeff",
+          "#eef2ff"
+        ]
+      },
+      "workshop-blue-deep": {
+        "role": "secondary",
+        "displayName": "Workshop Blue Deep",
+        "canonical": "#2540ed",
+        "tonalRamp": [
+          "#1e288b",
+          "#1e2ab0",
+          "#1d30da",
+          "#2540ed",
+          "#3b5ff8",
+          "#6083fc",
+          "#bfcfff",
+          "#dbe4ff"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0b0f1a",
+        "tonalRamp": [
+          "#05070c",
+          "#0b0f1a",
+          "#141a28",
+          "#1e2637",
+          "#313b50",
+          "#55617a",
+          "#8b95ab",
+          "#c9d0dd"
+        ]
+      },
+      "ink-raised": {
+        "role": "neutral",
+        "displayName": "Ink Raised",
+        "canonical": "#141a28",
+        "tonalRamp": [
+          "#05070c",
+          "#0b0f1a",
+          "#141a28",
+          "#1e2637",
+          "#313b50",
+          "#55617a",
+          "#8b95ab",
+          "#c9d0dd"
+        ]
+      },
+      "bone": {
+        "role": "neutral",
+        "displayName": "Bone",
+        "canonical": "#faf8f4",
+        "tonalRamp": [
+          "#33302a",
+          "#5c574d",
+          "#867f70",
+          "#aca492",
+          "#cfc5b2",
+          "#e4ded1",
+          "#f2eee6",
+          "#faf8f4"
+        ]
+      },
+      "bone-shaded": {
+        "role": "neutral",
+        "displayName": "Bone Shaded",
+        "canonical": "#f2eee6",
+        "tonalRamp": [
+          "#33302a",
+          "#5c574d",
+          "#867f70",
+          "#aca492",
+          "#cfc5b2",
+          "#e4ded1",
+          "#f2eee6",
+          "#faf8f4"
+        ]
+      },
+      "bone-rule": {
+        "role": "neutral",
+        "displayName": "Bone Rule",
+        "canonical": "#e4ded1",
+        "tonalRamp": [
+          "#33302a",
+          "#5c574d",
+          "#867f70",
+          "#aca492",
+          "#cfc5b2",
+          "#e4ded1",
+          "#f2eee6",
+          "#faf8f4"
+        ]
+      },
+      "bone-rule-lit": {
+        "role": "neutral",
+        "displayName": "Bone Rule Lit",
+        "canonical": "#cfc5b2",
+        "tonalRamp": [
+          "#33302a",
+          "#5c574d",
+          "#867f70",
+          "#aca492",
+          "#cfc5b2",
+          "#e4ded1",
+          "#f2eee6",
+          "#faf8f4"
+        ]
+      },
+      "graphite": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "canonical": "#111827",
+        "tonalRamp": [
+          "#111827",
+          "#1f2937",
+          "#374151",
+          "#4b5563",
+          "#6b7280",
+          "#9ca3af",
+          "#e5e7eb",
+          "#f9fafb"
+        ]
+      },
+      "graphite-body": {
+        "role": "neutral",
+        "displayName": "Graphite Body",
+        "canonical": "#4b5563",
+        "tonalRamp": [
+          "#111827",
+          "#1f2937",
+          "#374151",
+          "#4b5563",
+          "#6b7280",
+          "#9ca3af",
+          "#e5e7eb",
+          "#f9fafb"
+        ]
+      },
+      "graphite-muted": {
+        "role": "neutral",
+        "displayName": "Graphite Muted",
+        "canonical": "#6b7280",
+        "tonalRamp": [
+          "#111827",
+          "#1f2937",
+          "#374151",
+          "#4b5563",
+          "#6b7280",
+          "#9ca3af",
+          "#e5e7eb",
+          "#f9fafb"
+        ]
+      },
+      "bone-edge": {
+        "role": "neutral",
+        "displayName": "Bone Edge",
+        "canonical": "#8a8375",
+        "tonalRamp": [
+          "#33302a",
+          "#5c574d",
+          "#867f70",
+          "#aca492",
+          "#cfc5b2",
+          "#e4ded1",
+          "#f2eee6",
+          "#faf8f4"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "One headline per band. Archivo only, left-set, with authored line breaks."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings. Archivo; the switch to Outfit below this level is itself a hierarchy step."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Row and item headings inside a ruled list."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All running copy. Measure held at 52ch in a ruled column, 58ch in a hero subhead."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Panel and footer-column labels only. Never a lead-in above a heading."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-settle",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The only easing curve in the system. Exponential ease-out, used for the hero entrance and every state transition."
+      },
+      {
+        "name": "hero-rise",
+        "value": "hero-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) both",
+        "purpose": "The page's one authored entrance. Animates translateY(20px) and blur(10px) to rest; opacity is deliberately untouched so the headline is legible from the first painted frame. Disabled under prefers-reduced-motion."
+      },
+      {
+        "name": "state-200",
+        "value": "200ms",
+        "purpose": "Colour transitions on buttons, chips and links. No lift, no scale."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Accent Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "The primary action. One per band, never two; Signal Orange marks commitment and nothing else.",
+      "html": "<a class=\"ds-btn-commit\" href=\"#\">Get started<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></a>",
+      "css": ".ds-btn-commit { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #f97316; color: #0b0f1a; font-family: Outfit, system-ui, sans-serif; font-size: 1rem; font-weight: 700; padding: 16px 28px; border: none; border-radius: 0; text-decoration: none; transition: background 200ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-commit svg { width: 16px; height: 16px; transition: transform 200ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-commit:hover { background: #fb923c; } .ds-btn-commit:hover svg { transform: translateX(4px); } .ds-btn-commit:focus-visible { outline: 2px solid #3b5ff8; outline-offset: 2px; }"
+    },
+    {
+      "name": "Solid Button",
+      "kind": "button",
+      "refersTo": "button-solid",
+      "description": "The primary action on a band where orange is already spoken for.",
+      "html": "<a class=\"ds-btn-solid\" href=\"#\">Get started</a>",
+      "css": ".ds-btn-solid { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #111827; color: #faf8f4; font-family: Outfit, system-ui, sans-serif; font-size: 1rem; font-weight: 700; padding: 16px 28px; border: none; border-radius: 0; text-decoration: none; transition: background 200ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-solid:hover { background: #141a28; } .ds-btn-solid:focus-visible { outline: 2px solid #3b5ff8; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The secondary action on a light band. Its border is Bone Edge, not the divider token, so the control clears 3:1 against the ground.",
+      "html": "<div style=\"background:#f2eee6;padding:24px\"><a class=\"ds-btn-outline-bone\" href=\"#\">Book a demo</a></div>",
+      "css": ".ds-btn-outline-bone { display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #1f2937; font-family: Outfit, system-ui, sans-serif; font-size: 1rem; font-weight: 600; padding: 16px 28px; border: 1px solid #8a8375; border-radius: 0; text-decoration: none; transition: border-color 200ms, background 200ms; } .ds-btn-outline-bone:hover { border-color: #0b0f1a; background: #f2eee6; } .ds-btn-outline-bone:focus-visible { outline: 2px solid #3b5ff8; outline-offset: 2px; }"
+    },
+    {
+      "name": "Market Chip",
+      "kind": "chip",
+      "refersTo": "chip-market",
+      "description": "Selection carried by ground colour alone. No border, no checkmark, no radius.",
+      "html": "<div style=\"background:#0b0f1a;padding:24px;display:flex;gap:6px\"><button class=\"ds-chip ds-chip-on\">IN</button><button class=\"ds-chip\">GB</button><button class=\"ds-chip\">AE</button><button class=\"ds-chip\">AU</button></div>",
+      "css": ".ds-chip { font-family: Outfit, system-ui, sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 6px 12px; border: none; border-radius: 0; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); cursor: pointer; transition: background 200ms, color 200ms; } .ds-chip:hover { background: rgba(255,255,255,0.2); color: #ffffff; } .ds-chip-on, .ds-chip-on:hover { background: #f97316; color: #0b0f1a; } .ds-chip:focus-visible { outline: 2px solid #fb923c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ruled Row",
+      "kind": "custom",
+      "refersTo": "ruled-row",
+      "description": "The system's replacement for the icon card. A rule and space instead of a box; the first row in a group drops its rule.",
+      "html": "<div style=\"background:#f2eee6;padding:24px;max-width:420px\"><div class=\"ds-row\"><svg class=\"ds-row-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><path d=\"M8 11h8\"/><path d=\"M8 15h5\"/></svg><div><h3 class=\"ds-row-title\">Job cards</h3><p class=\"ds-row-body\">Open a card at intake, record complaints and odometer, and move it through a status pipeline that keeps its own audit trail.</p></div></div><div class=\"ds-row\"><svg class=\"ds-row-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\"/><path d=\"M14 2v4a2 2 0 0 0 2 2h4\"/></svg><div><h3 class=\"ds-row-title\">Estimations</h3><p class=\"ds-row-body\">Build parts and labour into an estimate and let the customer accept it from a link without creating an account.</p></div></div></div>",
+      "css": ".ds-row { display: flex; gap: 20px; border-top: 1px solid #e4ded1; padding: 28px 0; } .ds-row:first-child { border-top: none; padding-top: 0; } .ds-row-icon { width: 20px; height: 20px; flex-shrink: 0; margin-top: 4px; color: #2540ed; } .ds-row-title { font-family: Outfit, system-ui, sans-serif; font-size: 1rem; font-weight: 600; color: #111827; margin: 0; } .ds-row-body { font-family: Outfit, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.65; color: #4b5563; margin: 8px 0 0; max-width: 52ch; }"
+    },
+    {
+      "name": "Ink Panel",
+      "kind": "card",
+      "refersTo": "ink-panel",
+      "description": "The system's only container. A white/5 fill inside a white/15 hairline, on ink, with zero radius and zero shadow. Never used on bone.",
+      "html": "<div style=\"background:#0b0f1a;padding:24px\"><div class=\"ds-panel\"><p class=\"ds-panel-label\">Invoice preview &middot; India</p><dl class=\"ds-panel-list\"><div class=\"ds-panel-line\"><dt>Parts and labour</dt><dd class=\"ds-tabular\">&#8377;12,500.00</dd></div><div class=\"ds-panel-line\"><dt>GST (18%)</dt><dd class=\"ds-tabular\">&#8377;2,250.00</dd></div><div class=\"ds-panel-line ds-panel-total\"><dt>Total</dt><dd class=\"ds-tabular ds-panel-figure\">&#8377;14,750.00</dd></div></dl></div></div>",
+      "css": ".ds-panel { border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); padding: 20px; border-radius: 0; font-family: Outfit, system-ui, sans-serif; } .ds-panel-label { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: rgba(255,255,255,0.55); margin: 0; } .ds-panel-list { display: flex; flex-direction: column; gap: 10px; margin: 16px 0 0; font-size: 0.875rem; } .ds-panel-line { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; } .ds-panel-line dt { color: rgba(255,255,255,0.6); } .ds-panel-line dd { margin: 0; color: #ffffff; font-weight: 600; } .ds-panel-total { border-top: 1px solid rgba(255,255,255,0.15); padding-top: 12px; margin-top: 4px; } .ds-panel-total dt { color: #ffffff; font-weight: 600; } .ds-panel-figure { font-family: Archivo, Outfit, system-ui, sans-serif; font-size: 1.5rem; font-weight: 700; color: #fb923c; } .ds-tabular { font-variant-numeric: tabular-nums; font-feature-settings: \"tnum\" 1; }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav-bar",
+      "description": "Sticky on bone, transparent-bordered at rest, gaining a rule and a backdrop blur past 8px of scroll.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-brand\" href=\"#\">GaragePulse</a><a class=\"ds-nav-link\" href=\"#\">Product</a><a class=\"ds-nav-link\" href=\"#\">Capabilities</a><a class=\"ds-nav-link\" href=\"#\">Multi-branch</a><span style=\"flex:1\"></span><a class=\"ds-nav-link\" href=\"#\">Sign in</a><a class=\"ds-nav-cta\" href=\"#\">Get started</a></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 28px; height: 64px; padding: 0 20px; background: rgba(250,248,244,0.95); backdrop-filter: blur(8px); border-bottom: 1px solid #e4ded1; font-family: Outfit, system-ui, sans-serif; } .ds-nav-brand { font-family: Archivo, Outfit, system-ui, sans-serif; font-size: 1.125rem; font-weight: 700; letter-spacing: -0.02em; color: #111827; text-decoration: none; } .ds-nav-link { font-size: 0.875rem; font-weight: 500; color: #4b5563; text-decoration: none; transition: color 200ms; } .ds-nav-link:hover { color: #111827; } .ds-nav-cta { background: #111827; color: #faf8f4; font-size: 0.875rem; font-weight: 600; padding: 10px 20px; border-radius: 0; text-decoration: none; transition: background 200ms; } .ds-nav-cta:hover { background: #141a28; } .ds-nav a:focus-visible { outline: 2px solid #3b5ff8; outline-offset: 2px; }"
+    },
+    {
+      "name": "Image Slot",
+      "kind": "custom",
+      "refersTo": "image-slot",
+      "description": "A placeholder that states its own aspect ratio and what belongs in it, rather than a gradient standing in for artwork.",
+      "html": "<div class=\"ds-slot\" role=\"img\" aria-label=\"Placeholder: Job card detail screen\"><span class=\"ds-slot-label\">Image to supply</span><span class=\"ds-slot-what\">Job card detail screen, showing the status pipeline</span></div>",
+      "css": ".ds-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 24px; aspect-ratio: 4 / 3; border: 1px dashed #e4ded1; background: #f2eee6; border-radius: 0; font-family: Outfit, system-ui, sans-serif; } .ds-slot-label { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: #6b7280; } .ds-slot-what { font-size: 0.875rem; font-weight: 500; line-height: 1.4; color: #4b5563; max-width: 22ch; }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "The auth-surface text field. Square, one-pixel Bone Edge border on bone, no shadow at rest and no glow on focus — the border simply turns Workshop Blue.",
+      "html": "<div style=\"background:#faf8f4;padding:24px;max-width:360px\"><label class=\"ds-label\" for=\"ds-email\">Email Address</label><input class=\"ds-input-counter\" id=\"ds-email\" type=\"email\" placeholder=\"you@example.com\" /></div>",
+      "css": ".ds-label { display: block; margin-bottom: 8px; font-family: Outfit, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; color: #111827; } .ds-input-counter { width: 100%; padding: 12px 14px; border: 1px solid #8a8375; border-radius: 0; background: #faf8f4; font-family: Outfit, system-ui, sans-serif; font-size: 15px; color: #111827; outline: none; transition: border-color 150ms; } .ds-input-counter::placeholder { color: #6b7280; } .ds-input-counter:focus { border-color: #3b5ff8; } .ds-input-counter:disabled { background: #f2eee6; color: #6b7280; cursor: not-allowed; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Service Counter",
+    "overview": "A garage's service counter is where the workshop meets the person paying for it. It is a hard, wiped-down surface with paperwork on it, lit brightly enough to read a figure under, and it has no decoration whatsoever - everything on it is either the job or the money. That is the register of this system: flat, ruled, square-cornered, and completely literal about what it is showing you.\n\nThis system governs the entire application - the landing page, the signed-out pages, and every screen behind the login. There is no separate \"product UI\" language any more.\n\nThe system runs on a two-ground alternation. Full-bleed bands of ink carry the arguments and the commitments; bands of bone carry the explanations. Nothing floats between them. There are no cards, no elevation, and no radius on the marketing surface - a section is separated from the next by a change of ground, and an item is separated from its neighbour by a one-pixel rule. Where another system would draw a box, this one draws a line and adds space.\n\nColour is rationed rather than distributed. Signal orange is the only warm tone anywhere and it is spent on commitment: the primary action, the total on an invoice, and exactly one emphasis per band. Workshop blue carries structure and every functional icon. Everything else is ink, bone, and graphite text. The confirmed rejection is the category default this product deliberately walked away from: centred gradient hero, floating browser-frame screenshot, uniform icon-card grid, logo strip, stat counters.",
+    "keyCharacteristics": [
+      "Two grounds, alternating full-bleed: ink and bone. Never a third.",
+      "Zero radius and zero shadow, app-wide, enforced from the theme rather than per component. Depth is ground change.",
+      "Hairline rules instead of card borders; space instead of enclosure.",
+      "Orange for commitment only; blue for structure; nothing else is coloured.",
+      "Industrial grotesque display over a humanist UI sans.",
+      "One authored motion moment on the page, on the first viewport, and no others."
+    ],
+    "rules": [
+      {
+        "name": "The Rationing Rule",
+        "body": "Signal Orange marks commitment and nothing else: an action the visitor can take, a total they will pay, or one deliberate point of emphasis per band. A second orange element in a band means one of them is not commitment and should be blue, white or graphite.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Grounds Rule",
+        "body": "A surface is ink or it is bone. There is no third ground and no tinted panel floating on either one. When two sections need separating and both are light, the second takes Bone Shaded - not a border, not a card, not a shadow.",
+        "section": "colors"
+      },
+      {
+        "name": "The Alpha-Not-Grey Rule",
+        "body": "Secondary text on ink is white at an alpha so it stays in the ground's own hue. Grey text on ink is always wrong, and no alpha below white/55 is legible enough to ship.",
+        "section": "colors"
+      },
+      {
+        "name": "The Edge-Is-Not-A-Rule Rule",
+        "body": "A divider and a control's border are different tokens. Bone Rule is decorative and may sit at any contrast; Bone Edge draws the boundary of something operable and must clear 3:1 against its ground. Styling an input with the divider token produces a border nobody can see.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Voice Rule",
+        "body": "Archivo is display, Outfit is everything a user reads. A paragraph in Archivo or a hero headline in Outfit both break the system; the hand-off between them is doing the work a size ramp would otherwise do alone.",
+        "section": "typography"
+      },
+      {
+        "name": "The Authored Rag Rule",
+        "body": "Display headlines break on explicit line breaks, not on container width. If a headline reflows into a shape nobody chose, the break points are wrong, not the container.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Eyebrow Rule",
+        "body": "Nothing is set above a heading. No kicker, no eyebrow, no section number. The heading carries its own weight. Uppercase labels exist, but only as the label of a panel or a column, never as a lead-in to a heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Rule",
+        "body": "If an element needs to look raised, it is on the wrong ground. Change the band or add a rule; never add a shadow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Token-Not-Sweep Rule",
+        "body": "Radius and depth are set once in index.css, where the whole Tailwind --radius-* scale resolves to 0px and --shadow-* to transparent. A rounded-xl or shadow-lg left in a page is inert. Change the token if the system should change; never chase the utilities file by file.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Library-Surface Rule",
+        "body": "Toasts, chart tooltips and any other library-painted overlay set their surface through inline style objects, which the theme's radius and shadow overrides cannot reach. Style them explicitly against the palette's CSS custom properties. This is the one sanctioned exception to no-inline-styles.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do alternate ink and bone full-bleed bands as the page's structure, and let the ground change carry the section break.",
+      "Do keep radius at 0 on every marketing element.",
+      "Do separate items with a one-pixel rule and generous space, never with a box.",
+      "Do draw operable edges - inputs, selects, outlined buttons - with Bone Edge, and decorative dividers with Bone Rule.",
+      "Do extend Button and Input with a variant or a surface when a new ground needs them, rather than writing a second control.",
+      "Do spend Signal Orange on commitment only - an action, a total, or one emphasis per band.",
+      "Do use Workshop Blue for every functional icon on a light ground, at 1.75 stroke, from lucide-react.",
+      "Do set secondary text on ink as white at an alpha, at white/55 or above.",
+      "Do author display headline line breaks explicitly.",
+      "Do theme the browser's own surfaces - selection, caret, focus ring, tabular figures - from the palette.",
+      "Do keep motion to one authored moment per page, from an already-visible default, with a prefers-reduced-motion guard."
+    ],
+    "donts": [
+      "Don't add a shadow to anything on a marketing surface. Change the ground.",
+      "Don't build a grid of same-size icon-plus-heading-plus-text cards. That is the shape this system exists to replace; use ruled rows.",
+      "Don't set a kicker, eyebrow or section number above a heading.",
+      "Don't reach for bg-white or bg-gray-50 as a ground. The grounds are bone-50 (panels), bone-100 (the page field) and ink-900 (standing dark bands).",
+      "Don't put grey text on an ink band.",
+      "Don't apply gradients to text, or use a gradient as a ground.",
+      "Don't animate every section into view. One entrance, on the first viewport, and nothing after it.",
+      "Don't use a Unicode glyph or emoji where an icon belongs - a standing rule across all three GaragePulse repos.",
+      "Don't put a second Signal Orange action in the same band, or pair an orange headline span with orange icons in one band.",
+      "Don't border an input or an outlined button with Bone Rule. It is a divider token and it disappears against every bone ground.",
+      "Don't assume a library surface inherits the system. Toasts and chart tooltips are invisible to the theme tokens and must be styled explicitly."
+    ]
+  }
+}

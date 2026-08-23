@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { resetPassword } from '../services/apiServices/authService';
 import { Input } from '../components/Form';
 import Button from '../components/Button';
+import AuthLayout from '../components/layout/AuthLayout';
+import { Check } from 'lucide-react';
 
 export default function ResetPassword() {
   const { token } = useParams<{ token: string }>();
@@ -38,77 +40,91 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-t-2xl p-8 text-white text-center shadow-xl">
-          <p className="text-primary-200 text-xs uppercase tracking-widest mb-1">GaragePulse</p>
-          <h1 className="text-2xl font-bold">Reset Your Password</h1>
-        </div>
+    <AuthLayout>
+      {success ? (
+        <>
+          <div className="flex items-center gap-3">
+            <Check className="h-7 w-7 shrink-0 text-primary-600" strokeWidth={2.5} />
+            <h2 className="font-display text-3xl font-extrabold leading-[1.1] tracking-[-0.03em] text-gray-900 sm:text-4xl">
+              Password reset
+            </h2>
+          </div>
+          <p className="mt-6 border-t border-bone-200 pt-6 leading-relaxed text-gray-600">
+            You can now sign in with your new password.
+          </p>
+          <Link
+            to="/login"
+            className="mt-8 inline-flex w-full items-center justify-center border border-accent-500 bg-accent-500 px-7 py-4 text-base font-bold text-ink-900 transition-colors hover:border-accent-400 hover:bg-accent-400"
+          >
+            Go to Sign In
+          </Link>
+        </>
+      ) : (
+        <>
+          <h2 className="font-display text-3xl font-extrabold leading-[1.1] tracking-[-0.03em] text-gray-900 sm:text-4xl">
+            Set a new password
+          </h2>
+          <p className="mt-3 text-gray-600">
+            Choose something at least six characters long.
+          </p>
 
-        <div className="bg-white rounded-b-2xl shadow-sm border border-slate-100 p-8">
-          {success ? (
-            <div className="text-center space-y-5">
-              <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
-                <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-bold text-slate-800 mb-1">Password Reset</p>
-                <p className="text-slate-500 text-sm">You can now log in with your new password.</p>
-              </div>
-              <Link
-                to="/login"
-                className="inline-flex w-full items-center justify-center py-3.5 rounded-2xl font-bold text-white text-base shadow-lg shadow-primary-200 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 transition-all"
-              >
-                Go to Sign In
-              </Link>
+          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+            <div>
+              <label htmlFor="new-password" className="mb-2 block text-sm font-semibold text-gray-900">
+                New Password
+              </label>
+              <Input
+                id="new-password"
+                type="password"
+                value={password}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                required
+                minLength={6}
+                error={!!error}
+              />
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">New Password</label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  className="py-3"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Confirm New Password</label>
-                <Input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  className="py-3"
-                />
-              </div>
+            <div>
+              <label htmlFor="confirm-password" className="mb-2 block text-sm font-semibold text-gray-900">
+                Confirm New Password
+              </label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+                placeholder="Type it again"
+                required
+                minLength={6}
+                error={!!error}
+              />
+            </div>
 
-              {error && <p className="text-danger text-sm">{error}</p>}
+            {error && (
+              <p role="alert" className="border-l border-danger pl-3 text-sm text-danger">
+                {error}
+              </p>
+            )}
 
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full py-3.5 text-base shadow-lg shadow-primary-500/30 mt-2"
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  'Reset Password'
-                )}
-              </Button>
-            </form>
-          )}
-        </div>
+            <Button type="submit" variant="accent" className="mt-1 w-full py-4 text-base" disabled={loading}>
+              {loading ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-ink-900/25 border-t-ink-900" />
+              ) : (
+                'Reset Password'
+              )}
+            </Button>
+          </form>
+        </>
+      )}
+
+      <div className="mt-10 border-t border-bone-200 pt-6">
+        <Link
+          to="/login"
+          className="text-sm font-bold text-primary-600 transition-colors hover:text-primary-700 hover:underline"
+        >
+          Back to Sign In
+        </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
