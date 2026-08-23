@@ -7,45 +7,42 @@ interface StatCardProps {
   colorClass?: 'blue' | 'green' | 'purple' | 'orange' | 'teal' | 'red';
 }
 
+/**
+ * A single figure with its label.
+ *
+ * The tile is flat and square, and the accent lives on the icon alone — the
+ * old 4px coloured bar down the left edge is exactly the "coloured border-left
+ * above 1px" the craft floor refuses, and six of them in a row read as a
+ * toolbar rather than as data.
+ *
+ * `colorClass` is kept because every call site passes it and the colours carry
+ * real meaning (red for unpaid, green for revenue). It now tints the icon
+ * instead of drawing a bar.
+ */
 export default function StatCard({ title, value, icon: Icon, colorClass = 'blue' }: StatCardProps) {
-  const colorMap: Record<string, { line: string; iconBg: string }> = {
-    blue: {
-      line: 'bg-primary-500',
-      iconBg: 'bg-primary-50 text-primary-500'
-    },
-    green: {
-      line: 'bg-success',
-      iconBg: 'bg-success-light text-success'
-    },
-    purple: {
-      line: 'bg-purple-600',
-      iconBg: 'bg-purple-100 text-purple-600'
-    },
-    orange: {
-      line: 'bg-accent-500',
-      iconBg: 'bg-accent-50 text-accent-500'
-    },
-    teal: {
-      line: 'bg-teal-600',
-      iconBg: 'bg-teal-100 text-teal-600'
-    },
-    red: {
-      line: 'bg-danger',
-      iconBg: 'bg-danger-light text-danger'
-    }
+  const colorMap: Record<string, string> = {
+    blue: 'text-primary-600',
+    green: 'text-success-dark',
+    purple: 'text-purple-600',
+    orange: 'text-accent-600',
+    teal: 'text-teal-600',
+    red: 'text-danger',
   };
 
-  const colors = colorMap[colorClass] || colorMap.blue;
+  const iconColor = colorMap[colorClass] || colorMap.blue;
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-gray-100/60 flex items-start gap-4 relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-premium group">
-      <div className={`absolute top-0 left-0 w-1 h-full rounded-l ${colors.line} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${colors.iconBg} shadow-inner`}>
+    <div className="flex flex-col gap-3 border border-bone-200 bg-bone-50 p-5">
+      <div className={`flex items-center gap-2 ${iconColor}`}>
         <Icon />
       </div>
-      <div>
-        <h3 className="text-[1.75rem] font-extrabold leading-[1.2]">{value}</h3>
-        <p className="text-[13px] text-gray-500 font-medium mt-0.5">{title}</p>
+      {/* min-w-0 + break-words: a long money figure (an unpaid total in paise,
+          say) used to overflow the tile and get clipped mid-number. */}
+      <div className="min-w-0">
+        <h3 className="tabular font-display text-xl font-extrabold leading-tight break-words text-gray-900">
+          {value}
+        </h3>
+        <p className="mt-1 text-[13px] font-medium leading-snug text-gray-600">{title}</p>
       </div>
     </div>
   );

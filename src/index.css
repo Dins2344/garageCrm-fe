@@ -1,4 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+/* Archivo carries display type on marketing surfaces: an industrial grotesque
+   with tabular figures, wider and squarer than Outfit, so headlines read as
+   signage rather than as oversized UI text. Outfit stays the interface voice. */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
@@ -69,20 +73,72 @@
 
   /* Fonts & specific layouts */
   --font-sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-display: 'Archivo', 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+  /* Ink — the standing dark ground: the app sidebar, the auth panel, and the
+     landing page full-bleed bands. Darker and bluer than gray-900 so orange and
+     white sit at full strength on it. Pair with the on-ink class so selection
+     and focus rings invert. */
+  --color-ink-900: #0b0f1a;
+  --color-ink-800: #141a28;
+  --color-ink-700: #1e2637;
+
+  /* Bone — the app's light ground, on every page. Warm off-white rather than
+     gray-50, which is blue-tinted: against ink, a cool light surface reads as an
+     unlit screen and a warm one reads as paper under workshop light.
+     bone-100 is the page field, bone-50 is a panel/card/header/modal. */
+  --color-bone-50: #faf8f4;
+  --color-bone-100: #f2eee6;
+  --color-bone-200: #e4ded1;
+  --color-bone-300: #cfc5b2;
+  /* bone-400 is the *interactive* boundary — input and outlined-button borders.
+     WCAG asks 3:1 for a control's edge, and bone-200 gives about 1.2:1 on
+     bone-50, which is a border you cannot see. Decorative dividers stay on
+     bone-200; anything a user has to find and click uses this. */
+  --color-bone-400: #8a8375;
   
   /* Custom spacing utilities available in v4 */
   --spacing-sidebar: 260px;
   --spacing-sidebar-collapsed: 72px;
   --spacing-header: 64px;
 
-  /* Radius */
-  --radius-xl: 12px;
-  --radius-2xl: 16px;
-  
-  /* Premium Shadows */
-  --shadow-premium: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  --shadow-premium-hover: 0 8px 30px -4px rgba(0, 0, 0, 0.1);
-  --shadow-premium-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.03);
+  /* ── Radius: zero, everywhere ──────────────────────────────────
+     The Service Counter system (DESIGN.md) is square-cornered, and the app now
+     runs on it end to end. Overriding Tailwind's whole radius scale here means
+     the ~165 `rounded-*` utilities already written across the app go square
+     without touching 31 files — and re-rounding the app is one edit, not a
+     revert. `rounded-full` is deliberately untouched: it is load-bearing for
+     avatars, spinners, status dots and progress tracks, which are circles by
+     function rather than by style. */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  /* ── Depth: flat ───────────────────────────────────────────────
+     Depth is ground change and a one-pixel rule, never a shadow. Tailwind's
+     default shadow scale is neutralised for the same reason as the radius
+     scale: the utilities are already written into the pages, and this is the
+     one place to change what they mean. The two `--shadow-premium-*` tokens
+     stay declared because components reference them by name; they now resolve
+     to a hairline instead of a blur. */
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
+  --inset-shadow-2xs: 0 0 #0000;
+  --inset-shadow-xs: 0 0 #0000;
+  --inset-shadow-sm: 0 0 #0000;
+  --shadow-premium: 0 0 #0000;
+  --shadow-premium-hover: 0 0 #0000;
+  --shadow-premium-inner: 0 0 #0000;
 
   /* Premium Animations */
   --animate-fade-in-up: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -107,8 +163,9 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: linear-gradient(135deg, #fdfcfb 0%, #f1f3f6 100%);
-  background-attachment: fixed;
+  /* Bone, flat. The old diagonal gradient was a third ground the system does
+     not have, and it sat under every page. */
+  background: var(--color-bone-100);
   color: var(--color-gray-800);
   min-height: 100vh;
   margin: 0;
@@ -132,4 +189,81 @@ body {
 /* Ensure all clickable elements have a pointer cursor */
 a, button, [role="button"], select, label, input[type="checkbox"], input[type="radio"], input[type="submit"], input[type="button"], input[type="reset"] {
   cursor: pointer;
+}
+
+/* ── Browser surfaces ──────────────────────────────────────────
+   Selection, caret, focus ring and tabular figures ship with browser
+   defaults that belong to no design system. Theming them from the palette
+   is what separates a built page from an assembled one. */
+::selection {
+  background-color: var(--color-primary-500);
+  color: #ffffff;
+}
+/* On ink bands the blue selection disappears into the ground, so invert it. */
+.on-ink ::selection {
+  background-color: var(--color-accent-500);
+  color: var(--color-ink-900);
+}
+
+input, textarea, select {
+  caret-color: var(--color-primary-600);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+.on-ink :focus-visible {
+  outline-color: var(--color-accent-400);
+}
+
+/* Figures that sit in columns must not wobble between values. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ── Marketing surface ──────────────────────────────────────────
+   Two things the landing page needs that Tailwind cannot express as a
+   literal utility class, kept here rather than as inline style attributes. */
+
+/* The ink bands' surveyor grid. A repeating 64px rule at 7%, drawn from two
+   linear-gradients because a background-image is not a class-string value. */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, #ffffff 1px, transparent 1px),
+    linear-gradient(to bottom, #ffffff 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.07;
+}
+
+/* The page's one authored entrance, on the first viewport only.
+   Opacity is deliberately untouched: the headline is legible from the first
+   painted frame, and the motion is a rack-focus — it settles out of a blur and
+   up into place — so a reader who never sees the animation never sees a gap. */
+@keyframes hero-rise {
+  from {
+    transform: translateY(20px);
+    filter: blur(10px);
+  }
+  to {
+    transform: none;
+    filter: blur(0);
+  }
+}
+.hero-rise {
+  animation: hero-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.hero-rise-delayed {
+  animation: hero-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 140ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-rise-delayed {
+    animation: none;
+  }
 }

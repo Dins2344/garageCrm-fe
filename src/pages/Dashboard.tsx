@@ -147,7 +147,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
         <StatCard title="Active Job Cards" value={stats?.overview?.activeJobCards || 0} icon={HiOutlineClipboardList} colorClass="blue" />
         <StatCard title="Today's Revenue" value={formatCurrency(stats?.revenue?.today)} icon={HiOutlineReceiptTax} colorClass="green" />
         <StatCard title="Monthly Revenue" value={formatCurrency(stats?.revenue?.month)} icon={HiOutlineReceiptTax} colorClass="purple" />
@@ -205,25 +205,25 @@ export default function Dashboard() {
         <Card className="animate-[slideUp_0.4s_ease_both] delay-150">
           <CardHeader title="Quick Overview" />
           <CardBody className="flex flex-col gap-4">
-            <div className="flex items-center justify-between p-3 px-4 bg-gray-50 rounded-lg transition-transform duration-150 hover:bg-gray-100 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
                 <HiOutlineUsers className="text-xl text-primary-500" /> Total Customers
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.totalCustomers || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 px-4 bg-gray-50 rounded-lg transition-transform duration-150 hover:bg-gray-100 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
                 <HiOutlineTruck className="text-xl text-primary-500" /> Total Vehicles
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.totalVehicles || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 px-4 bg-gray-50 rounded-lg transition-transform duration-150 hover:bg-gray-100 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
                 <HiOutlineClipboardList className="text-xl text-primary-500" /> Today's New Jobs
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.todayJobCards || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 px-4 bg-gray-50 rounded-lg transition-transform duration-150 hover:bg-gray-100 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
                 <HiOutlineClock className="text-xl text-primary-500" /> In Progress
               </div>
@@ -316,7 +316,7 @@ export default function Dashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b border-gray-100 uppercase text-[11px] font-bold text-gray-400 tracking-wider">
+                    <tr className="border-b border-bone-200 uppercase text-[11px] font-bold text-gray-400 tracking-wider">
                       <th className="px-6 py-4">Rank</th>
                       <th className="px-6 py-4">Staff Member</th>
                       <th className="px-6 py-4">Total Jobs</th>
@@ -325,10 +325,10 @@ export default function Dashboard() {
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {stats.staffAchievement.map((achievement, index) => (
-                      <tr key={achievement._id} className="hover:bg-gray-50/80 transition-colors group">
+                      <tr key={achievement._id} className="hover:bg-bone-100/80 transition-colors group">
                         <td className="px-6 py-4">
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm ${index === 0 ? 'bg-yellow-100 text-yellow-700 shadow-sm border border-yellow-200' :
-                              index === 1 ? 'bg-gray-100 text-gray-600' :
+                              index === 1 ? 'bg-bone-200 text-gray-600' :
                                 index === 2 ? 'bg-orange-50 text-orange-700' :
                                   'text-gray-400'
                             }`}>
@@ -356,7 +356,7 @@ export default function Dashboard() {
                             <span className="text-[15px] font-bold text-gray-900 font-mono">
                               {formatCurrency(achievement.totalLabor)}
                             </span>
-                            <div className="w-20 h-1.5 bg-gray-100 rounded-full mt-2 overflow-hidden">
+                            <div className="w-20 h-1.5 bg-bone-200 rounded-full mt-2 overflow-hidden">
                               <div
                                 className="h-full bg-primary-500 rounded-full shadow-[0_0_8px_rgba(59,95,248,0.3)] transition-all duration-1000"
                                 style={{ width: `${Math.min(100, (achievement.totalLabor / (stats.staffAchievement[0]?.totalLabor || 1)) * 100)}%` }}
@@ -380,7 +380,7 @@ export default function Dashboard() {
 
         {/* Period selector toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+          <div className="flex items-center gap-1 bg-bone-50 border border-bone-200 rounded-xl p-1 shadow-sm">
             {PRESETS.map(p => (
               <button
                 key={p.key}
@@ -391,8 +391,8 @@ export default function Dashboard() {
                 }}
                 className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                   period === p.key
-                    ? 'bg-primary-600 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                    ? 'bg-ink-900 text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-bone-200'
                 }`}
               >
                 {p.label}
@@ -402,15 +402,15 @@ export default function Dashboard() {
 
           {/* Group by selector (only for non-custom when day count is ≥ 30) */}
           {period !== 'custom' && (
-            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+            <div className="flex items-center gap-1 bg-bone-50 border border-bone-200 rounded-xl p-1 shadow-sm">
               {(['day', 'week', 'month'] as GroupBy[]).map(g => (
                 <button
                   key={g}
                   onClick={() => { setGroupBy(g); fetchCharts(period, g, customRange); }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
                     groupBy === g
-                      ? 'bg-gray-800 text-white shadow-sm'
-                      : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'
+                      ? 'bg-ink-900 text-white'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-bone-200'
                   }`}
                 >
                   {g}
@@ -427,7 +427,7 @@ export default function Dashboard() {
                 value={customRange.start}
                 max={customRange.end || new Date().toISOString().split('T')[0]}
                 onChange={e => setCustomRange(r => ({ ...r, start: e.target.value }))}
-                className="px-3 py-1.5 text-sm border border-gray-200 rounded-xl bg-white text-gray-700 outline-none focus:border-primary-400 transition-colors"
+                className="px-3 py-1.5 text-sm border border-bone-200 rounded-xl bg-bone-50 text-gray-700 outline-none focus:border-primary-400 transition-colors"
               />
               <span className="text-gray-400 text-sm font-medium">to</span>
               <input
@@ -436,7 +436,7 @@ export default function Dashboard() {
                 min={customRange.start}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={e => setCustomRange(r => ({ ...r, end: e.target.value }))}
-                className="px-3 py-1.5 text-sm border border-gray-200 rounded-xl bg-white text-gray-700 outline-none focus:border-primary-400 transition-colors"
+                className="px-3 py-1.5 text-sm border border-bone-200 rounded-xl bg-bone-50 text-gray-700 outline-none focus:border-primary-400 transition-colors"
               />
               <button
                 onClick={() => fetchCharts('custom', groupBy, customRange)}
@@ -483,9 +483,10 @@ export default function Dashboard() {
                       width={52}
                     />
                     <Tooltip
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', fontSize: 13 }}
+                      contentStyle={{ borderRadius: 0, background: 'var(--color-ink-900)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: 'none', color: '#fff', fontFamily: 'var(--font-sans)', fontSize: 13 }}
+                      itemStyle={{ color: '#fff' }}
+                      labelStyle={{ fontWeight: 700, color: '#fff', marginBottom: 2 }}
                       formatter={(v) => [formatCurrency(Number(v)), 'Revenue']}
-                      labelStyle={{ fontWeight: 700, color: '#111827', marginBottom: 2 }}
                     />
                     <Area
                       type="monotone" dataKey="revenue"
@@ -508,7 +509,7 @@ export default function Dashboard() {
                 <Loader />
               ) : (() => {
                 const STATUS_COLORS: Record<string, string> = { new: '#3b5ff8', estimation_sent: '#f59e0b', approved: '#8b5cf6', in_progress: '#06b6d4', ready_for_pickup: '#10b981', delivered: '#6b7280', cancelled: '#ef4444' };
-                const STATUS_LABELS: Record<string, string> = { new: 'New', estimation_sent: 'Est. Sent', approved: 'Approved', in_progress: 'In Progress', ready_for_pickup: 'Ready', delivered: 'Delivered', cancelled: 'Cancelled' };
+                const STATUS_LABELS: Record<string, string> = { new: 'New', estimation_sent: 'Est. Sent', approved: 'Approved', in_progress: 'In Progress', quality_check: 'Quality Check', ready_for_pickup: 'Ready', delivered: 'Delivered', cancelled: 'Cancelled' };
                 const breakdown = chartData?.jobStatusBreakdown || {};
                 const pieData = Object.entries(breakdown)
                   .map(([s, c]) => ({ name: STATUS_LABELS[s] || s, value: c, color: STATUS_COLORS[s] || '#9ca3af' }))
@@ -525,7 +526,8 @@ export default function Dashboard() {
                           {pieData.map((e, i) => <Cell key={i} fill={e.color} />)}
                         </Pie>
                         <Tooltip
-                          contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', fontSize: 13 }}
+                          contentStyle={{ borderRadius: 0, background: 'var(--color-ink-900)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: 'none', color: '#fff', fontFamily: 'var(--font-sans)', fontSize: 13 }}
+                          itemStyle={{ color: '#fff' }}
                           formatter={(v, n) => [`${v} (${Math.round(Number(v)/total*100)}%)`, n]}
                         />
                       </PieChart>
@@ -560,12 +562,14 @@ export default function Dashboard() {
                     <YAxis yAxisId="jobs" orientation="left" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={28} label={{ value: 'Jobs', angle: -90, position: 'insideLeft', offset: 10, style: { fontSize: 10, fill: '#9ca3af' } }} />
                     <YAxis yAxisId="labour" orientation="right" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={52} tickFormatter={axisMoney} />
                     <Tooltip
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', fontSize: 13 }}
+                      contentStyle={{ borderRadius: 0, background: 'var(--color-ink-900)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: 'none', color: '#fff', fontFamily: 'var(--font-sans)', fontSize: 13 }}
+                      itemStyle={{ color: '#fff' }}
+                      labelStyle={{ fontWeight: 700, color: '#fff', marginBottom: 2 }}
                       formatter={(v, name) => name === 'jobs' ? [`${v} jobs`, 'Job Count'] : [formatCurrency(Number(v)), 'Labour Value']}
                     />
                     <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} formatter={v => v === 'jobs' ? 'Job Count' : 'Labour Value'} />
-                    <Bar yAxisId="jobs" dataKey="jobs" fill="#3b5ff8" radius={[6, 6, 0, 0]} maxBarSize={36} />
-                    <Bar yAxisId="labour" dataKey="labour" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                    <Bar yAxisId="jobs" dataKey="jobs" fill="#3b5ff8" radius={[0, 0, 0, 0]} maxBarSize={36} />
+                    <Bar yAxisId="labour" dataKey="labour" fill="#10b981" radius={[0, 0, 0, 0]} maxBarSize={36} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardBody>

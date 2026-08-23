@@ -28,9 +28,10 @@ export const ACTIVE_GARAGE_KEY = 'garagepulse_active_garage';
 export const PLAY_STORE_URL =
   'https://play.google.com/store/apps/details?id=com.dctechs.garagepulse';
 
-/** Decorative carbon-fibre texture used behind dark panels. */
-export const CARBON_FIBRE_TEXTURE_URL =
-  'https://www.transparenttextures.com/patterns/carbon-fibre.png';
+// CARBON_FIBRE_TEXTURE_URL was removed with the auth-page redesign. Ink bands
+// now carry the `.hero-grid` surveyor grid from index.css, which is the one
+// repeating geometry the design system has — and it costs no third-party
+// request. Don't reintroduce a remote decorative texture.
 
 // ── Pagination ────────────────────────────────────────────────
 export const DEFAULT_PAGE_SIZE = 10;

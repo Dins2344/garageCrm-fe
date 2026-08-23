@@ -44,8 +44,8 @@ interface SectionCardProps {
 
 function SectionCard({ icon: Icon, title, children, action, id }: SectionCardProps) {
   return (
-    <div id={id} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div id={id} className="bg-bone-50 rounded-2xl border border-bone-200/80 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-bone-200">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
             <Icon className="w-5 h-5 text-primary-600" strokeWidth={1.5} />
@@ -103,7 +103,7 @@ function PasswordInput({ value, onChange, placeholder, ...props }: InputHTMLAttr
 }
 
 function RoleBadge({ role }: { role: string }) {
-  const cfg = ROLE_CONFIG[role] || { label: role, classes: 'bg-gray-100 text-gray-600' };
+  const cfg = ROLE_CONFIG[role] || { label: role, classes: 'bg-bone-200 text-gray-600' };
   return (
     <span
       className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${cfg.classes}`}
@@ -301,7 +301,7 @@ function DeleteBranchModal({ branch, otherBranches, onClose, onConfirm }: Delete
                 ({staff.map(s => s.name).join(', ')}). What should happen to them?
               </p>
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center gap-2.5 p-3 rounded-xl border border-bone-200 cursor-pointer hover:bg-bone-100">
                   <input
                     type="radio"
                     checked={staffChoice === 'reassign'}
@@ -318,7 +318,7 @@ function DeleteBranchModal({ branch, otherBranches, onClose, onConfirm }: Delete
                     </Select>
                   </div>
                 )}
-                <label className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center gap-2.5 p-3 rounded-xl border border-bone-200 cursor-pointer hover:bg-bone-100">
                   <input
                     type="radio"
                     checked={staffChoice === 'delete'}
@@ -597,7 +597,7 @@ export default function Settings() {
     });
   };
 
-  const roleCfg = ROLE_CONFIG[user?.role || ''] || { label: user?.role, classes: 'bg-gray-100 text-gray-600' };
+  const roleCfg = ROLE_CONFIG[user?.role || ''] || { label: user?.role, classes: 'bg-bone-200 text-gray-600' };
   const garageAddress = [garage?.address?.street, garage?.address?.city, garage?.address?.state, garage?.address?.pincode].filter(Boolean).join(', ');
 
   // ── Derived: filtered staff list ──
@@ -620,29 +620,29 @@ export default function Settings() {
   return (
     <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto pb-12">
 
-      {/* ── PROFILE HERO BANNER ── */}
-      <div className="relative rounded-2xl bg-gradient-to-br from-primary-600 to-purple-700 p-6 overflow-hidden shadow-xl shadow-primary-500/20">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-36 h-36 bg-purple-400/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+      {/* ── PROFILE HERO BANNER ──
+          An ink band, matching the sidebar and the auth panel. Was a violet
+          gradient with two blurred colour blobs; the system has two grounds and
+          no gradients, and the blobs were decoration standing in for depth. */}
+      <div className="on-ink relative overflow-hidden bg-ink-900 p-6">
+        <div aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0" />
 
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           {/* Avatar */}
-          <div className="w-16 h-16 rounded-2xl bg-white/20 border-2 border-white/30 flex items-center justify-center text-white font-extrabold text-2xl shrink-0">
+          <div className="w-16 h-16 border border-white/25 bg-white/10 flex items-center justify-center text-white font-extrabold text-2xl shrink-0">
             {user?.name?.charAt(0)?.toUpperCase() || '?'}
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-extrabold text-white truncate">{user?.name}</h2>
-            <p className="text-white/70 text-sm mt-0.5 truncate">{user?.email}</p>
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              <span
-                className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white border border-white/25"
-              >
+            <h2 className="font-display text-xl font-bold tracking-tight text-white truncate">{user?.name}</h2>
+            <p className="text-white/60 text-sm mt-0.5 truncate">{user?.email}</p>
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
+              <span className="px-2.5 py-1 text-xs font-bold uppercase tracking-wide bg-white/10 text-white border border-white/20">
                 {roleCfg.label}
               </span>
               {garage?.name && (
-                <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white text-primary-700 border border-primary-100">
+                <span className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide bg-accent-500 text-ink-900 border border-accent-500">
                   <Building2 className="w-3 h-3" />
                   {garage.name}
                 </span>
@@ -728,7 +728,7 @@ export default function Settings() {
               </FormField>
             </div>
 
-            <div className="pt-2 border-t border-gray-100">
+            <div className="pt-2 border-t border-bone-200">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Address</p>
               <div className="flex flex-col gap-3">
                 <FormField label="Street / Area">
@@ -792,7 +792,7 @@ export default function Settings() {
                 <div
                   key={g._id}
                   className={`flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-colors ${
-                    isActive ? 'border-primary-200 bg-primary-50/60' : 'border-gray-100 hover:bg-gray-50'
+                    isActive ? 'border-primary-200 bg-primary-50/60' : 'border-bone-200 hover:bg-bone-100'
                   }`}
                 >
                   <button
@@ -803,7 +803,7 @@ export default function Settings() {
                     {isActive ? (
                       <CheckCircle2 className="w-5 h-5 text-primary-600 shrink-0" />
                     ) : (
-                      <div className="w-5 h-5 rounded-full border-2 border-gray-300 shrink-0" />
+                      <div className="w-5 h-5 rounded-full border-2 border-bone-400 shrink-0" />
                     )}
                     <div className="min-w-0">
                       <p className={`text-sm font-bold truncate ${isActive ? 'text-primary-700' : 'text-gray-800'}`}>{g.name}</p>
@@ -861,7 +861,7 @@ export default function Settings() {
                   value={staffSearch}
                   onChange={e => setStaffSearch(e.target.value)}
                   placeholder="Search by name, email or phone..."
-                  className="w-full pl-9 pr-8 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-primary-400 focus:bg-white focus:shadow-[0_0_0_3px_rgba(59,95,248,0.08)] transition-all"
+                  className="w-full pl-9 pr-8 py-2 text-sm bg-bone-100 border border-bone-200 rounded-xl outline-none focus:border-primary-400 focus:bg-bone-50 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.08)] transition-all"
                 />
                 {staffSearch && (
                   <button
@@ -880,7 +880,7 @@ export default function Settings() {
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
                       staffRoleFilter === role
                         ? 'bg-primary-600 text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        : 'bg-bone-200 text-gray-500 hover:bg-gray-200'
                     }`}
                   >
                     {role === 'all' ? 'All' : ROLE_CONFIG[role]?.label || role}
@@ -917,11 +917,11 @@ export default function Settings() {
               filteredStaff.map(u => {
                 const isSelf = u._id === user?._id;
                 const isOwner = u.role === 'owner';
-                const cfg = ROLE_CONFIG[u.role] || { label: u.role, classes: 'bg-gray-100 text-gray-600' };
+                const cfg = ROLE_CONFIG[u.role] || { label: u.role, classes: 'bg-bone-200 text-gray-600' };
                 return (
                   <div
                     key={u._id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:shadow-sm transition-all duration-200"
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-bone-200 bg-bone-100/50 hover:bg-bone-50 hover:shadow-sm transition-all duration-200"
                   >
                     {/* Avatar */}
                     <div

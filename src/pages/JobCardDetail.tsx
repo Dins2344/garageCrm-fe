@@ -305,7 +305,7 @@ export default function JobCardDetail() {
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-bone-50 p-6 rounded-2xl shadow-sm border border-bone-200">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/jobcards')}>
             <HiOutlineArrowLeft />
@@ -347,7 +347,7 @@ export default function JobCardDetail() {
       </div>
 
       {/* Status Progress */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+      <div className="bg-bone-50 p-6 rounded-2xl shadow-sm border border-bone-200 overflow-x-auto">
         <div className="min-w-[600px] flex justify-between relative">
           {/* Connecting Line */}
           <div className="absolute top-5 left-8 right-8 h-[2px] bg-gray-200 -z-10" />
@@ -360,7 +360,7 @@ export default function JobCardDetail() {
               ? 'bg-primary-500 text-white shadow-md ring-4 ring-primary-50'
               : isCompleted
                 ? 'bg-green-500 text-white'
-                : 'bg-gray-100 text-gray-400 border-2 border-white';
+                : 'bg-bone-200 text-gray-400 border-2 border-white';
             const labelClass = isCurrent ? 'text-primary-600' : isCompleted ? 'text-green-600' : 'text-gray-400';
             return (
               <div key={status} className="flex flex-col items-center flex-1 z-10 relative">
@@ -427,7 +427,7 @@ export default function JobCardDetail() {
                   value={assignedMechanic?._id || ''}
                   onChange={(e) => assignMechanic(e.target.value)}
                   disabled={!!updatingMechanic}
-                  className="h-8 py-0 px-2 text-sm bg-gray-50/50 border-gray-200"
+                  className="h-8 py-0 px-2 text-sm bg-bone-100/50 border-bone-200"
                 >
                   <option value="">Unassigned</option>
                   {mechanics.map(m => (
@@ -448,7 +448,7 @@ export default function JobCardDetail() {
             )}
           </div>
           {jobCard.internalNotes && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="mt-4 pt-4 border-t border-bone-200">
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Internal Notes</span>
               <p className="text-sm text-gray-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 italic">{jobCard.internalNotes}</p>
             </div>
@@ -457,12 +457,12 @@ export default function JobCardDetail() {
 
         {/* Service History Timeline */}
         <Card title="Timeline" className="lg:col-span-1">
-          <div className="flex flex-col gap-6 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-gray-100 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
+          <div className="flex flex-col gap-6 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-bone-200 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
             {(jobCard.statusHistory || []).slice().reverse().map((history, index) => {
               const changedBy = typeof history.changedBy === 'string' ? null : history.changedBy;
               return (
               <div key={index} className="flex gap-4 relative z-10">
-                <div className={`w-9 h-9 rounded-full bg-white border-2 flex items-center justify-center shrink-0 shadow-sm ${index === 0 ? 'border-primary-500 ring-4 ring-primary-50' : 'border-gray-200'
+                <div className={`w-9 h-9 rounded-full bg-bone-50 border-2 flex items-center justify-center shrink-0 shadow-sm ${index === 0 ? 'border-primary-500 ring-4 ring-primary-50' : 'border-bone-200'
                   }`}>
                   <div className={`w-2 h-2 rounded-full ${index === 0 ? 'bg-primary-500 animate-pulse' : 'bg-gray-300'}`} />
                 </div>
@@ -477,7 +477,7 @@ export default function JobCardDetail() {
                     {new Date(history.changedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {changedBy?.name || 'Staff'}
                   </div>
                   {history.notes && (
-                    <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded-lg">
+                    <div className="text-xs text-gray-600 bg-bone-100 px-2 py-1.5 rounded-lg">
                       {history.notes}
                     </div>
                   )}
@@ -495,7 +495,7 @@ export default function JobCardDetail() {
           ) : (
             <div className="flex flex-col gap-3">
               {jobCard.complaints?.map((c, i) => (
-                <div key={i} className="flex gap-3 items-start bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div key={i} className="flex gap-3 items-start bg-bone-100 p-3 rounded-lg border border-bone-200">
                   <Badge intent={c.priority === 'urgent' ? 'cancelled' : c.priority === 'high' ? 'estimation_sent' : 'new'}>
                     {c.priority}
                   </Badge>
@@ -602,8 +602,8 @@ export default function JobCardDetail() {
 
                 {/* Totals Box */}
                 <div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 lg:sticky lg:top-6">
-                    <h4 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-6 border-b border-gray-200 pb-2">Summary</h4>
+                  <div className="bg-bone-100 border border-bone-200 rounded-xl p-6 lg:sticky lg:top-6">
+                    <h4 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-6 border-b border-bone-200 pb-2">Summary</h4>
 
                     <div className="flex flex-col gap-4">
                       <div className="flex justify-between items-center text-gray-600">
@@ -661,7 +661,7 @@ export default function JobCardDetail() {
               <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Parts</h4>
               <div className="flex flex-col gap-3 mb-6">
                 {estimation.parts.map((part, i) => (
-                  <div key={i} className="flex flex-wrap sm:flex-nowrap gap-3 items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+                  <div key={i} className="flex flex-wrap sm:flex-nowrap gap-3 items-center bg-bone-100 p-3 rounded-xl border border-bone-200">
                     <Input
                       value={part.partName}
                       onChange={e => updatePart(i, 'partName', e.target.value)}
@@ -699,7 +699,7 @@ export default function JobCardDetail() {
               <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Labor</h4>
               <div className="flex flex-col gap-3 mb-6">
                 {estimation.labor.map((labor, i) => (
-                  <div key={i} className="flex flex-wrap sm:flex-nowrap gap-3 items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+                  <div key={i} className="flex flex-wrap sm:flex-nowrap gap-3 items-center bg-bone-100 p-3 rounded-xl border border-bone-200">
                     <Input
                       value={labor.description}
                       onChange={e => updateLabor(i, 'description', e.target.value)}
@@ -735,7 +735,7 @@ export default function JobCardDetail() {
               </div>
 
               {/* Discount & Tax */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6 pt-4 border-t border-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6 pt-4 border-t border-bone-200">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Discount ({locale.currency})</label>
                   <Input
@@ -776,7 +776,7 @@ export default function JobCardDetail() {
               </div>
             </ModalBody>
 
-            <ModalFooter className="bg-gray-50 border-t border-gray-100 rounded-b-2xl">
+            <ModalFooter className="bg-bone-100 border-t border-bone-200 rounded-b-2xl">
               <div className="flex justify-between w-full">
                 <Button variant="ghost" onClick={() => setShowEstimation(false)}>Cancel</Button>
                 <Button variant="primary" onClick={saveEstimation}>Save Estimation</Button>

@@ -38,6 +38,37 @@ Pages never export reusable sub-components — extract them to `components/`.
 Components never call API services directly. API modules never touch UI state,
 toasts or navigation.
 
+## One visual system, app-wide
+
+`DESIGN.md` at the repo root is the normative spec — the **Service Counter**
+system — and it governs every page: the landing page, the signed-out pages, and
+every screen behind the login. The sidecar is `.impeccable/design.json`.
+
+The three things that catch people out:
+
+1. **Radius is zero and shadows are none, enforced from `index.css`.** The
+   whole Tailwind `--radius-*` and `--shadow-*` scale is overridden there, so a
+   `rounded-xl` or `shadow-lg` left in a page paints nothing. Don't fight it
+   locally with arbitrary values — change the token if the system should change.
+   `rounded-full` is deliberately exempt (avatars, spinners, status dots,
+   progress tracks).
+2. **Grounds are bone, not white.** `bone-100` is the page field, `bone-50` is
+   a panel/card/header/modal, `ink-900` is the sidebar and any standing dark
+   band (add `.on-ink` to it so selection and focus invert correctly). Never
+   `bg-white` or `bg-gray-50`.
+3. **`bone-200` is a divider; `bone-400` is a control edge.** An input or an
+   outlined button bordered with `bone-200` is about 1.2:1 against its ground —
+   invisible. Anything operable uses `bone-400`.
+
+Colour is rationed: `accent` (orange) is the one action that completes a page,
+`primary` (blue) is the in-app primary action and every functional icon.
+
+**Mobile has not been migrated.** `garageCrm-app` still follows the older
+rounded, soft-shadowed language described in
+`.claude/rules/00-shared-component-reuse.md`. The two clients look different
+today; that file's "Premium UI Guidelines" section is accurate for mobile and
+superseded on web by `DESIGN.md`.
+
 ## Use the component library
 
 `src/components/` already covers: `Button`, `Card`, `Modal` (+ `ModalOverlay`/

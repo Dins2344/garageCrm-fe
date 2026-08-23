@@ -77,20 +77,20 @@ export function useConfirm() {
   const intentConfig: Record<ConfirmIntent, IntentConfig> = {
     danger: {
       icon: HiOutlineTrash,
-      iconBg: 'bg-red-50',
-      iconColor: 'text-red-500',
-      btnClass: 'bg-red-600 hover:bg-red-700 text-white',
+      iconBg: 'bg-danger-light',
+      iconColor: 'text-danger',
+      btnClass: 'bg-danger hover:bg-red-700 text-white',
     },
     warning: {
       icon: HiOutlineBan,
-      iconBg: 'bg-orange-50',
-      iconColor: 'text-orange-500',
-      btnClass: 'bg-orange-500 hover:bg-orange-600 text-white',
+      iconBg: 'bg-warning-light',
+      iconColor: 'text-warning-dark',
+      btnClass: 'bg-warning-dark hover:bg-warning text-white',
     },
     default: {
       icon: HiOutlineExclamation,
-      iconBg: 'bg-primary-50',
-      iconColor: 'text-primary-500',
+      iconBg: 'bg-primary-100',
+      iconColor: 'text-primary-600',
       btnClass: 'bg-primary-600 hover:bg-primary-700 text-white',
     },
   };
@@ -106,22 +106,22 @@ export function useConfirm() {
     return createPortal(
       // Backdrop
       <div
-        className="fixed inset-0 z-[2000] flex items-center justify-center p-5 bg-slate-900/60 backdrop-blur-sm animate-[fadeIn_0.15s_ease]"
+        className="fixed inset-0 z-[2000] flex items-center justify-center p-5 bg-ink-900/70 animate-[fadeIn_0.15s_ease]"
         onClick={handleCancel}
       >
         {/* Panel */}
         <div
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-[420px] p-7 animate-[slideUp_0.2s_ease] flex flex-col gap-5"
+          className="bg-bone-50 border border-bone-300 w-full max-w-[420px] p-7 animate-[slideUp_0.2s_ease] flex flex-col gap-5"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Icon + Text */}
           <div className="flex gap-4 items-start">
-            <div className={`shrink-0 w-11 h-11 rounded-full ${cfg.iconBg} flex items-center justify-center`}>
+            <div className={`shrink-0 w-11 h-11 ${cfg.iconBg} flex items-center justify-center`}>
               <Icon className={`text-xl ${cfg.iconColor}`} />
             </div>
             <div className="flex-1 pt-0.5">
-              <h3 className="text-base font-bold text-gray-900 mb-1">{state.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{state.message}</p>
+              <h3 className="font-display text-base font-bold tracking-tight text-gray-900 mb-1">{state.title}</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{state.message}</p>
             </div>
           </div>
 
@@ -132,7 +132,7 @@ export function useConfirm() {
             </Button>
             <button
               onClick={handleConfirm}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${cfg.btnClass}`}
+              className={`inline-flex items-center gap-1.5 border border-transparent px-4 py-2 text-sm font-bold transition-colors ${cfg.btnClass}`}
             >
               {state.confirmLabel}
             </button>

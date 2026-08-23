@@ -13,7 +13,7 @@ interface StatCardProps {
 
 function StatCard({ label, value, icon: Icon, color }: StatCardProps) {
   return (
-    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm shadow-gray-200/50 flex items-center gap-5">
+    <div className="bg-bone-50 rounded-3xl p-6 border border-bone-200 shadow-sm shadow-gray-200/50 flex items-center gap-5">
       <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center shadow-inner`}>
         <Icon className="w-7 h-7" strokeWidth={1.5} />
       </div>
@@ -65,13 +65,13 @@ export default function AdminOverview() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Garages */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-bone-50 rounded-3xl border border-bone-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-50 flex justify-between items-center">
             <h3 className="font-bold text-gray-900">Recently Onboarded Garages</h3>
           </div>
           <div className="divide-y divide-gray-50">
             {stats.recentGarages.map((garage) => (
-              <div key={garage._id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between">
+              <div key={garage._id} className="p-4 hover:bg-bone-100 transition-colors flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-sm text-gray-900">{garage.name}</h4>
                   <p className="text-xs text-gray-400">{garage.phone}</p>
@@ -85,7 +85,7 @@ export default function AdminOverview() {
         </div>
 
         {/* Jobs by Status */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+        <div className="bg-bone-50 rounded-3xl border border-bone-200 shadow-sm p-8">
            <h3 className="font-bold text-gray-900 mb-8">Platform Workflow Health</h3>
            <div className="space-y-6">
               {Object.entries(stats.jobsByStatus).map(([status, count]) => {
@@ -97,9 +97,9 @@ export default function AdminOverview() {
                       <span className="text-gray-500">{status.replace(/_/g, ' ')}</span>
                       <span className="text-gray-900">{count} jobs</span>
                     </div>
-                    <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-3 w-full bg-bone-200 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-primary-500 to-purple-500 rounded-full transition-all duration-1000"
+                        className="h-full bg-primary-600 transition-all duration-1000"
                         style={{ width: `${percent}%` }}
                       />
                     </div>
@@ -111,12 +111,12 @@ export default function AdminOverview() {
       </div>
 
       {/* Recent Activity Table */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-bone-50 rounded-3xl border border-bone-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-50">
             <h3 className="font-bold text-gray-900">Recent User Registrations</h3>
           </div>
           <table className="w-full text-left">
-            <thead className="bg-gray-50/50 text-xs font-bold text-gray-400 uppercase tracking-widest">
+            <thead className="bg-bone-100/50 text-xs font-bold text-gray-400 uppercase tracking-widest">
               <tr>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Email</th>
@@ -126,14 +126,14 @@ export default function AdminOverview() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {stats.recentUsers.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50/50 transition-colors">
+                <tr key={user._id} className="hover:bg-bone-100/50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="font-bold text-gray-900 text-sm">{user.name}</div>
                     <div className="text-xs text-gray-400">{user.phone}</div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 rounded-lg bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wider">
+                    <span className="px-2 py-1 rounded-lg bg-bone-200 text-gray-600 text-[10px] font-bold uppercase tracking-wider">
                       {user.role}
                     </span>
                   </td>

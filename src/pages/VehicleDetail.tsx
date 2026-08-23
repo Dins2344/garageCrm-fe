@@ -53,7 +53,7 @@ function InfoBlock({ icon: Icon, label, value }: InfoBlockProps) {
   if (!value) return null;
   return (
     <div className="flex items-start gap-3">
-      <div className="w-9 h-9 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0 mt-0.5">
+      <div className="w-9 h-9 rounded-xl bg-bone-100 border border-bone-200 flex items-center justify-center shrink-0 mt-0.5">
         <Icon className="text-gray-400 text-base" />
       </div>
       <div>
@@ -74,7 +74,7 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, label, value, sub, color }: StatCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+    <div className="bg-bone-50 rounded-2xl border border-bone-200 shadow-sm p-5 flex items-center gap-4">
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${color}`}>
         <Icon />
       </div>
@@ -177,12 +177,12 @@ export default function VehicleDetail() {
         }}
       >
         {/* Decorative circles */}
-        <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full opacity-10 bg-white" />
-        <div className="absolute top-12 -right-4 w-24 h-24 rounded-full opacity-10 bg-white" />
-        <div className="absolute -bottom-10 -left-6 w-40 h-40 rounded-full opacity-5 bg-white" />
+        <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full opacity-10 bg-bone-50" />
+        <div className="absolute top-12 -right-4 w-24 h-24 rounded-full opacity-10 bg-bone-50" />
+        <div className="absolute -bottom-10 -left-6 w-40 h-40 rounded-full opacity-5 bg-bone-50" />
 
         {/* Vehicle icon */}
-        <div className="w-20 h-20 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0 border border-white/20">
+        <div className="w-20 h-20 rounded-2xl bg-bone-50 backdrop-blur flex items-center justify-center shrink-0 border border-white/20">
           <HiOutlineTruck className="text-white text-4xl" />
         </div>
 
@@ -212,7 +212,7 @@ export default function VehicleDetail() {
         </div>
 
         {/* Service count pill */}
-        <div className="relative z-10 bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-6 py-4 text-center shrink-0">
+        <div className="relative z-10 bg-bone-50 backdrop-blur border border-white/20 rounded-2xl px-6 py-4 text-center shrink-0">
           <p className="text-4xl font-black text-white">{total}</p>
           <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mt-0.5">
             {total === 1 ? 'Service' : 'Services'}
@@ -249,7 +249,7 @@ export default function VehicleDetail() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         {/* Vehicle Info */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-bone-50 rounded-2xl border border-bone-200 shadow-sm p-6">
           <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest mb-5 flex items-center gap-2">
             <HiOutlineCog className="text-gray-400 text-base" /> Vehicle Information
           </h2>
@@ -265,7 +265,7 @@ export default function VehicleDetail() {
 
         {/* Owner Info */}
         {customer && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="bg-bone-50 rounded-2xl border border-bone-200 shadow-sm p-6">
             <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest mb-5 flex items-center gap-2">
               <HiOutlineUser className="text-gray-400 text-base" /> Owner Details
             </h2>
@@ -284,9 +284,9 @@ export default function VehicleDetail() {
       </div>
 
       {/* ── Service History ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-bone-50 rounded-2xl border border-bone-200 shadow-sm overflow-hidden">
         {/* Section header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-bone-200">
           <div>
             <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest flex items-center gap-2">
               <HiOutlineClipboardList className="text-gray-400" /> Service History
@@ -314,7 +314,7 @@ export default function VehicleDetail() {
         ) : (
           <div>
             {/* Column headers */}
-            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-bone-100 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-bone-200">
               <div className="col-span-3">Job Card</div>
               <div className="col-span-2">Type</div>
               <div className="col-span-2">Date</div>
@@ -350,7 +350,7 @@ export default function VehicleDetail() {
 
                   {/* Service Type */}
                   <div className="col-span-2">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize ${SERVICE_TYPE_COLORS[jc.serviceType] || 'bg-gray-100 text-gray-600'}`}>
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize ${SERVICE_TYPE_COLORS[jc.serviceType] || 'bg-bone-200 text-gray-600'}`}>
                       {jc.serviceType || '—'}
                     </span>
                   </div>
@@ -388,7 +388,7 @@ export default function VehicleDetail() {
 
                   {/* Arrow */}
                   <div className="col-span-1 flex justify-end">
-                    <div className="w-7 h-7 rounded-lg bg-gray-100 group-hover:bg-primary-100 group-hover:text-primary-600 flex items-center justify-center transition-all duration-150 text-gray-400 text-sm">
+                    <div className="w-7 h-7 rounded-lg bg-bone-200 group-hover:bg-primary-100 group-hover:text-primary-600 flex items-center justify-center transition-all duration-150 text-gray-400 text-sm">
                       →
                     </div>
                   </div>
@@ -398,7 +398,7 @@ export default function VehicleDetail() {
 
             {/* Load More */}
             {page < totalPages && (
-              <div className="flex justify-center py-5 border-t border-gray-100">
+              <div className="flex justify-center py-5 border-t border-bone-200">
                 <Button
                   variant="secondary"
                   onClick={loadMore}

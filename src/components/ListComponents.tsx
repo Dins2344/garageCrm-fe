@@ -19,7 +19,7 @@ export function RecentItem({ children, onClick, className = '' }: RecentItemProp
   return (
     <div
       onClick={onClick}
-      className={`flex flex-col gap-1.5 px-6 py-3.5 border-b border-gray-100 transition-colors duration-150 last:border-b-0 hover:bg-gray-50 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`flex flex-col gap-1.5 px-6 py-3.5 border-b border-bone-200 transition-colors duration-150 last:border-b-0 hover:bg-bone-100 ${onClick ? 'cursor-pointer' : ''} ${className}`}
     >
       {children}
     </div>

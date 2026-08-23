@@ -23,15 +23,19 @@ export default function Button({
   icon: Icon,
   ...props
 }: ButtonProps) {
-  const baseStyles = "inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all duration-300 whitespace-nowrap outline-none active:scale-95 border-2 border-transparent disabled:opacity-50 disabled:cursor-not-allowed";
+  // Every variant is flat and square now: the app runs on one system, so a
+  // button differs from its neighbour by colour and border, never by radius,
+  // gradient, shadow or lift.
+  const baseStyles = "inline-flex items-center justify-center gap-2 font-bold transition-colors duration-200 whitespace-nowrap outline-none border disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants: Record<string, string> = {
-    primary: "bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-[0_4px_14px_rgba(59,95,248,0.35)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_6px_20px_rgba(59,95,248,0.45)] hover:-translate-y-[2px]",
-    secondary: "bg-white/80 backdrop-blur-sm text-gray-700 border-gray-200 shadow-sm hover:bg-white hover:border-gray-300 hover:shadow-md hover:-translate-y-[2px]",
-    accent: "bg-gradient-to-br from-accent-500 to-accent-600 text-white shadow-[0_4px_14px_rgba(249,115,22,0.35)] hover:from-accent-600 hover:to-accent-700 hover:shadow-[0_6px_20px_rgba(249,115,22,0.45)] hover:-translate-y-[2px]",
-    danger: "bg-gradient-to-br from-danger to-red-600 text-white shadow-[0_4px_14px_rgba(239,68,68,0.3)] hover:shadow-[0_6px_20px_rgba(239,68,68,0.4)] hover:-translate-y-[2px]",
-    success: "bg-gradient-to-br from-success to-emerald-600 text-white shadow-[0_4px_14px_rgba(16,185,129,0.3)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.4)] hover:-translate-y-[2px]",
-    ghost: "bg-transparent text-gray-600 border-transparent hover:bg-gray-100 hover:text-gray-800",
+    primary: "bg-primary-600 text-white border-primary-600 hover:bg-primary-700 hover:border-primary-700",
+    secondary: "bg-transparent text-gray-900 border-bone-400 hover:border-ink-900 hover:bg-bone-100",
+    // Signal Orange marks commitment: the one action that completes a page.
+    accent: "bg-accent-500 text-ink-900 border-accent-500 hover:bg-accent-400 hover:border-accent-400",
+    danger: "bg-danger text-white border-danger hover:bg-red-700 hover:border-red-700",
+    success: "bg-success-dark text-white border-success-dark hover:bg-success hover:border-success",
+    ghost: "bg-transparent text-gray-600 border-transparent hover:bg-bone-200 hover:text-gray-900",
   };
 
   const sizes: Record<string, string> = {

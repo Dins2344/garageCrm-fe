@@ -25,7 +25,7 @@ export default function Loader({ variant = 'section', text, className = '' }: Lo
     <div
       className={`
         ${spinnerSizes[variant]}
-        border-gray-200 border-t-primary-500
+        border-bone-200 border-t-primary-600
         rounded-full animate-spin
       `}
     />
@@ -36,8 +36,8 @@ export default function Loader({ variant = 'section', text, className = '' }: Lo
   }
 
   const wrapperBase = variant === 'page'
-    ? 'flex flex-col items-center justify-center min-h-screen gap-4 text-gray-500'
-    : 'flex flex-col items-center justify-center min-h-[300px] gap-4 text-gray-500';
+    ? 'flex flex-col items-center justify-center min-h-screen gap-4 text-gray-600'
+    : 'flex flex-col items-center justify-center min-h-[300px] gap-4 text-gray-600';
 
   return (
     <div className={`${wrapperBase} ${className}`}>

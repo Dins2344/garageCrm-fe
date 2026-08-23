@@ -134,7 +134,7 @@ All application-wide constants live in `utils/constants.ts`.
 ### What Goes Here:
 - API base URL
 - LocalStorage keys (`TOKEN_KEY`, `USER_KEY`, `ADMIN_TOKEN_KEY`, `ACTIVE_GARAGE_KEY`)
-- External URLs (`PLAY_STORE_URL`, `CARBON_FIBRE_TEXTURE_URL`)
+- External URLs (`PLAY_STORE_URL`)
 - Limits and page sizes (`DEFAULT_PAGE_SIZE`, `DROPDOWN_FETCH_LIMIT`)
 - Enum objects (`ROLES`, `JOB_STATUSES`, `SERVICE_TYPES`)
 - Select/dropdown option arrays (`JOB_STATUS_OPTIONS`, `FUEL_TYPE_OPTIONS`)

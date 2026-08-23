@@ -4,7 +4,7 @@ import { getSystemHealth, type SystemHealth } from '../../services/apiServices/a
 
 function HealthSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+    <div className="bg-bone-50 rounded-3xl border border-bone-200 shadow-sm p-8">
       <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-primary-500"></span>
         {title}

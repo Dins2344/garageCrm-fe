@@ -23,7 +23,7 @@ export function ModalOverlay({ children, onClose }: ModalOverlayProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 animate-[fadeIn_0.2s_ease]"
+      className="fixed inset-0 bg-ink-900/70 flex items-center justify-center z-[1000] p-5 animate-[fadeIn_0.2s_ease]"
       onClick={onClose}
     >
       {children}
@@ -46,7 +46,7 @@ export function Modal({ children, className = '' }: ModalProps) {
 
   return (
     <div
-      className={`bg-white rounded-2xl w-full ${hasMaxWidth ? '' : 'max-w-[600px]'} ${hasOverflow ? '' : 'overflow-y-auto'} max-h-[85vh] shadow-xl animate-[slideUp_0.3s_ease] ${className}`}
+      className={`bg-bone-50 border border-bone-300 w-full ${hasMaxWidth ? '' : 'max-w-[600px]'} ${hasOverflow ? '' : 'overflow-y-auto'} max-h-[85vh] animate-[slideUp_0.3s_ease] ${className}`}
       onClick={stopPropagation}
     >
       {children}
@@ -61,8 +61,10 @@ interface ModalHeaderProps {
 
 export function ModalHeader({ title, onClose }: ModalHeaderProps) {
   return (
-    <div className="pt-6 px-6 flex items-center justify-between">
-      <h2 className="text-xl font-bold bg-linear-to-br from-gray-900 to-primary-700 bg-clip-text text-transparent">{title}</h2>
+    <div className="flex items-center justify-between border-b border-bone-200 px-6 py-5">
+      {/* Was gradient-clipped text. Emphasis comes from weight and the display
+          face, not from a gradient. */}
+      <h2 className="font-display text-lg font-bold tracking-tight text-gray-900">{title}</h2>
       {onClose && (
         <Button variant="ghost" size="icon" onClick={onClose}>
           <HiOutlineX />
