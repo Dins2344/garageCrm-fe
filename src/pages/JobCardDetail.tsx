@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { estimationSchema, describeEstimationIssue } from '../utils/validation';
 import { useParams, useNavigate } from 'react-router-dom';
 import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
@@ -56,6 +57,7 @@ export default function JobCardDetail() {
   const [mechanics, setMechanics] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showEstimation, setShowEstimation] = useState(false);
+  const [estimationError, setEstimationError] = useState<string | null>(null);
   const [updatingMechanic, setUpdatingMechanic] = useState<string | false>(false);
   const { confirm, ConfirmModal } = useConfirm();
 
@@ -239,7 +241,21 @@ export default function JobCardDetail() {
     };
   };
 
+  /**
+   * The first thing wrong with the estimation, phrased so it names the row —
+   * or null when it is fine. Shown next to Save rather than raised as a toast,
+   * because a toast about "Part 3" disappears before the user has scrolled to
+   * part 3.
+   */
+  const estimationProblem = (): string | null => {
+    const r = estimationSchema.safeParse(estimation);
+    return r.success ? null : describeEstimationIssue(r.error.issues[0]);
+  };
+
   const saveEstimation = async () => {
+    const problem = estimationProblem();
+    if (problem) { setEstimationError(problem); return; }
+    setEstimationError(null);
     await withLoader(async () => {
       try {
         await saveJobCardEstimation(id!, estimation);
@@ -779,7 +795,12 @@ export default function JobCardDetail() {
             <ModalFooter className="bg-bone-100 border-t border-bone-200 rounded-b-2xl">
               <div className="flex justify-between w-full">
                 <Button variant="ghost" onClick={() => setShowEstimation(false)}>Cancel</Button>
-                <Button variant="primary" onClick={saveEstimation}>Save Estimation</Button>
+                <div className="flex items-center gap-3">
+                  {estimationError && (
+                    <p role="alert" className="text-danger text-[13px] max-w-xs text-right">{estimationError}</p>
+                  )}
+                  <Button variant="primary" onClick={saveEstimation}>Save Estimation</Button>
+                </div>
               </div>
             </ModalFooter>
           </Modal>

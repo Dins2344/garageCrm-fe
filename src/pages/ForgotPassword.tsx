@@ -1,4 +1,8 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { forgotPasswordSchema } from '../utils/validation';
+import type { z } from 'zod';
 import { Link } from 'react-router-dom';
 import { forgotPassword } from '../services/apiServices/authService';
 import { Input } from '../components/Form';
@@ -8,16 +12,25 @@ import { ArrowLeft } from 'lucide-react';
 
 type Step = 'confirm' | 'not-owner' | 'email' | 'sent';
 
+type ForgotValues = z.infer<typeof forgotPasswordSchema>;
+
 export default function ForgotPassword() {
   const [step, setStep] = useState<Step>('confirm');
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    formState: { errors },
+  } = useForm<ForgotValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: '' },
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = rhfHandleSubmit(async ({ email }) => {
     setLoading(true);
     try {
       const res = await forgotPassword(email);
@@ -30,7 +43,7 @@ export default function ForgotPassword() {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   return (
     <AuthLayout>
@@ -94,7 +107,7 @@ export default function ForgotPassword() {
           <p className="mt-3 text-gray-600">
             Enter your account email and we&rsquo;ll send you a link to set a new password.
           </p>
-          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5" noValidate>
             <div>
               <label htmlFor="reset-email" className="mb-2 block text-sm font-semibold text-gray-900">
                 Email Address
@@ -102,12 +115,14 @@ export default function ForgotPassword() {
               <Input
                 id="reset-email"
                 type="email"
-                name="email"
-                value={email}
-                onChange={handleChange}
+                {...register('email')}
                 placeholder="you@example.com"
-                required
+                error={!!errors.email}
+                aria-invalid={!!errors.email}
               />
+              {errors.email && (
+                <p role="alert" className="text-danger text-[13px] mt-1">{errors.email.message}</p>
+              )}
             </div>
 
             <Button type="submit" variant="accent" className="mt-1 w-full py-4 text-base" disabled={loading}>

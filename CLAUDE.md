@@ -89,6 +89,44 @@ forks the design system.
   `bg-[url(${VAR})]` emits no CSS at all. Use `style={{ backgroundImage }}`
   there.
 
+## Forms — react-hook-form + zod, rules in one file
+
+Every form in the app is `useForm` + `zodResolver`, and **every rule lives in
+`src/utils/validation.ts`**. Do not write a validation rule in a page.
+
+```jsx
+const { register, handleSubmit, formState: { errors, isSubmitting } } =
+  useForm<CustomerFormValues>({ resolver: zodResolver(customerSchema(locale)) });
+
+<form onSubmit={handleSubmit(onValid)} noValidate>
+  <Input {...register('name')} error={!!errors.name} aria-invalid={!!errors.name} />
+  {errors.name && <p role="alert" className="text-danger text-[13px] mt-1">{errors.name.message}</p>}
+```
+
+Four things that are settled and should not be re-litigated:
+
+1. **The schemas mirror the backend's Mongoose validators deliberately.** A
+   client rule stricter than the server rejects data the API would accept; a
+   looser one hands the user a server error after a round trip. Both are worse
+   than nothing, because the user can't tell which rule they broke. Each odd
+   rule carries a comment naming the backend file it came from — the email
+   regex really does reject `.info`, because `models/User.ts` does.
+2. **Optional means "blank is fine", never "anything goes".** Everything
+   optional goes through `optionalOf()`, so an empty field passes but a filled
+   one is held to the full rule. An optional email containing `asdf` is an
+   error.
+3. **No HTML5 `required` / `type="email"` validation.** Every `<form>` is
+   `noValidate`; a native bubble next to a zod message is two error systems
+   disagreeing in two visual languages.
+4. **No `toast.error('Name is required')`.** A toast can't point at a field and
+   is gone before the user finds it. Errors render under the input. Where a
+   gate isn't a form — the job-card wizard's Next button, the estimation editor
+   — it still runs the schema via `safeParse` and shows *why* it's blocked next
+   to the disabled button.
+
+`z.coerce` fields have different input and output types, so those need
+`useForm<Input, unknown, Output>`; both are exported per schema.
+
 ## Locale
 
 ```jsx
@@ -137,6 +175,18 @@ Placeholders now follow the garage's country (`locale.phoneExample`), so
 Any test rendering a page that calls `useGarage()` must mock `GarageContext`
 with a real `locale` — the provider never yields `undefined`, so a mock that
 does tests an unreachable state.
+
+**`waitFor` ignores `testTimeout`.** It runs its own 1s timer and fails with
+"Unable to find an element", which reads like a missing element rather than a
+timeout — that is what was intermittently failing `App.test.tsx` in CI, not the
+`testTimeout` I raised first. `src/test/setup.ts` sets `asyncUtilTimeout` to
+5000; raise that, not `testTimeout`, if a lazy page needs longer to resolve.
+
+Two selector traps in `Settings.test.tsx`, both from page-wide queries:
+the garage name renders in the header badge *and* the info row, and every staff
+row has its own "Edit" button — scope to `#garage-info`. The staff modal
+portals to `document.body` and is not the only `<form>` on the page, so reach
+it through a control unique to it.
 
 ## Verifying
 

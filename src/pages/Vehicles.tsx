@@ -1,4 +1,7 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { vehicleSchema, type VehicleFormValues, type VehicleFormOutput } from '../utils/validation';
 import { DEFAULT_PAGE_SIZE, DROPDOWN_FETCH_LIMIT, FUEL_TYPE_OPTIONS } from '../utils/constants';
 import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
@@ -27,17 +30,8 @@ import Pagination from '../components/Pagination';
 import { useConfirm } from '../components/ConfirmModal';
 import type { Vehicle, Customer, FuelType } from '../types/models';
 
-interface VehicleForm {
-  licensePlate: string;
-  make: string;
-  model: string;
-  year: string;
-  color: string;
-  fuelType: FuelType;
-  customer: string;
-}
-
-const BLANK_FORM: VehicleForm = {
+// Shape comes from the zod schema so the form and the validator cannot drift.
+const BLANK_FORM: VehicleFormValues = {
   licensePlate: '', make: '', model: '', year: '', color: '',
   fuelType: 'petrol', customer: ''
 };
@@ -64,7 +58,21 @@ export default function Vehicles() {
   const { withLoader } = useGlobalLoader();
   const { confirm, ConfirmModal } = useConfirm();
 
-  const [form, setForm] = useState<VehicleForm>(BLANK_FORM);
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<VehicleFormValues, unknown, VehicleFormOutput>({
+    resolver: zodResolver(vehicleSchema),
+    defaultValues: BLANK_FORM,
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
+
+  // Plates are stored upper-case. Uppercasing in the change handler keeps what
+  // the user sees and what gets submitted in step.
+  const plateField = register('licensePlate');
 
   // Reset to page 1 whenever the user changes the search term
   useEffect(() => {
@@ -107,14 +115,14 @@ export default function Vehicles() {
 
   const openAdd = () => {
     setEditingVehicle(null);
-    setForm(BLANK_FORM);
+    reset(BLANK_FORM);
     setShowModal(true);
   };
 
   const openEdit = (vehicle: Vehicle) => {
     setEditingVehicle(vehicle);
     const customerId = typeof vehicle.customer === 'string' ? vehicle.customer : vehicle.customer?._id;
-    setForm({
+    reset({
       licensePlate: vehicle.licensePlate,
       make: vehicle.make,
       model: vehicle.model,
@@ -126,11 +134,14 @@ export default function Vehicles() {
     setShowModal(true);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = rhfHandleSubmit(async (form) => {
     await withLoader(async () => {
       try {
-        const data: Partial<Vehicle> & { customer: string; year?: number } = { ...form, year: form.year ? parseInt(form.year, 10) : undefined };
+        const data: Partial<Vehicle> & { customer: string } = {
+          ...form,
+          year: typeof form.year === 'number' ? form.year : undefined,
+          fuelType: (form.fuelType || 'petrol') as FuelType,
+        };
         if (editingVehicle) {
           await updateVehicle(editingVehicle._id, data);
           toast.success('Vehicle updated!');
@@ -145,7 +156,7 @@ export default function Vehicles() {
         toast.error(message || 'Failed to save vehicle');
       }
     });
-  };
+  });
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
@@ -265,7 +276,7 @@ export default function Vehicles() {
       {showModal && (
         <ModalOverlay onClose={() => setShowModal(false)}>
           <Modal>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               <ModalHeader
                 title={editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}
                 onClose={() => setShowModal(false)}
@@ -274,9 +285,8 @@ export default function Vehicles() {
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Customer Owner *</label>
                   <Select
-                    value={form.customer}
-                    onChange={e => setForm({ ...form, customer: e.target.value })}
-                    required
+                    {...register('customer')}
+                    error={!!errors.customer}
                   >
                     <option value="">Select customer...</option>
                     {customers.map(c => (
@@ -288,18 +298,24 @@ export default function Vehicles() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">License Plate *</label>
                     <Input
-                      value={form.licensePlate}
-                      onChange={e => setForm({ ...form, licensePlate: e.target.value.toUpperCase() })}
+                      {...plateField}
+                      onChange={e => {
+                        e.target.value = e.target.value.toUpperCase();
+                        return plateField.onChange(e);
+                      }}
                       placeholder="KA01AB1234"
-                      required
+                      error={!!errors.licensePlate}
+                      aria-invalid={!!errors.licensePlate}
                       className="uppercase"
                     />
+                    {errors.licensePlate && (
+                      <p role="alert" className="text-danger text-[13px] mt-1">{errors.licensePlate.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Fuel Type</label>
                     <Select
-                      value={form.fuelType}
-                      onChange={e => setForm({ ...form, fuelType: e.target.value as FuelType })}
+                      {...register('fuelType')}
                     >
                       {FUEL_TYPE_OPTIONS.map(opt => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -311,20 +327,26 @@ export default function Vehicles() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Make *</label>
                     <Input
-                      value={form.make}
-                      onChange={e => setForm({ ...form, make: e.target.value })}
+                      {...register('make')}
                       placeholder="Maruti, Honda, Hyundai..."
-                      required
+                      error={!!errors.make}
+                      aria-invalid={!!errors.make}
                     />
+                    {errors.make && (
+                      <p role="alert" className="text-danger text-[13px] mt-1">{errors.make.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Model *</label>
                     <Input
-                      value={form.model}
-                      onChange={e => setForm({ ...form, model: e.target.value })}
+                      {...register('model')}
                       placeholder="Swift, City, Creta..."
-                      required
+                      error={!!errors.model}
+                      aria-invalid={!!errors.model}
                     />
+                    {errors.model && (
+                      <p role="alert" className="text-danger text-[13px] mt-1">{errors.model.message}</p>
+                    )}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -332,18 +354,19 @@ export default function Vehicles() {
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Year</label>
                     <Input
                       type="number"
-                      value={form.year}
-                      onChange={e => setForm({ ...form, year: e.target.value })}
+                      {...register('year')}
                       placeholder="2024"
-                      min="1990"
-                      max="2030"
+                      error={!!errors.year}
+                      aria-invalid={!!errors.year}
                     />
+                    {errors.year && (
+                      <p role="alert" className="text-danger text-[13px] mt-1">{errors.year.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Color</label>
                     <Input
-                      value={form.color}
-                      onChange={e => setForm({ ...form, color: e.target.value })}
+                      {...register('color')}
                       placeholder="White, Silver, Black..."
                     />
                   </div>

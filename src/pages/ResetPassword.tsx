@@ -1,4 +1,8 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { resetPasswordSchema } from '../utils/validation';
+import type { z } from 'zod';
 import { Link, useParams } from 'react-router-dom';
 import { resetPassword } from '../services/apiServices/authService';
 import { Input } from '../components/Form';
@@ -6,27 +10,32 @@ import Button from '../components/Button';
 import AuthLayout from '../components/layout/AuthLayout';
 import { Check } from 'lucide-react';
 
+type ResetValues = z.infer<typeof resetPasswordSchema>;
+
 export default function ResetPassword() {
   const { token } = useParams<{ token: string }>();
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  // Kept for the server's own message ("link expired"), which no client-side
+  // schema can anticipate. Field-level problems come from `errors` instead.
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    formState: { errors },
+  } = useForm<ResetValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: '', confirmPassword: '' },
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
+
+  // The length and match checks that used to live here are now in
+  // resetPasswordSchema, which reports them against the field that is wrong
+  // instead of as one banner for the whole form.
+  const handleSubmit = rhfHandleSubmit(async ({ password }) => {
     setError(null);
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
-
     setLoading(true);
     try {
       await resetPassword(token!, password);
@@ -37,7 +46,7 @@ export default function ResetPassword() {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   return (
     <AuthLayout>
@@ -68,7 +77,7 @@ export default function ResetPassword() {
             Choose something at least six characters long.
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5" noValidate>
             <div>
               <label htmlFor="new-password" className="mb-2 block text-sm font-semibold text-gray-900">
                 New Password
@@ -76,13 +85,14 @@ export default function ResetPassword() {
               <Input
                 id="new-password"
                 type="password"
-                value={password}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                {...register('password')}
                 placeholder="At least 6 characters"
-                required
-                minLength={6}
-                error={!!error}
+                error={!!errors.password}
+                aria-invalid={!!errors.password}
               />
+              {errors.password && (
+                <p role="alert" className="text-danger text-[13px] mt-1">{errors.password.message}</p>
+              )}
             </div>
             <div>
               <label htmlFor="confirm-password" className="mb-2 block text-sm font-semibold text-gray-900">
@@ -91,13 +101,14 @@ export default function ResetPassword() {
               <Input
                 id="confirm-password"
                 type="password"
-                value={confirmPassword}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+                {...register('confirmPassword')}
                 placeholder="Type it again"
-                required
-                minLength={6}
-                error={!!error}
+                error={!!errors.confirmPassword}
+                aria-invalid={!!errors.confirmPassword}
               />
+              {errors.confirmPassword && (
+                <p role="alert" className="text-danger text-[13px] mt-1">{errors.confirmPassword.message}</p>
+              )}
             </div>
 
             {error && (

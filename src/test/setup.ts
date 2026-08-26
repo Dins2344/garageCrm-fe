@@ -1,6 +1,22 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
+
+/**
+ * **`waitFor` does not honour Vitest's `testTimeout`.** It runs its own timer,
+ * defaulting to 1000ms, and when that expires it throws "Unable to find an
+ * element" — which reads like a missing element, not like a timeout. Raising
+ * `testTimeout` in `vite.config.ts` therefore did nothing for it.
+ *
+ * That 1s is the whole budget for `App.test.tsx` to resolve a `React.lazy`
+ * page chunk. `Dashboard` pulls in Recharts, and on a loaded machine the
+ * import alone crosses it: measured here, the same test passed in a 6s run and
+ * failed in 12s and 21s runs, on identical code.
+ *
+ * 5s is long enough that machine load never fails a passing test, and short
+ * enough that a genuinely missing element still fails the run quickly.
+ */
+configure({ asyncUtilTimeout: 5000 });
 
 // `globals: false` in vite.config.ts means Testing Library's own auto-cleanup
 // never self-installs (it only does so when it detects a *global* afterEach),
