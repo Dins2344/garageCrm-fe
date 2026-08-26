@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, forwardRef, type ReactNode, type ComponentType, type InputHTMLAttributes } from 'react';
+import { useState, useEffect, useMemo, forwardRef, type ReactNode, type ComponentType, type InputHTMLAttributes } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -416,16 +416,28 @@ export default function Settings() {
   const [garageLoading, setGarageLoading] = useState(true);
   const [editingGarage, setEditingGarage] = useState(false);
   /**
-   * The postal-code and tax-id rules depend on the country **currently chosen
-   * in the picker**, not the saved one — otherwise switching to the UK still
-   * validates the postcode against India's digits-only rule and `SW1A 1AA`
-   * becomes unenterable. That is circular: the resolver needs the locale, the
-   * locale needs the form's country, and the form does not exist yet.
+   * The postal-code and tax-id rules follow the country **being edited**, not
+   * the saved one — otherwise switching to the UK still validates the postcode
+   * against India's digits-only rule and `SW1A 1AA` is unenterable.
    *
-   * A ref written on each render breaks the cycle. The resolver only ever runs
-   * from an event handler, so `.current` is always the latest render's value.
+   * That looks circular — the resolver needs the locale, the locale needs the
+   * form's country, the form does not exist yet — but it is not: the resolver
+   * is handed the values it is validating, and the country is one of them. So
+   * the locale is derived from the payload rather than from render state, with
+   * no ref and no second source of truth.
    */
-  const formLocaleRef = useRef<ResolvedLocale>(DEFAULT_LOCALE);
+  const localeForCountry = (code: string): ResolvedLocale => {
+    const c = countries.find(x => x.code === code);
+    return c
+      ? {
+        ...DEFAULT_LOCALE,
+        country: c.code, currency: c.currency,
+        taxLabel: c.taxLabel, taxIdLabel: c.taxIdLabel,
+        postalLabel: c.postalLabel, postalInputMode: c.postalInputMode,
+        phoneExample: c.phoneExample,
+      }
+      : DEFAULT_LOCALE;
+  };
 
   const {
     register: registerGarage,
@@ -435,8 +447,12 @@ export default function Settings() {
     setValue: setGarageValue,
     formState: { errors: garageErrors, isSubmitting: savingGarage },
   } = useForm<GarageSettingsFormValues, unknown, GarageSettingsFormOutput>({
-    resolver: (values, ctx, opts) =>
-      zodResolver(garageSettingsSchema(formLocaleRef.current))(values, ctx, opts),
+    // `useForm` re-reads its props every render, so this closure always sees
+    // the latest `countries`.
+    resolver: (values, ctx, opts) => {
+      const code = String((values as { country?: unknown }).country ?? DEFAULT_LOCALE.country);
+      return zodResolver(garageSettingsSchema(localeForCountry(code)))(values, ctx, opts);
+    },
     defaultValues: BLANK_GARAGE_FORM,
   });
 
@@ -456,17 +472,6 @@ export default function Settings() {
     postalInputMode: selectedCountry?.postalInputMode ?? garage?.locale?.postalInputMode ?? DEFAULT_LOCALE.postalInputMode,
     currency: selectedCountry?.currency ?? garage?.locale?.currency ?? DEFAULT_LOCALE.currency,
     phoneExample: selectedCountry?.phoneExample ?? garage?.locale?.phoneExample ?? DEFAULT_LOCALE.phoneExample,
-  };
-  // Feeds the resolver above — see the comment on `formLocaleRef`.
-  formLocaleRef.current = {
-    ...DEFAULT_LOCALE,
-    country: watchedCountry || DEFAULT_LOCALE.country,
-    taxLabel: labels.tax,
-    taxIdLabel: labels.taxId,
-    postalLabel: labels.postal,
-    postalInputMode: labels.postalInputMode,
-    currency: labels.currency,
-    phoneExample: labels.phoneExample,
   };
 
   // ── Profile form ──

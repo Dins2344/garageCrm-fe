@@ -1,3 +1,6 @@
+// MIRROR: keep in sync with mobile/src/utils/validation.test.ts.
+// The only intended difference is the runner: Vitest here, Jest there, so
+// mobile takes describe/it/expect from jest-expo globals instead of this import.
 import { describe, it, expect } from 'vitest';
 import {
   customerSchema,

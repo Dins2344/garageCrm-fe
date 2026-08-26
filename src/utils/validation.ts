@@ -1,3 +1,9 @@
+// MIRROR: keep in sync with mobile/src/utils/validation.ts. There is no
+// shared package between the two clients, so this file is a hand-maintained
+// duplicate — change one, copy it to the other.
+//
+// The rules themselves mirror a third place: the backend's Mongoose
+// validators. See the file-level comment below.
 import { z } from 'zod';
 import type { ResolvedLocale } from '../types/models';
 
