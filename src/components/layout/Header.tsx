@@ -3,7 +3,6 @@ import { HiOutlineMenuAlt2, HiOutlineOfficeBuilding } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 import { useGarage } from '../../context/GarageContext';
 import { formatDate } from '../../utils/format';
-import { Hand } from 'lucide-react';
 
 const pageTitles: Record<string, string> = {
   '/': 'Dashboard',
@@ -58,7 +57,6 @@ export default function Header({ onMobileMenuOpen }: HeaderProps) {
           {location.pathname === '/' && (
             <p className="text-sm text-gray-600 font-medium">
               {getGreeting()}, <strong className="text-primary-600">{user?.name?.split(' ')[0]}</strong>{' '}
-              <Hand className="inline w-4 h-4 text-amber-500" strokeWidth={1.5} />
             </p>
           )}
         </div>
