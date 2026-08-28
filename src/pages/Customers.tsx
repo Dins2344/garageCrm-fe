@@ -1,4 +1,7 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { customerSchema, type CustomerFormValues } from '../utils/validation';
 import { useGarage } from '../context/GarageContext';
 import { formatMoney } from '../utils/format';
 import { DEFAULT_PAGE_SIZE } from '../utils/constants';
@@ -26,15 +29,8 @@ import Pagination from '../components/Pagination';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
 import type { Customer } from '../types/models';
 
-interface CustomerForm {
-  name: string;
-  phone: string;
-  email: string;
-  notes: string;
-  address: { street: string; city: string; state: string; pincode: string };
-}
-
-const BLANK_FORM: CustomerForm = {
+// Shape comes from the zod schema so the form and the validator cannot drift.
+const BLANK_FORM: CustomerFormValues = {
   name: '', phone: '', email: '', notes: '',
   address: { street: '', city: '', state: '', pincode: '' }
 };
@@ -53,7 +49,19 @@ export default function Customers() {
   const { withLoader } = useGlobalLoader();
   const { confirm, ConfirmModal } = useConfirm();
 
-  const [form, setForm] = useState<CustomerForm>(BLANK_FORM);
+  // Validation runs on blur so a half-typed phone number is not scolded
+  // mid-entry, then re-runs on every change once a field has already failed.
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerSchema(locale)),
+    defaultValues: BLANK_FORM,
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
 
   useEffect(() => {
     fetchCustomers();
@@ -78,13 +86,13 @@ export default function Customers() {
 
   const openAdd = () => {
     setEditingCustomer(null);
-    setForm(BLANK_FORM);
+    reset(BLANK_FORM);
     setShowModal(true);
   };
 
   const openEdit = (customer: Customer) => {
     setEditingCustomer(customer);
-    setForm({
+    reset({
       name: customer.name,
       phone: customer.phone,
       email: customer.email || '',
@@ -99,8 +107,8 @@ export default function Customers() {
     setShowModal(true);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  // Only reached once the schema passes; `form` is validated, trimmed data.
+  const handleSubmit = rhfHandleSubmit(async (form) => {
     await withLoader(async () => {
       try {
         if (editingCustomer) {
@@ -117,7 +125,7 @@ export default function Customers() {
         toast.error(message || 'Failed to save customer');
       }
     });
-  };
+  });
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
@@ -242,7 +250,7 @@ export default function Customers() {
       {showModal && (
         <ModalOverlay onClose={() => setShowModal(false)}>
           <Modal>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               <ModalHeader
                 title={editingCustomer ? 'Edit Customer' : 'Add Customer'}
                 onClose={() => setShowModal(false)}
@@ -254,40 +262,51 @@ export default function Customers() {
                     <Input
                       id="customer-name"
                       type="text"
-                      value={form.name}
-                      onChange={e => setForm({ ...form, name: e.target.value })}
+                      {...register('name')}
                       placeholder="Full name"
-                      required
+                      error={!!errors.name}
+                      aria-invalid={!!errors.name}
+                      aria-describedby={errors.name ? 'customer-name-error' : undefined}
                     />
+                    {errors.name && (
+                      <p id="customer-name-error" role="alert" className="text-danger text-[13px] mt-1">{errors.name?.message}</p>
+                    )}
                   </div>
                   <div>
                     <label htmlFor="customer-phone" className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number *</label>
                     <Input
                       id="customer-phone"
                       type="tel"
-                      value={form.phone}
-                      onChange={e => setForm({ ...form, phone: e.target.value })}
+                      {...register('phone')}
                       placeholder={locale.phoneExample}
-                      required
+                      error={!!errors.phone}
+                      aria-invalid={!!errors.phone}
+                      aria-describedby={errors.phone ? 'customer-phone-error' : undefined}
                     />
+                    {errors.phone && (
+                      <p id="customer-phone-error" role="alert" className="text-danger text-[13px] mt-1">{errors.phone?.message}</p>
+                    )}
                   </div>
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
                   <Input
                     type="email"
-                    value={form.email}
-                    onChange={e => setForm({ ...form, email: e.target.value })}
+                    {...register('email')}
                     placeholder="customer@email.com (optional)"
+                    error={!!errors.email}
+                    aria-invalid={!!errors.email}
                   />
+                  {errors.email && (
+                    <p role="alert" className="text-danger text-[13px] mt-1">{errors.email?.message}</p>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">City</label>
                     <Input
                       type="text"
-                      value={form.address.city}
-                      onChange={e => setForm({ ...form, address: { ...form.address, city: e.target.value } })}
+                      {...register('address.city')}
                       placeholder="City"
                     />
                   </div>
@@ -295,9 +314,10 @@ export default function Customers() {
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Pincode</label>
                     <Input
                       type="text"
-                      value={form.address.pincode}
-                      onChange={e => setForm({ ...form, address: { ...form.address, pincode: e.target.value } })}
+                      {...register('address.pincode')}
                       placeholder="560001"
+                      error={!!errors.address?.pincode}
+                      aria-invalid={!!errors.address?.pincode}
                     />
                   </div>
                 </div>
@@ -305,8 +325,7 @@ export default function Customers() {
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label>
                   <textarea
                     className="w-full px-3.5 py-2.5 border-2 border-bone-200 rounded-lg text-[15px] text-gray-800 bg-bone-50 outline-none focus:border-primary-400 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.1)] min-h-[100px] resize-y placeholder:text-gray-400"
-                    value={form.notes}
-                    onChange={e => setForm({ ...form, notes: e.target.value })}
+                    {...register('notes')}
                     placeholder="Any notes about this customer..."
                   />
                 </div>

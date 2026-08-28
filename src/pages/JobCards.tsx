@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { customerSchema, vehicleSchema } from '../utils/validation';
 import { useGarage } from '../context/GarageContext';
 import { formatMoney, formatDate as fmtDate } from '../utils/format';
 import { useDebounce } from '../hooks/useDebounce';
@@ -248,21 +249,56 @@ export default function JobCards() {
   };
 
   // ---- Step Validation ----
-  const canProceedStep1 = () => {
-    const hasCustomer = customerMode === 'existing'
-      ? !!selectedCustomer
-      : newCustomer.name.trim() && newCustomer.phone.trim();
-    const hasVehicle = vehicleMode === 'existing'
-      ? !!selectedVehicle
-      : newVehicle.licensePlate.trim() && newVehicle.make.trim() && newVehicle.model.trim();
-    return hasCustomer && hasVehicle;
+  //
+  // This is a wizard, not a single form: each step gates the Next button
+  // rather than submitting. So instead of react-hook-form it runs the same
+  // zod schemas through `safeParse` — the rules stay in `utils/validation.ts`
+  // with every other form, and are not re-written by hand here.
+  //
+  // The gate also returns *why* it failed. A disabled button with no
+  // explanation is worse than an error message: the user can see they are
+  // stuck but not what to fix.
+
+  /** First problem with the new-customer sub-form, or null if it is fine. */
+  const newCustomerProblem = (): string | null => {
+    const r = customerSchema(locale).safeParse({ ...newCustomer, notes: '' });
+    return r.success ? null : r.error.issues[0].message;
   };
 
-  const canProceedStep2 = () =>
-    !!workForm.serviceType &&
-    !!workForm.assignedAdvisor &&
-    workForm.odometerAtIntake.trim() !== '' &&
-    workForm.complaints.some(c => c.description.trim() !== '');
+  /** First problem with the new-vehicle sub-form, or null if it is fine. */
+  const newVehicleProblem = (): string | null => {
+    // `customer` is resolved at submit time, so satisfy it here.
+    const r = vehicleSchema.safeParse({ ...newVehicle, customer: 'pending' });
+    return r.success ? null : r.error.issues[0].message;
+  };
+
+  const step1Problem = (): string | null => {
+    if (customerMode === 'existing') {
+      if (!selectedCustomer) return 'Select a customer';
+    } else {
+      const problem = newCustomerProblem();
+      if (problem) return problem;
+    }
+    if (vehicleMode === 'existing') {
+      if (!selectedVehicle) return 'Select a vehicle';
+    } else {
+      const problem = newVehicleProblem();
+      if (problem) return problem;
+    }
+    return null;
+  };
+
+  const step2Problem = (): string | null => {
+    if (!workForm.serviceType) return 'Select a service type';
+    if (!workForm.assignedAdvisor) return 'Assign a service advisor';
+    if (workForm.odometerAtIntake.trim() === '') return 'Enter the odometer reading at intake';
+    if (!/^\d+$/.test(workForm.odometerAtIntake.trim())) return 'Odometer must be a whole number';
+    if (!workForm.complaints.some(c => c.description.trim() !== '')) return 'Add at least one complaint';
+    return null;
+  };
+
+  const canProceedStep1 = () => step1Problem() === null;
+  const canProceedStep2 = () => step2Problem() === null;
 
   // ---- Final Submission ----
   const handleSubmit = async () => {
@@ -832,7 +868,6 @@ export default function JobCards() {
                       <Select
                         value={workForm.serviceType}
                         onChange={e => setWorkForm({ ...workForm, serviceType: e.target.value })}
-                        required
                       >
                         <option value="service">Periodic Service</option>
                         <option value="repair">General Repair</option>
@@ -844,7 +879,6 @@ export default function JobCards() {
                       <Select
                         value={workForm.assignedAdvisor || ''}
                         onChange={e => setWorkForm({ ...workForm, assignedAdvisor: e.target.value })}
-                        required
                       >
                         <option value="">Select Service Advisor</option>
                         {advisors.map(a => (
@@ -879,7 +913,6 @@ export default function JobCards() {
                         onChange={e => setWorkForm(f => ({ ...f, odometerAtIntake: e.target.value.replace(/\D/g, '').slice(0, 7) }))}
                         placeholder="42000"
                         maxLength={7}
-                        required
                       />
                     </div>
                   </div>
@@ -905,7 +938,6 @@ export default function JobCards() {
                             value={complaint.description}
                             onChange={e => updateComplaint(index, 'description', e.target.value)}
                             placeholder="Describe the complaint or service needed..."
-                            required={index === 0}
                             className="bg-bone-50 border-bone-200"
                           />
                         </div>
@@ -955,7 +987,14 @@ export default function JobCards() {
                 <Button variant="ghost" onClick={() => setShowModal(false)}>
                   Cancel
                 </Button>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-3">
+                  {/* Say why the button is disabled, rather than leaving the
+                      user to guess which field is holding the wizard back. */}
+                  {(step === 1 ? step1Problem() : step2Problem()) && (
+                    <p className="text-xs text-danger max-w-xs text-right" role="alert">
+                      {step === 1 ? step1Problem() : step2Problem()}
+                    </p>
+                  )}
                   {step === 2 && (
                     <Button variant="secondary" onClick={() => setStep(1)} icon={HiOutlineChevronLeft}>
                       Back

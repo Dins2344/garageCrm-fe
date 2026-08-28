@@ -1,5 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { useState, type ComponentType } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { branchSchema, type BranchFormValues } from '../../utils/validation';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useGarage } from '../../context/GarageContext';
@@ -54,8 +57,15 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
   const { confirm, ConfirmModal } = useConfirm();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [addBranchOpen, setAddBranchOpen] = useState(false);
-  const [branchForm, setBranchForm] = useState({ name: '', phone: '' });
-  const [submittingBranch, setSubmittingBranch] = useState(false);
+  const {
+    register: registerBranch,
+    handleSubmit: handleBranchSubmit,
+    reset: resetBranchForm,
+    formState: { errors: branchErrors, isSubmitting: submittingBranch },
+  } = useForm<BranchFormValues>({
+    resolver: zodResolver(branchSchema),
+    defaultValues: { name: '', phone: '' },
+  });
 
   const handleLogout = async () => {
     const ok = await confirm({
@@ -76,25 +86,18 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
 
   const openAddBranch = () => {
     setSwitcherOpen(false);
-    setBranchForm({ name: '', phone: '' });
+    resetBranchForm({ name: '', phone: '' });
     setAddBranchOpen(true);
   };
 
-  const handleAddBranch = async () => {
-    if (!branchForm.name.trim() || !branchForm.phone.trim()) {
-      toast.error('Branch name and phone are required');
-      return;
-    }
-    setSubmittingBranch(true);
+  const handleAddBranch = async (values: BranchFormValues) => {
     try {
-      await addBranch({ name: branchForm.name.trim(), phone: branchForm.phone.trim() });
+      await addBranch({ name: values.name, phone: values.phone });
       toast.success('Branch added!');
       setAddBranchOpen(false);
     } catch (e) {
       const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(message || 'Failed to add branch');
-    } finally {
-      setSubmittingBranch(false);
     }
   };
 
@@ -254,31 +257,35 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
         <ModalOverlay onClose={() => setAddBranchOpen(false)}>
           <Modal className="max-w-[420px]">
             <ModalHeader title="Add Branch" onClose={() => setAddBranchOpen(false)} />
-            <ModalBody>
-              <FormField label="Branch Name">
-                <Input
-                  value={branchForm.name}
-                  onChange={e => setBranchForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="e.g. Downtown Branch"
-                  autoFocus
-                />
-              </FormField>
-              <FormField label="Phone" className="mb-0">
-                <Input
-                  value={branchForm.phone}
-                  onChange={e => setBranchForm(f => ({ ...f, phone: e.target.value }))}
-                  placeholder={locale.phoneExample}
-                />
-              </FormField>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="ghost" onClick={() => setAddBranchOpen(false)} disabled={submittingBranch}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddBranch} disabled={submittingBranch}>
-                {submittingBranch ? 'Adding...' : 'Add Branch'}
-              </Button>
-            </ModalFooter>
+            <form onSubmit={handleBranchSubmit(handleAddBranch)} noValidate>
+              <ModalBody>
+                <FormField label="Branch Name" error={branchErrors.name?.message}>
+                  <Input
+                    {...registerBranch('name')}
+                    placeholder="e.g. Downtown Branch"
+                    autoFocus
+                    error={!!branchErrors.name}
+                    aria-invalid={!!branchErrors.name}
+                  />
+                </FormField>
+                <FormField label="Phone" className="mb-0" error={branchErrors.phone?.message}>
+                  <Input
+                    {...registerBranch('phone')}
+                    placeholder={locale.phoneExample}
+                    error={!!branchErrors.phone}
+                    aria-invalid={!!branchErrors.phone}
+                  />
+                </FormField>
+              </ModalBody>
+              <ModalFooter>
+                <Button type="button" variant="ghost" onClick={() => setAddBranchOpen(false)} disabled={submittingBranch}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={submittingBranch}>
+                  {submittingBranch ? 'Adding...' : 'Add Branch'}
+                </Button>
+              </ModalFooter>
+            </form>
           </Modal>
         </ModalOverlay>
       )}

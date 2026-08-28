@@ -1,4 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { adminLoginSchema, type AdminLoginFormValues } from '../../utils/validation';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { adminLogin } from '../../services/apiServices/adminService';
@@ -6,13 +9,21 @@ import { ADMIN_TOKEN_KEY, ADMIN_USER_KEY } from '../../utils/constants';
 import { ShieldCheck } from 'lucide-react';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    formState: { errors },
+  } = useForm<AdminLoginFormValues>({
+    resolver: zodResolver(adminLoginSchema),
+    defaultValues: { email: '', password: '' },
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
+
+  const handleSubmit = rhfHandleSubmit(async ({ email, password }) => {
     setLoading(true);
     try {
       const { token, data } = await adminLogin(email, password);
@@ -26,7 +37,7 @@ export default function AdminLogin() {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   return (
     <div className="on-ink min-h-screen bg-ink-900 flex items-center justify-center p-6 font-sans">
@@ -40,28 +51,32 @@ export default function AdminLogin() {
         </div>
 
         <div className="bg-white/5 border border-white/15 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
               <label className="block text-sm font-semibold text-white/80 mb-2">Admin Email</label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-ink-800 border border-white/20 text-white focus:outline-none focus:border-accent-400 transition-colors"
+                {...register('email')}
+                className={`w-full px-4 py-3 bg-ink-800 border text-white focus:outline-none focus:border-accent-400 transition-colors ${errors.email ? 'border-danger' : 'border-white/20'}`}
                 placeholder="admin@garagepulse.com"
-                required
+                aria-invalid={!!errors.email}
               />
+              {errors.email && (
+                <p role="alert" className="mt-2 text-[13px] text-danger">{errors.email.message}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-semibold text-white/80 mb-2">Security Key</label>
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-ink-800 border border-white/20 text-white focus:outline-none focus:border-accent-400 transition-colors"
+                {...register('password')}
+                className={`w-full px-4 py-3 bg-ink-800 border text-white focus:outline-none focus:border-accent-400 transition-colors ${errors.password ? 'border-danger' : 'border-white/20'}`}
                 placeholder="••••••••"
-                required
+                aria-invalid={!!errors.password}
               />
+              {errors.password && (
+                <p role="alert" className="mt-2 text-[13px] text-danger">{errors.password.message}</p>
+              )}
             </div>
             <button
               type="submit"

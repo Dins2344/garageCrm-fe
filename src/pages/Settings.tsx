@@ -1,4 +1,11 @@
-import { useState, useEffect, useMemo, type ReactNode, type ComponentType, type FormEvent, type InputHTMLAttributes } from 'react';
+import { useState, useEffect, useMemo, forwardRef, type ReactNode, type ComponentType, type InputHTMLAttributes } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  staffSchema, profileSchema, changePasswordSchema, garageSettingsSchema,
+  type StaffFormValues, type ProfileFormValues, type ChangePasswordFormValues,
+  type GarageSettingsFormValues, type GarageSettingsFormOutput,
+} from '../utils/validation';
 import { useAuth } from '../context/AuthContext';
 import { useGarage } from '../context/GarageContext';
 import toast from 'react-hot-toast';
@@ -20,7 +27,7 @@ import {
   Pencil, X, Plus, Save, Eye, EyeOff, Trash2, Check,
   PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2,
 } from 'lucide-react';
-import type { User, Garage, Role } from '../types/models';
+import type { User, Garage, Role, ResolvedLocale } from '../types/models';
 
 // ─── Role config ─────────────────────────────────────────────────────────────
 
@@ -68,26 +75,42 @@ function InfoRow({ label, value, last }: { label: string; value?: string | null;
   );
 }
 
-function FormField({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
+/**
+ * The control is nested *inside* the `<label>` rather than linked by
+ * `htmlFor`/`id`. That gives the implicit association for free — no id to
+ * invent per field, none to collide when the same form renders twice — and it
+ * is what makes `getByLabelText` work in the tests.
+ */
+function FormField({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-        {label}{required && <span className="text-danger ml-0.5">*</span>}
+      <label className="block">
+        <span className="block text-sm font-semibold text-gray-700 mb-1.5">
+          {label}{required && <span className="text-danger ml-0.5">*</span>}
+        </span>
+        {children}
       </label>
-      {children}
+      {error && <p role="alert" className="text-danger text-[13px] mt-1">{error}</p>}
     </div>
   );
 }
 
-function PasswordInput({ value, onChange, placeholder, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+/**
+ * Forwards its ref: react-hook-form's `register()` returns a `ref` alongside
+ * `name`/`onChange`/`onBlur`, and without forwarding it the field is
+ * registered but never focusable — `setFocus` and the focus-first-error
+ * behaviour both silently do nothing.
+ */
+const PasswordInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { error?: boolean }>(
+  function PasswordInput({ placeholder, error, ...props }, ref) {
   const [show, setShow] = useState(false);
   return (
     <div className="relative">
       <Input
+        ref={ref}
         type={show ? 'text' : 'password'}
-        value={value}
-        onChange={onChange}
         placeholder={placeholder}
+        error={error}
         {...props}
       />
       <button
@@ -100,7 +123,7 @@ function PasswordInput({ value, onChange, placeholder, ...props }: InputHTMLAttr
       </button>
     </div>
   );
-}
+});
 
 function RoleBadge({ role }: { role: string }) {
   const cfg = ROLE_CONFIG[role] || { label: role, classes: 'bg-bone-200 text-gray-600' };
@@ -115,14 +138,6 @@ function RoleBadge({ role }: { role: string }) {
 
 // ─── Staff Add/Edit Modal ─────────────────────────────────────────────────────
 
-interface StaffForm {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  role: Role;
-}
-
 interface StaffModalProps {
   visible: boolean;
   onClose: () => void;
@@ -131,46 +146,49 @@ interface StaffModalProps {
   canSetAdmin: boolean;
 }
 
+const BLANK_STAFF_FORM: StaffFormValues = { name: '', email: '', phone: '', password: '', role: 'mechanic' };
+
 function StaffModal({ visible, onClose, onSave, editingUser, canSetAdmin }: StaffModalProps) {
   // The phone placeholder has to follow the garage's country — a UK garage
   // adding staff was being shown an Indian 10-digit example.
   const { locale } = useGarage();
-  const BLANK: StaffForm = { name: '', email: '', phone: '', password: '', role: 'mechanic' };
-  const [form, setForm] = useState<StaffForm>(BLANK);
-  const [saving, setSaving] = useState(false);
+
+  const {
+    register, handleSubmit, reset, setError,
+    formState: { errors, isSubmitting },
+  } = useForm<StaffFormValues>({
+    resolver: zodResolver(staffSchema),
+    defaultValues: BLANK_STAFF_FORM,
+  });
 
   useEffect(() => {
     if (visible) {
-      setForm(editingUser
+      reset(editingUser
         ? { name: editingUser.name, email: editingUser.email, phone: editingUser.phone, password: '', role: editingUser.role }
-        : BLANK
+        : BLANK_STAFF_FORM
       );
     }
-  }, [visible, editingUser]);
+  }, [visible, editingUser, reset]);
 
-  const set = <K extends keyof StaffForm>(key: K, val: StaffForm[K]) => setForm(f => ({ ...f, [key]: val }));
-
-  const handleSave = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
-      toast.error('Name, email, and phone are required');
+  const onValid = async (values: StaffFormValues) => {
+    // `staffSchema` allows a blank password so the *edit* form can leave it
+    // unchanged. Creating a staff member is the one case where it is required,
+    // and that depends on a prop the schema cannot see — so it is checked here
+    // and reported on the field, not through a toast.
+    if (!editingUser && !values.password) {
+      setError('password', { message: 'Password must be at least 6 characters' });
       return;
     }
-    if (!editingUser && form.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
-    setSaving(true);
     try {
-      const payload: Partial<User> & { password?: string } = { name: form.name, email: form.email, phone: form.phone, role: form.role };
-      if (!editingUser || form.password) payload.password = form.password;
+      const payload: Partial<User> & { password?: string } = {
+        name: values.name, email: values.email, phone: values.phone, role: values.role as Role,
+      };
+      if (!editingUser || values.password) payload.password = values.password;
       await onSave(payload);
       onClose();
     } catch (err) {
       const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(message || 'Failed to save staff member');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -182,32 +200,35 @@ function StaffModal({ visible, onClose, onSave, editingUser, canSetAdmin }: Staf
           title={editingUser ? 'Edit Staff Member' : 'Add Staff Member'}
           onClose={onClose}
         />
-        <form onSubmit={handleSave}>
+        <form onSubmit={handleSubmit(onValid)} noValidate>
           <ModalBody>
             <div className="flex flex-col gap-4">
-              <FormField label="Full Name" required>
-                <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Staff member's name" required />
+              <FormField label="Full Name" required error={errors.name?.message}>
+                <Input {...register('name')} placeholder="Staff member's name" error={!!errors.name} aria-invalid={!!errors.name} />
               </FormField>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="Email" required>
-                  <Input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="email@example.com" required autoCapitalize="none" />
+                <FormField label="Email" required error={errors.email?.message}>
+                  <Input type="email" {...register('email')} placeholder="email@example.com" autoCapitalize="none" error={!!errors.email} aria-invalid={!!errors.email} />
                 </FormField>
-                <FormField label="Phone" required>
-                  <Input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder={locale.phoneExample} required />
+                <FormField label="Phone" required error={errors.phone?.message}>
+                  <Input type="tel" {...register('phone')} placeholder={locale.phoneExample} error={!!errors.phone} aria-invalid={!!errors.phone} />
                 </FormField>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label={editingUser ? 'New Password (blank = keep)' : 'Password'} required={!editingUser}>
+                <FormField
+                  label={editingUser ? 'New Password (blank = keep)' : 'Password'}
+                  required={!editingUser}
+                  error={errors.password?.message}
+                >
                   <PasswordInput
-                    value={form.password}
-                    onChange={e => set('password', e.target.value)}
+                    {...register('password')}
                     placeholder="Min. 6 characters"
-                    minLength={editingUser ? 0 : 6}
-                    required={!editingUser}
+                    error={!!errors.password}
+                    aria-invalid={!!errors.password}
                   />
                 </FormField>
-                <FormField label="Role" required>
-                  <Select value={form.role} onChange={e => set('role', e.target.value as Role)}>
+                <FormField label="Role" required error={errors.role?.message}>
+                  <Select {...register('role')} error={!!errors.role}>
                     <option value="mechanic">Mechanic</option>
                     <option value="service_advisor">Service Advisor</option>
                     <option value="receptionist">Receptionist</option>
@@ -220,8 +241,8 @@ function StaffModal({ visible, onClose, onSave, editingUser, canSetAdmin }: Staf
           <ModalFooter>
             <div className="flex justify-end gap-3 w-full">
               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-              <Button type="submit" variant="primary" disabled={saving}>
-                {saving ? 'Saving...' : editingUser ? 'Save Changes' : 'Add Staff Member'}
+              <Button type="submit" variant="primary" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : editingUser ? 'Save Changes' : 'Add Staff Member'}
               </Button>
             </div>
           </ModalFooter>
@@ -352,20 +373,18 @@ function DeleteBranchModal({ branch, otherBranches, onClose, onConfirm }: Delete
   );
 }
 
-interface GarageForm {
-  name: string;
-  phone: string;
-  email: string;
-  gstNumber: string;
-  taxRate: string;
-  laborRatePerHour: string;
-  country: string;
-  timezone: string;
-  street: string;
-  city: string;
-  state: string;
-  pincode: string;
-}
+/**
+ * Shape follows `garageSettingsSchema` — nested `settings` and `address`, the
+ * same as the API payload — rather than the flat object this form used to
+ * hold. One shape from input to request means no hand-written mapping step in
+ * between for a field to go missing from.
+ */
+const BLANK_GARAGE_FORM: GarageSettingsFormValues = {
+  name: '', phone: '', email: '', gstNumber: '',
+  country: DEFAULT_LOCALE.country,
+  settings: { taxRate: '18', laborRatePerHour: '500', timezone: '' },
+  address: { street: '', city: '', state: '', pincode: '' },
+};
 
 // ═══════════════ MAIN SETTINGS PAGE ═══════════════
 
@@ -396,19 +415,53 @@ export default function Settings() {
   const [garage, setGarage] = useState<Garage | null>(null);
   const [garageLoading, setGarageLoading] = useState(true);
   const [editingGarage, setEditingGarage] = useState(false);
-  const [garageForm, setGarageForm] = useState<GarageForm>({
-    name: '', phone: '', email: '', gstNumber: '',
-    taxRate: '18', laborRatePerHour: '500',
-    country: DEFAULT_LOCALE.country, timezone: '',
-    street: '', city: '', state: '', pincode: '',
+  /**
+   * The postal-code and tax-id rules follow the country **being edited**, not
+   * the saved one — otherwise switching to the UK still validates the postcode
+   * against India's digits-only rule and `SW1A 1AA` is unenterable.
+   *
+   * That looks circular — the resolver needs the locale, the locale needs the
+   * form's country, the form does not exist yet — but it is not: the resolver
+   * is handed the values it is validating, and the country is one of them. So
+   * the locale is derived from the payload rather than from render state, with
+   * no ref and no second source of truth.
+   */
+  const localeForCountry = (code: string): ResolvedLocale => {
+    const c = countries.find(x => x.code === code);
+    return c
+      ? {
+        ...DEFAULT_LOCALE,
+        country: c.code, currency: c.currency,
+        taxLabel: c.taxLabel, taxIdLabel: c.taxIdLabel,
+        postalLabel: c.postalLabel, postalInputMode: c.postalInputMode,
+        phoneExample: c.phoneExample,
+      }
+      : DEFAULT_LOCALE;
+  };
+
+  const {
+    register: registerGarage,
+    handleSubmit: handleGarageSubmit,
+    reset: resetGarageForm,
+    watch: watchGarage,
+    setValue: setGarageValue,
+    formState: { errors: garageErrors, isSubmitting: savingGarage },
+  } = useForm<GarageSettingsFormValues, unknown, GarageSettingsFormOutput>({
+    // `useForm` re-reads its props every render, so this closure always sees
+    // the latest `countries`.
+    resolver: (values, ctx, opts) => {
+      const code = String((values as { country?: unknown }).country ?? DEFAULT_LOCALE.country);
+      return zodResolver(garageSettingsSchema(localeForCountry(code)))(values, ctx, opts);
+    },
+    defaultValues: BLANK_GARAGE_FORM,
   });
-  const [savingGarage, setSavingGarage] = useState(false);
 
   // Labels follow the country being EDITED, not the saved one, so switching
   // the picker to United Kingdom relabels "GSTIN" to "VAT No." immediately —
   // the owner sees what they're choosing before they commit to it.
-  const selectedCountry = countries.find(c => c.code === garageForm.country);
-  const timezoneOptions = timezoneChoicesFor(garageForm.country);
+  const watchedCountry = watchGarage('country');
+  const selectedCountry = countries.find(c => c.code === watchedCountry);
+  const timezoneOptions = timezoneChoicesFor(watchedCountry);
   const needsTimezone = (selectedCountry?.requiresTimezoneChoice ?? false) && timezoneOptions.length > 0;
   // Falls back to the saved locale, then India, so nothing renders blank while
   // the country list is still loading.
@@ -421,13 +474,29 @@ export default function Settings() {
     phoneExample: selectedCountry?.phoneExample ?? garage?.locale?.phoneExample ?? DEFAULT_LOCALE.phoneExample,
   };
 
-  // ── Profile state ──
-  const [profileForm, setProfileForm] = useState({ name: user?.name || '', phone: user?.phone || '' });
-  const [savingProfile, setSavingProfile] = useState(false);
+  // ── Profile form ──
+  const {
+    register: registerProfile,
+    handleSubmit: handleProfileSubmit,
+    formState: { errors: profileErrors, isSubmitting: savingProfile },
+  } = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: { name: user?.name || '', phone: user?.phone || '' },
+  });
 
-  // ── Password state ──
-  const [pwdForm, setPwdForm] = useState({ current: '', new: '', confirm: '' });
-  const [savingPwd, setSavingPwd] = useState(false);
+  // ── Password form ──
+  const {
+    register: registerPwd,
+    handleSubmit: handlePwdSubmit,
+    reset: resetPwdForm,
+    watch: watchPwd,
+    formState: { errors: pwdErrors, isSubmitting: savingPwd },
+  } = useForm<ChangePasswordFormValues>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+  });
+  const watchedNewPassword = watchPwd('newPassword');
+  const watchedConfirm = watchPwd('confirmPassword');
 
   // ── Staff state ──
   const [staff, setStaff] = useState<User[]>([]);
@@ -452,47 +521,54 @@ export default function Settings() {
   };
 
   const populateGarageForm = (g: Garage) => {
-    setGarageForm({
+    resetGarageForm({
       name: g.name || '',
       phone: g.phone || '',
       email: g.email || '',
       gstNumber: g.gstNumber || '',
-      taxRate: String(g.settings?.taxRate ?? 18),
-      laborRatePerHour: String(g.settings?.laborRatePerHour ?? 500),
       // Garages created before country support have no `country` key at all;
       // the server resolves them to India, so the form must show the same.
       country: g.country || g.locale?.country || DEFAULT_LOCALE.country,
-      timezone: g.settings?.timezone || '',
-      street: g.address?.street || '',
-      city: g.address?.city || '',
-      state: g.address?.state || '',
-      pincode: g.address?.pincode || '',
+      settings: {
+        taxRate: String(g.settings?.taxRate ?? 18),
+        laborRatePerHour: String(g.settings?.laborRatePerHour ?? 500),
+        timezone: g.settings?.timezone || '',
+      },
+      address: {
+        street: g.address?.street || '',
+        city: g.address?.city || '',
+        state: g.address?.state || '',
+        pincode: g.address?.pincode || '',
+      },
     });
   };
 
-  const handleSaveGarage = async () => {
-    if (!garageForm.name.trim()) { toast.error('Garage name is required'); return; }
+  const handleSaveGarage = async (values: GarageSettingsFormOutput) => {
     await withLoader(async () => {
-      setSavingGarage(true);
       try {
         const { data } = await updateGarage({
-          name: garageForm.name.trim(),
-          phone: garageForm.phone.trim(),
-          email: garageForm.email.trim(),
-          gstNumber: garageForm.gstNumber.trim(),
-          country: garageForm.country,
-          address: { street: garageForm.street, city: garageForm.city, state: garageForm.state, pincode: garageForm.pincode },
+          name: values.name,
+          phone: values.phone,
+          email: values.email || '',
+          gstNumber: values.gstNumber || '',
+          country: values.country,
+          address: {
+            street: values.address.street || '',
+            city: values.address.city || '',
+            state: values.address.state || '',
+            pincode: values.address.pincode || '',
+          },
           // Send only the settings this form actually edits. The API merges
           // partial `settings` (dotted-path $set), so omitted keys — currency,
           // serviceReminderDays — are preserved rather than wiped. Previously
           // this resent every key, which hardcoded `currency: 'INR'` and
           // overwrote it on every save.
           settings: {
-            taxRate: Number(garageForm.taxRate) || 0,
-            laborRatePerHour: Number(garageForm.laborRatePerHour) || 0,
+            taxRate: values.settings.taxRate,
+            laborRatePerHour: values.settings.laborRatePerHour,
             // '' clears the override so the country table applies. Only
             // multi-zone countries ever set it.
-            timezone: needsTimezone ? garageForm.timezone : '',
+            timezone: needsTimezone ? (values.settings.timezone || '') : '',
           },
         });
         setGarage(data);
@@ -504,38 +580,32 @@ export default function Settings() {
       } catch (e) {
         const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
         toast.error(message || 'Failed to update garage');
-      } finally { setSavingGarage(false); }
+      }
     });
   };
 
-  const handleSaveProfile = async () => {
-    if (!profileForm.name.trim()) { toast.error('Name cannot be empty'); return; }
+  const handleSaveProfile = async (values: ProfileFormValues) => {
     await withLoader(async () => {
-      setSavingProfile(true);
       try {
-        await updateProfile({ name: profileForm.name.trim(), phone: profileForm.phone.trim() });
+        await updateProfile({ name: values.name, phone: values.phone });
         toast.success('Profile updated!');
       } catch (e) {
         const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
         toast.error(message || 'Failed to update profile');
-      } finally { setSavingProfile(false); }
+      }
     });
   };
 
-  const handleChangePassword = async () => {
-    if (!pwdForm.current || !pwdForm.new || !pwdForm.confirm) { toast.error('Please fill all fields'); return; }
-    if (pwdForm.new.length < 6) { toast.error('New password must be at least 6 characters'); return; }
-    if (pwdForm.new !== pwdForm.confirm) { toast.error('Passwords do not match'); return; }
+  const handleChangePassword = async (values: ChangePasswordFormValues) => {
     await withLoader(async () => {
-      setSavingPwd(true);
       try {
-        await changePassword({ currentPassword: pwdForm.current, newPassword: pwdForm.new });
+        await changePassword({ currentPassword: values.currentPassword, newPassword: values.newPassword });
         toast.success('Password changed successfully!');
-        setPwdForm({ current: '', new: '', confirm: '' });
+        resetPwdForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       } catch (e) {
         const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
         toast.error(message || 'Failed to change password');
-      } finally { setSavingPwd(false); }
+      }
     });
   };
 
@@ -672,29 +742,31 @@ export default function Settings() {
         {garageLoading ? (
           <Loader />
         ) : editingGarage ? (
-          <div className="flex flex-col gap-4">
-            <FormField label="Garage Name" required>
-              <Input value={garageForm.name} onChange={e => setGarageForm(f => ({ ...f, name: e.target.value }))} placeholder="Your garage name" required />
+          <form className="flex flex-col gap-4" onSubmit={handleGarageSubmit(handleSaveGarage)} noValidate>
+            <FormField label="Garage Name" required error={garageErrors.name?.message}>
+              <Input {...registerGarage('name')} placeholder="Your garage name" error={!!garageErrors.name} aria-invalid={!!garageErrors.name} />
             </FormField>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Phone">
-                <Input type="tel" value={garageForm.phone} onChange={e => setGarageForm(f => ({ ...f, phone: e.target.value }))} placeholder={labels.phoneExample} />
+              <FormField label="Phone" required error={garageErrors.phone?.message}>
+                <Input type="tel" {...registerGarage('phone')} placeholder={labels.phoneExample} error={!!garageErrors.phone} aria-invalid={!!garageErrors.phone} />
               </FormField>
-              <FormField label="Email">
-                <Input type="email" value={garageForm.email} onChange={e => setGarageForm(f => ({ ...f, email: e.target.value }))} placeholder="Garage email address" />
+              <FormField label="Email" error={garageErrors.email?.message}>
+                <Input type="email" {...registerGarage('email')} placeholder="Garage email address" error={!!garageErrors.email} aria-invalid={!!garageErrors.email} />
               </FormField>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Country">
+              <FormField label="Country" error={garageErrors.country?.message}>
                 <Select
-                  value={garageForm.country}
-                  // Clear any zone chosen for the previous country — a US zone
-                  // on a garage that just moved to Australia is worse than none.
-                  onChange={e => setGarageForm(f => ({ ...f, country: e.target.value, timezone: '' }))}
+                  {...registerGarage('country', {
+                    // Clear any zone chosen for the previous country — a US zone
+                    // on a garage that just moved to Australia is worse than none.
+                    onChange: () => setGarageValue('settings.timezone', ''),
+                  })}
+                  error={!!garageErrors.country}
                 >
                   {countries.length === 0 ? (
-                    <option value={garageForm.country}>{garage?.locale?.country ?? DEFAULT_LOCALE.country}</option>
+                    <option value={watchedCountry}>{garage?.locale?.country ?? DEFAULT_LOCALE.country}</option>
                   ) : (
                     countries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)
                   )}
@@ -702,7 +774,7 @@ export default function Settings() {
               </FormField>
               {needsTimezone ? (
                 <FormField label="Timezone">
-                  <Select value={garageForm.timezone} onChange={e => setGarageForm(f => ({ ...f, timezone: e.target.value }))}>
+                  <Select {...registerGarage('settings.timezone')}>
                     <option value="">Select a timezone</option>
                     {timezoneOptions.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
                   </Select>
@@ -716,32 +788,32 @@ export default function Settings() {
               )}
             </div>
 
-            <FormField label={`${labels.taxId} (optional)`}>
-              <Input value={garageForm.gstNumber} onChange={e => setGarageForm(f => ({ ...f, gstNumber: e.target.value }))} placeholder={`Your ${labels.taxId}`} />
+            <FormField label={`${labels.taxId} (optional)`} error={garageErrors.gstNumber?.message}>
+              <Input {...registerGarage('gstNumber')} placeholder={`Your ${labels.taxId}`} error={!!garageErrors.gstNumber} aria-invalid={!!garageErrors.gstNumber} />
             </FormField>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label={`Default ${labels.tax} Rate (%)`}>
-                <Input type="number" value={garageForm.taxRate} onChange={e => setGarageForm(f => ({ ...f, taxRate: e.target.value }))} placeholder="0" min="0" max="100" />
+              <FormField label={`Default ${labels.tax} Rate (%)`} error={garageErrors.settings?.taxRate?.message}>
+                <Input type="number" {...registerGarage('settings.taxRate')} placeholder="0" min="0" max="100" error={!!garageErrors.settings?.taxRate} aria-invalid={!!garageErrors.settings?.taxRate} />
               </FormField>
-              <FormField label={`Labor Rate (${labels.currency}/hr)`}>
-                <Input type="number" value={garageForm.laborRatePerHour} onChange={e => setGarageForm(f => ({ ...f, laborRatePerHour: e.target.value }))} placeholder="0" min="0" />
+              <FormField label={`Labor Rate (${labels.currency}/hr)`} error={garageErrors.settings?.laborRatePerHour?.message}>
+                <Input type="number" {...registerGarage('settings.laborRatePerHour')} placeholder="0" min="0" error={!!garageErrors.settings?.laborRatePerHour} aria-invalid={!!garageErrors.settings?.laborRatePerHour} />
               </FormField>
             </div>
 
             <div className="pt-2 border-t border-bone-200">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Address</p>
               <div className="flex flex-col gap-3">
-                <FormField label="Street / Area">
-                  <Input value={garageForm.street} onChange={e => setGarageForm(f => ({ ...f, street: e.target.value }))} placeholder="Street or area" />
+                <FormField label="Street / Area" error={garageErrors.address?.street?.message}>
+                  <Input {...registerGarage('address.street')} placeholder="Street or area" error={!!garageErrors.address?.street} />
                 </FormField>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <FormField label="City">
-                    <Input value={garageForm.city} onChange={e => setGarageForm(f => ({ ...f, city: e.target.value }))} placeholder="City" />
+                  <FormField label="City" error={garageErrors.address?.city?.message}>
+                    <Input {...registerGarage('address.city')} placeholder="City" error={!!garageErrors.address?.city} />
                   </FormField>
-                  <FormField label="State">
-                    <Input value={garageForm.state} onChange={e => setGarageForm(f => ({ ...f, state: e.target.value }))} placeholder="State" />
+                  <FormField label="State" error={garageErrors.address?.state?.message}>
+                    <Input {...registerGarage('address.state')} placeholder="State" error={!!garageErrors.address?.state} />
                   </FormField>
-                  <FormField label={labels.postal}>
+                  <FormField label={labels.postal} error={garageErrors.address?.pincode?.message}>
                     {/* Never type="number": it makes alphanumeric postcodes
                         (UK "SW1A 1AA", Canadian "K1A 0B1") impossible to type,
                         and even for India it accepts 'e'/'+'/'-' and renders
@@ -750,9 +822,10 @@ export default function Settings() {
                     <Input
                       type="text"
                       inputMode={labels.postalInputMode}
-                      value={garageForm.pincode}
-                      onChange={e => setGarageForm(f => ({ ...f, pincode: e.target.value }))}
+                      {...registerGarage('address.pincode')}
                       placeholder={labels.postal}
+                      error={!!garageErrors.address?.pincode}
+                      aria-invalid={!!garageErrors.address?.pincode}
                     />
                   </FormField>
                 </div>
@@ -760,11 +833,11 @@ export default function Settings() {
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button variant="primary" onClick={handleSaveGarage} disabled={savingGarage} icon={Save}>
+              <Button type="submit" variant="primary" disabled={savingGarage} icon={Save}>
                 {savingGarage ? 'Saving...' : 'Save Garage Info'}
               </Button>
             </div>
-          </div>
+          </form>
         ) : (
           <div>
             <InfoRow label="Garage Name" value={garage?.name} />
@@ -986,77 +1059,80 @@ export default function Settings() {
 
       {/* ── MY PROFILE ── */}
       <SectionCard id="my-profile" icon={UserCircle} title="Edit My Profile">
-        <div className="flex flex-col gap-4">
-          <FormField label="Full Name" required>
+        <form className="flex flex-col gap-4" onSubmit={handleProfileSubmit(handleSaveProfile)} noValidate>
+          <FormField label="Full Name" required error={profileErrors.name?.message}>
             <Input
-              value={profileForm.name}
-              onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))}
+              {...registerProfile('name')}
               placeholder="Your name"
+              error={!!profileErrors.name}
+              aria-invalid={!!profileErrors.name}
             />
           </FormField>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField label="Email (read-only)">
               <Input type="email" value={user?.email || ''} disabled className="opacity-60 cursor-not-allowed" />
             </FormField>
-            <FormField label="Phone">
+            <FormField label="Phone" required error={profileErrors.phone?.message}>
               <Input
                 type="tel"
-                value={profileForm.phone}
-                onChange={e => setProfileForm(f => ({ ...f, phone: e.target.value }))}
+                {...registerProfile('phone')}
                 placeholder="Phone number"
+                error={!!profileErrors.phone}
+                aria-invalid={!!profileErrors.phone}
               />
             </FormField>
           </div>
           <div className="flex justify-end">
-            <Button variant="primary" onClick={handleSaveProfile} disabled={savingProfile} icon={Save}>
+            <Button type="submit" variant="primary" disabled={savingProfile} icon={Save}>
               {savingProfile ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
-        </div>
+        </form>
       </SectionCard>
 
       {/* ── CHANGE PASSWORD ── */}
       <SectionCard id="change-password" icon={Lock} title="Change Password">
-        <div className="flex flex-col gap-4">
-          <FormField label="Current Password" required>
+        <form className="flex flex-col gap-4" onSubmit={handlePwdSubmit(handleChangePassword)} noValidate>
+          <FormField label="Current Password" required error={pwdErrors.currentPassword?.message}>
             <PasswordInput
-              value={pwdForm.current}
-              onChange={e => setPwdForm(f => ({ ...f, current: e.target.value }))}
+              {...registerPwd('currentPassword')}
               placeholder="Your current password"
+              error={!!pwdErrors.currentPassword}
+              aria-invalid={!!pwdErrors.currentPassword}
             />
           </FormField>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField label="New Password" required>
+            <FormField label="New Password" required error={pwdErrors.newPassword?.message}>
               <PasswordInput
-                value={pwdForm.new}
-                onChange={e => setPwdForm(f => ({ ...f, new: e.target.value }))}
+                {...registerPwd('newPassword')}
                 placeholder="Min. 6 characters"
+                error={!!pwdErrors.newPassword}
+                aria-invalid={!!pwdErrors.newPassword}
               />
             </FormField>
-            <FormField label="Confirm New Password" required>
+            <FormField label="Confirm New Password" required error={pwdErrors.confirmPassword?.message}>
               <PasswordInput
-                value={pwdForm.confirm}
-                onChange={e => setPwdForm(f => ({ ...f, confirm: e.target.value }))}
+                {...registerPwd('confirmPassword')}
                 placeholder="Re-enter new password"
+                error={!!pwdErrors.confirmPassword}
+                aria-invalid={!!pwdErrors.confirmPassword}
               />
             </FormField>
           </div>
-          {/* Password match indicator */}
-          {pwdForm.confirm && (
-            <p className={`text-xs font-semibold flex items-center gap-1 ${pwdForm.new === pwdForm.confirm ? 'text-emerald-600' : 'text-red-500'}`}>
-              {pwdForm.new === pwdForm.confirm ? (
-                <><Check className="w-3.5 h-3.5" strokeWidth={3} /> Passwords match</>
-              ) : (
-                <><X className="w-3.5 h-3.5" strokeWidth={3} /> Passwords do not match</>
-              )}
+          {/* Only the affirmative half of the old match indicator survives.
+              The failure case is now the schema's `confirmPassword` error, and
+              showing both would report the same problem twice in two colours. */}
+          {watchedConfirm && watchedNewPassword === watchedConfirm && (
+            <p className="text-xs font-semibold flex items-center gap-1 text-emerald-600">
+              <Check className="w-3.5 h-3.5" strokeWidth={3} /> Passwords match
             </p>
           )}
           <div className="flex justify-end">
-            <Button variant="primary" onClick={handleChangePassword} disabled={savingPwd} icon={Lock}>
+            <Button type="submit" variant="primary" disabled={savingPwd} icon={Lock}>
               {savingPwd ? 'Updating...' : 'Update Password'}
             </Button>
           </div>
-        </div>
+        </form>
       </SectionCard>
 
       {/* Modals */}

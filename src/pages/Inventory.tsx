@@ -1,4 +1,7 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { inventorySchema, type InventoryFormValues, type InventoryFormOutput } from '../utils/validation';
 import { useGarage } from '../context/GarageContext';
 import { formatMoney } from '../utils/format';
 import { DEFAULT_PAGE_SIZE } from '../utils/constants';
@@ -43,19 +46,8 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: 'other', label: 'Other' }
 ];
 
-interface ItemForm {
-  partName: string;
-  partNumber: string;
-  category: InventoryCategory;
-  quantity: number;
-  threshold: number;
-  unitPrice: number;
-  sellingPrice: number;
-  supplier: { name: string; phone: string };
-  location: string;
-}
-
-const BLANK_FORM: ItemForm = {
+// Shape comes from the zod schema so the form and the validator cannot drift.
+const BLANK_FORM: InventoryFormValues = {
   partName: '', partNumber: '', category: 'other',
   quantity: 0, threshold: 5, unitPrice: 0, sellingPrice: 0,
   supplier: { name: '', phone: '' }, location: ''
@@ -76,7 +68,17 @@ export default function Inventory() {
   const { withLoader } = useGlobalLoader();
   const { confirm, ConfirmModal } = useConfirm();
 
-  const [form, setForm] = useState<ItemForm>(BLANK_FORM);
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<InventoryFormValues, unknown, InventoryFormOutput>({
+    resolver: zodResolver(inventorySchema),
+    defaultValues: BLANK_FORM,
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
 
   // Reset to page 1 whenever the user changes the search term
   useEffect(() => {
@@ -109,13 +111,13 @@ export default function Inventory() {
 
   const openAdd = () => {
     setEditingItem(null);
-    setForm(BLANK_FORM);
+    reset(BLANK_FORM);
     setShowModal(true);
   };
 
   const openEdit = (item: InventoryItem) => {
     setEditingItem(item);
-    setForm({
+    reset({
       partName: item.partName,
       partNumber: item.partNumber || '',
       category: item.category,
@@ -129,8 +131,8 @@ export default function Inventory() {
     setShowModal(true);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = rhfHandleSubmit(async (values) => {
+    const form = { ...values, category: values.category as InventoryCategory };
     await withLoader(async () => {
       try {
         if (editingItem) {
@@ -147,7 +149,7 @@ export default function Inventory() {
         toast.error(message || 'Failed to save');
       }
     });
-  };
+  });
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
@@ -287,7 +289,7 @@ export default function Inventory() {
       {showModal && (
         <ModalOverlay onClose={() => setShowModal(false)}>
           <Modal>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               <ModalHeader
                 title={editingItem ? 'Edit Inventory Item' : 'Add Inventory Item'}
                 onClose={() => setShowModal(false)}
@@ -297,17 +299,19 @@ export default function Inventory() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Part Name *</label>
                     <Input
-                      value={form.partName}
-                      onChange={e => setForm({ ...form, partName: e.target.value })}
+                      {...register('partName')}
                       placeholder="Engine Oil 5W-30"
-                      required
+                      error={!!errors.partName}
+                      aria-invalid={!!errors.partName}
                     />
+                    {errors.partName && (
+                      <p role="alert" className="text-danger text-[13px] mt-1">{errors.partName.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Part Number</label>
                     <Input
-                      value={form.partNumber}
-                      onChange={e => setForm({ ...form, partNumber: e.target.value })}
+                      {...register('partNumber')}
                       placeholder="SKU / Part #"
                     />
                   </div>
@@ -316,8 +320,7 @@ export default function Inventory() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
                     <Select
-                      value={form.category}
-                      onChange={e => setForm({ ...form, category: e.target.value as InventoryCategory })}
+                      {...register('category')}
                     >
                       {CATEGORIES.filter(c => c.value).map(c => (
                         <option key={c.value} value={c.value}>{c.label}</option>
@@ -327,8 +330,7 @@ export default function Inventory() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Location</label>
                     <Input
-                      value={form.location}
-                      onChange={e => setForm({ ...form, location: e.target.value })}
+                      {...register('location')}
                       placeholder="Rack A, Shelf 3"
                     />
                   </div>
@@ -338,18 +340,15 @@ export default function Inventory() {
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Quantity *</label>
                     <Input
                       type="number"
-                      value={form.quantity}
-                      onChange={e => setForm({ ...form, quantity: parseInt(e.target.value, 10) || 0 })}
+                      {...register('quantity')}
                       min="0"
-                      required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Low Stock Threshold</label>
                     <Input
                       type="number"
-                      value={form.threshold}
-                      onChange={e => setForm({ ...form, threshold: parseInt(e.target.value, 10) || 0 })}
+                      {...register('threshold')}
                       min="0"
                     />
                   </div>
@@ -359,18 +358,15 @@ export default function Inventory() {
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cost Price ({locale.currency}) *</label>
                     <Input
                       type="number"
-                      value={form.unitPrice}
-                      onChange={e => setForm({ ...form, unitPrice: parseFloat(e.target.value) || 0 })}
+                      {...register('unitPrice')}
                       min="0"
-                      required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Selling Price ({locale.currency})</label>
                     <Input
                       type="number"
-                      value={form.sellingPrice}
-                      onChange={e => setForm({ ...form, sellingPrice: parseFloat(e.target.value) || 0 })}
+                      {...register('sellingPrice')}
                       min="0"
                     />
                   </div>
@@ -379,16 +375,16 @@ export default function Inventory() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Supplier Name</label>
                     <Input
-                      value={form.supplier.name}
-                      onChange={e => setForm({ ...form, supplier: { ...form.supplier, name: e.target.value } })}
+                      {...register('supplier.name')}
                       placeholder="Supplier name"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Supplier Phone</label>
                     <Input
-                      value={form.supplier.phone}
-                      onChange={e => setForm({ ...form, supplier: { ...form.supplier, phone: e.target.value } })}
+                      {...register('supplier.phone')}
+                      error={!!errors.supplier?.phone}
+                      aria-invalid={!!errors.supplier?.phone}
                       placeholder="Supplier phone"
                     />
                   </div>
