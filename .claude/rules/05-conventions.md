@@ -70,6 +70,7 @@ Tests use **Vitest** + **React Testing Library** + **user-event**, with API serv
 - Mock `../context/AuthContext` / `../context/GlobalLoaderContext` directly (`vi.mock('../context/AuthContext', () => ({ useAuth: () => ({...}) }))`) in page tests rather than rendering the real providers, unless the test is specifically about auth/loader behavior itself (see `AuthContext.test.tsx`).
 - Priority order for new work: hooks and context (pure logic, cheap to test), the service-layer contract for any new/changed service module, and one componentry-level test per new page (fetch → render, plus the primary user action) — not exhaustive line coverage.
 - Use `getByRole`/`getByPlaceholderText`/`getByText` queries (matching how a user finds the element) over `getByTestId`; add `data-testid` only when there's no accessible query available.
+- **A per-call `waitFor(..., { timeout })` replaces the global `asyncUtilTimeout` from `src/test/setup.ts` outright — it does not cap it.** `App.test.tsx` carried a hardcoded 3s on the assertion that waits for Dashboard's Recharts chunk, so the global was never in play there and the test stayed flaky through two raises of it. If a `waitFor` flakes, look for a local override *before* touching the global.
 
 ### Running tests
 ```bash

@@ -35,6 +35,7 @@ const AdminOverview = lazy(() => import('./pages/Admin/AdminOverview'));
 const AdminGarages = lazy(() => import('./pages/Admin/AdminGarages'));
 const AdminUsers = lazy(() => import('./pages/Admin/AdminUsers'));
 const AdminHealth = lazy(() => import('./pages/Admin/AdminHealth'));
+const AdminAppRelease = lazy(() => import('./pages/Admin/AdminAppRelease'));
 
 // Protected route wrapper
 function ProtectedRoute({ children, roles }: { children: ReactNode; roles?: Role[] }) {
@@ -144,6 +145,7 @@ function App() {
               <Route path="garages" element={<AdminGarages />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="health" element={<AdminHealth />} />
+              <Route path="app-release" element={<AdminAppRelease />} />
               <Route index element={<Navigate to="overview" replace />} />
             </Route>
 
