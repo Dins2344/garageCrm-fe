@@ -22,16 +22,26 @@ interface FormFieldProps {
   className?: string;
 }
 
+/**
+ * The control is nested *inside* the `<label>` rather than linked by
+ * `htmlFor`/`id`. That gives the association for free — no id to invent per
+ * field, none to collide when the same form renders twice — and it is what
+ * makes `getByLabelText` work, which is how this repo's tests are told to
+ * select inputs. The same shape is used by the local `FormField` in
+ * `pages/Settings.tsx`.
+ */
 export function FormField({ label, error, children, className = '' }: FormFieldProps) {
   return (
     <div className={`mb-5 ${className}`}>
-      {label && (
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-          {label}
+      {label ? (
+        <label className="block">
+          <span className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</span>
+          {children}
         </label>
+      ) : (
+        children
       )}
-      {children}
-      {error && <p className="text-danger text-[13px] mt-1">{error}</p>}
+      {error && <p role="alert" className="text-danger text-[13px] mt-1">{error}</p>}
     </div>
   );
 }

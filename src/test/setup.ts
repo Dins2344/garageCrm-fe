@@ -13,10 +13,16 @@ import { cleanup, configure } from '@testing-library/react';
  * import alone crosses it: measured here, the same test passed in a 6s run and
  * failed in 12s and 21s runs, on identical code.
  *
- * 5s is long enough that machine load never fails a passing test, and short
- * enough that a genuinely missing element still fails the run quickly.
+ * 8s: long enough that contention never fails a passing test, short enough
+ * that a genuinely missing element still fails the run promptly.
+ *
+ * **A per-call `waitFor(..., { timeout })` replaces this outright, it does not
+ * cap it.** `App.test.tsx` carried a hardcoded 3s for exactly the assertion
+ * that waits on Dashboard's Recharts chunk, so this global was never in play
+ * there and the test stayed flaky through two raises of it. If a `waitFor`
+ * flakes, check for a local override before touching this number.
  */
-configure({ asyncUtilTimeout: 5000 });
+configure({ asyncUtilTimeout: 8000 });
 
 // `globals: false` in vite.config.ts means Testing Library's own auto-cleanup
 // never self-installs (it only does so when it detects a *global* afterEach),

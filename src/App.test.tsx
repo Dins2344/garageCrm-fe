@@ -69,6 +69,10 @@ describe('App routing guards', () => {
 
     render(<App />);
 
-    await waitFor(() => expect(screen.getByText(/Dashboard Overview/i)).toBeInTheDocument(), { timeout: 3000 });
+    // No local `timeout` override: a per-call value replaces the global
+    // `asyncUtilTimeout` from src/test/setup.ts outright, and a hardcoded 3s
+    // here is not enough for Dashboard's lazy chunk (which pulls in Recharts)
+    // under a loaded parallel run. That is what made this test flaky.
+    await waitFor(() => expect(screen.getByText(/Dashboard Overview/i)).toBeInTheDocument());
   });
 });

@@ -124,6 +124,13 @@ Four things that are settled and should not be re-litigated:
    — it still runs the schema via `safeParse` and shows *why* it's blocked next
    to the disabled button.
 
+**One exception: admin-console schemas live in `src/utils/adminValidation.ts`,
+not `validation.ts`.** That file is hand-mirrored with mobile and listed in the
+`/mirror-check` table; an admin-only schema there would either ship mobile a
+schema for a screen it will never have, or leave the mirror check permanently
+dirty — and a mirror check expected to be dirty stops catching the drift it
+exists to catch.
+
 `z.coerce` fields have different input and output types, so those need
 `useForm<Input, unknown, Output>`; both are exported per schema.
 

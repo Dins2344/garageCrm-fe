@@ -118,4 +118,35 @@ export const deleteOrphanedGarage = async (garageId: string): Promise<ApiItemRes
   return res.data;
 };
 
+
+/**
+ * The mobile release policy. Colocated here rather than in types/models.ts,
+ * which is hand-mirrored with the mobile repo and has no use for an
+ * admin-only shape — same reasoning as AdminStats above.
+ */
+export interface AppReleasePolicy {
+  platform: string;
+  latestVersion: string;
+  /** Blank means nobody is blocked. The undo path for a bad policy. */
+  minSupportedVersion: string;
+  storeUrl: string;
+  updateMessage: string;
+  blockingMessage: string;
+  enabled: boolean;
+  updatedBy?: string;
+  updatedAt?: string;
+}
+
+/** `data` is null when no policy has been saved yet — a normal state, not an error. */
+export const getAppRelease = async (platform = 'android'): Promise<ApiItemResponse<AppReleasePolicy | null>> => {
+  const res = await adminApi.get(`/app-release?platform=${platform}`);
+  return res.data;
+};
+
+/** The first write on this surface — everything else here reads or deletes. */
+export const updateAppRelease = async (body: AppReleasePolicy): Promise<ApiItemResponse<AppReleasePolicy>> => {
+  const res = await adminApi.put('/app-release', body);
+  return res.data;
+};
+
 export default adminApi;
