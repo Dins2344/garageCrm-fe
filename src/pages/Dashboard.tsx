@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useGarage } from '../context/GarageContext';
+import SampleDataBanner from '../components/SampleDataBanner';
 import { formatMoney, formatDate as fmtDate } from '../utils/format';
 import { Link } from 'react-router-dom';
 import { getDashboardStats, getChartData, triggerCron as runReminderCron } from '../services/apiServices/dashboardService';
@@ -51,7 +52,7 @@ const PRESETS: Preset[] = [
 ];
 
 export default function Dashboard() {
-  const { locale } = useGarage();
+  const { locale, activeGarage, refreshGarage } = useGarage();
   const money = (n?: number) => formatMoney(n, locale);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -145,6 +146,12 @@ export default function Dashboard() {
           Refresh Data
         </Button>
       </div>
+
+      {/* Above the stats it explains, not buried at the foot of the page. */}
+      <SampleDataBanner
+        visible={activeGarage?.hasSampleData === true}
+        onRemoved={() => { refreshGarage(); fetchDashboard(); }}
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">

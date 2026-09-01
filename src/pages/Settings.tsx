@@ -19,6 +19,7 @@ import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../com
 import { Input, Select } from '../components/Form';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
+import SampleDataBanner from '../components/SampleDataBanner';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useCountries } from '../hooks/useCountries';
 import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
@@ -392,7 +393,7 @@ export default function Settings() {
   const { user, hasRole } = useAuth();
   const { confirm, ConfirmModal } = useConfirm();
   const { withLoader } = useGlobalLoader();
-  const { garages, activeGarageId, switchGarage, removeBranch, refreshGarage } = useGarage();
+  const { garages, activeGarageId, activeGarage, switchGarage, removeBranch, refreshGarage } = useGarage();
   const { countries } = useCountries();
 
   const isOwner = hasRole('owner');
@@ -721,6 +722,15 @@ export default function Settings() {
           </div>
         </div>
       </div>
+
+      {/* The durable entry point for the Dashboard banner's action. Shown only
+          while seeded rows exist, so it is never a dead control. */}
+      {canEditGarage && (
+        <SampleDataBanner
+          visible={activeGarage?.hasSampleData === true}
+          onRemoved={refreshGarage}
+        />
+      )}
 
       {/* ── GARAGE INFORMATION ── */}
       <SectionCard
