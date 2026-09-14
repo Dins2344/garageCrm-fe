@@ -20,15 +20,17 @@ import { Input, Select } from '../components/Form';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
 import SampleDataBanner from '../components/SampleDataBanner';
+import Badge from '../components/Badge';
+import VerifyCodeModal from '../components/VerifyCodeModal';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useCountries } from '../hooks/useCountries';
 import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
 import {
   Building2, Users, UserCircle, Lock,
   Pencil, X, Plus, Save, Eye, EyeOff, Trash2, Check,
-  PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2,
+  PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2, ShieldCheck, Mail, Phone,
 } from 'lucide-react';
-import type { User, Garage, Role, ResolvedLocale } from '../types/models';
+import type { User, Garage, Role, ResolvedLocale, VerificationChannel } from '../types/models';
 
 // ─── Role config ─────────────────────────────────────────────────────────────
 
@@ -125,6 +127,43 @@ const PasswordInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInput
     </div>
   );
 });
+
+/**
+ * One line of the Verification card: the address, its state, and the action.
+ * Rendered for owners only — verification exists to gate subscription
+ * upgrades, which only owners make.
+ */
+function VerificationRow({ icon: Icon, label, value, verifiedAt, onVerify, last }: {
+  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
+  label: string;
+  value: string;
+  verifiedAt?: string | null;
+  onVerify: () => void;
+  last?: boolean;
+}) {
+  const verified = !!verifiedAt;
+  return (
+    <div className={`flex items-center justify-between gap-4 py-3 ${!last ? 'border-b border-gray-50' : ''}`}>
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-9 h-9 rounded-xl bg-bone-100 flex items-center justify-center shrink-0">
+          <Icon className="w-4 h-4 text-gray-500" strokeWidth={1.5} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-gray-500 font-medium">{label}</p>
+          <p className="text-sm font-semibold text-gray-900 truncate">{value || '—'}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 shrink-0">
+        <Badge intent={verified ? 'approved' : 'estimation_sent'}>{verified ? 'Verified' : 'Not verified'}</Badge>
+        {!verified && (
+          <Button size="sm" variant="secondary" onClick={onVerify} aria-label={`Verify ${label.toLowerCase()}`}>
+            Verify
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function RoleBadge({ role }: { role: string }) {
   const cfg = ROLE_CONFIG[role] || { label: role, classes: 'bg-bone-200 text-gray-600' };
@@ -390,8 +429,9 @@ const BLANK_GARAGE_FORM: GarageSettingsFormValues = {
 // ═══════════════ MAIN SETTINGS PAGE ═══════════════
 
 export default function Settings() {
-  const { user, hasRole } = useAuth();
+  const { user, hasRole, refreshUser } = useAuth();
   const { confirm, ConfirmModal } = useConfirm();
+  const [verifying, setVerifying] = useState<VerificationChannel | null>(null);
   const { withLoader } = useGlobalLoader();
   const { garages, activeGarageId, activeGarage, switchGarage, removeBranch, refreshGarage } = useGarage();
   const { countries } = useCountries();
@@ -589,6 +629,8 @@ export default function Settings() {
     await withLoader(async () => {
       try {
         await updateProfile({ name: values.name, phone: values.phone });
+        // A changed phone number loses its verified mark server-side; pick that up.
+        await refreshUser();
         toast.success('Profile updated!');
       } catch (e) {
         const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -1100,6 +1142,30 @@ export default function Settings() {
         </form>
       </SectionCard>
 
+      {/* ── VERIFICATION (owners) ── */}
+      {isOwner && (
+        <SectionCard id="verification" icon={ShieldCheck} title="Verification">
+          <p className="text-sm text-gray-500 mb-2">
+            A verified email and phone number will be required to upgrade your subscription.
+          </p>
+          <VerificationRow
+            icon={Mail}
+            label="Email"
+            value={user?.email || ''}
+            verifiedAt={user?.emailVerifiedAt}
+            onVerify={() => setVerifying('email')}
+          />
+          <VerificationRow
+            icon={Phone}
+            label="Phone"
+            value={user?.phone || ''}
+            verifiedAt={user?.phoneVerifiedAt}
+            onVerify={() => setVerifying('phone')}
+            last
+          />
+        </SectionCard>
+      )}
+
       {/* ── CHANGE PASSWORD ── */}
       <SectionCard id="change-password" icon={Lock} title="Change Password">
         <form className="flex flex-col gap-4" onSubmit={handlePwdSubmit(handleChangePassword)} noValidate>
@@ -1158,6 +1224,14 @@ export default function Settings() {
         otherBranches={garages.filter(g => g._id !== deleteBranchTarget?._id)}
         onClose={() => setDeleteBranchTarget(null)}
         onConfirm={handleDeleteBranch}
+      />
+      <VerifyCodeModal
+        channel={verifying}
+        onClose={() => setVerifying(null)}
+        onVerified={async () => {
+          setVerifying(null);
+          await refreshUser();
+        }}
       />
       <ConfirmModal />
     </div>

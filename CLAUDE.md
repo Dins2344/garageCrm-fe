@@ -197,6 +197,16 @@ row has its own "Edit" button — scope to `#garage-info`. The staff modal
 portals to `document.body` and is not the only `<form>` on the page, so reach
 it through a control unique to it.
 
+Settings also carries the **Verification** card (`#verification`), owners
+only, driven entirely by `user.emailVerifiedAt` / `user.phoneVerifiedAt` from
+AuthContext. Verify opens `components/VerifyCodeModal.tsx`, which sends the
+six-digit code on open, shows the masked target the server returns, and calls
+`refreshUser()` on success — the flags are the server's, never set locally.
+`refreshUser()` is also called after a profile save, because a changed phone
+number loses its verified mark server-side. The row buttons are labelled
+"Verify email" / "Verify phone" and the modal's is plain "Verify" — query by
+name to tell them apart.
+
 ## Verifying
 
 ```bash
