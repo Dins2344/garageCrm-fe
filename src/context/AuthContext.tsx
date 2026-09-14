@@ -11,6 +11,8 @@ interface AuthContextValue {
   register: (formData: RegisterFormData) => Promise<User>;
   logout: () => Promise<void>;
   hasRole: (...roles: Role[]) => boolean;
+  /** Re-reads /auth/me — after a change the server owns, like a verification. */
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -63,8 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return !!user && roles.includes(user.role);
   };
 
+  const refreshUser = async (): Promise<void> => {
+    const res = await getMe();
+    localStorage.setItem(USER_KEY, JSON.stringify(res.data));
+    setUser(res.data);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, hasRole }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, hasRole, refreshUser }}>
       <IdleTimer />
       {children}
     </AuthContext.Provider>
