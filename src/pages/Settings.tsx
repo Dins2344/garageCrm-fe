@@ -27,7 +27,7 @@ import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
 import {
   Building2, Users, UserCircle, Lock,
   Pencil, X, Plus, Save, Eye, EyeOff, Trash2, Check,
-  PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2, ShieldCheck, Mail, Phone,
+  PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2, ShieldCheck, Mail, Phone, CreditCard,
 } from 'lucide-react';
 import type { User, Garage, Role, ResolvedLocale, VerificationChannel } from '../types/models';
 
@@ -1153,6 +1153,26 @@ export default function Settings() {
             onVerify={() => setVerifying('phone')}
             last
           />
+        </SectionCard>
+      )}
+
+      {/* ── PLAN (owners) ── */}
+      {isOwner && (
+        <SectionCard
+          id="plan"
+          icon={CreditCard}
+          title="Plan"
+          action={<Button variant="secondary" size="sm" to="/pricing">View plans</Button>}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Free plan</p>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Paid plans will be enabled soon. Compare what Plus and Pro will include.
+              </p>
+            </div>
+            <Badge intent="approved">Current</Badge>
+          </div>
         </SectionCard>
       )}
 

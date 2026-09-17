@@ -25,6 +25,7 @@ import {
 import PageHeader from '../components/PageHeader';
 import Button from '../components/Button';
 import { Input, Select } from '../components/Form';
+import MultiSelect from '../components/MultiSelect';
 import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
 import EmptyState from '../components/EmptyState';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
@@ -57,6 +58,9 @@ interface NewVehicleForm {
   fuelType: FuelType;
 }
 
+// The picker carries its own "All", so the blank option from the single-select days goes.
+const JOB_STATUS_FILTER_OPTIONS = JOB_STATUS_OPTIONS.filter(opt => opt.value !== '');
+
 interface WorkForm {
   serviceType: string;
   assignedMechanic: string;
@@ -72,7 +76,8 @@ export default function JobCards() {
   const money = (n?: number) => formatMoney(n, locale);
   const [jobCards, setJobCards] = useState<JobCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
+  // Any number of statuses; [] means all. Sent comma-joined — see JobCardListParams.
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
@@ -119,10 +124,10 @@ export default function JobCards() {
   });
 
   // ---- Data Fetching ----
-  // Reset to page 1 whenever the user changes the search term
+  // Reset to page 1 whenever the user changes the search term or the status filter
   useEffect(() => {
     setPagination(p => ({ ...p, page: 1 }));
-  }, [search]);
+  }, [search, statusFilter]);
 
   useEffect(() => {
     fetchJobCards();
@@ -140,7 +145,7 @@ export default function JobCards() {
     try {
       setLoading(true);
       const { data, total, pages } = await getJobCards({
-        status: statusFilter,
+        status: statusFilter.join(',') || undefined,
         search: debouncedSearch,
         page: pagination.page,
         limit: DEFAULT_PAGE_SIZE
@@ -378,15 +383,13 @@ export default function JobCards() {
             className="pl-10"
           />
         </div>
-        <Select
+        <MultiSelect
+          label="Status"
+          options={JOB_STATUS_FILTER_OPTIONS}
           value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="w-auto min-w-[180px]"
-        >
-          {JOB_STATUS_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </Select>
+          onChange={setStatusFilter}
+          className="w-auto min-w-[200px]"
+        />
       </div>
 
       {/* Table + Pagination */}
@@ -395,7 +398,7 @@ export default function JobCards() {
         <EmptyState
           icon={HiOutlineClipboardList}
           title="No job cards found"
-          message={statusFilter ? 'Try a different filter' : 'Create your first job card to get started'}
+          message={statusFilter.length ? 'Try a different filter' : 'Create your first job card to get started'}
         />
       ) : (
         <Table>
