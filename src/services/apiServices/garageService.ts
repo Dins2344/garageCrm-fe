@@ -44,18 +44,3 @@ export const deleteBranch = (
   payload?: DeleteBranchPayload
 ): Promise<ApiItemResponse<DeleteBranchResult>> =>
   api.delete(`/garage/branches/${garageId}`, { data: payload }).then(r => r.data);
-
-/** How many rows of each kind the removal deleted. */
-export interface RemovedSampleDataCounts {
-  customers: number;
-  vehicles: number;
-  jobCards: number;
-  invoices: number;
-}
-
-/**
- * Clears the demo rows a garage is seeded with at registration. Scoped
- * server-side to the caller's own garage — there is no id to pass.
- */
-export const removeSampleData = (): Promise<ApiItemResponse<RemovedSampleDataCounts>> =>
-  api.delete('/garage/sample-data').then(r => r.data);
