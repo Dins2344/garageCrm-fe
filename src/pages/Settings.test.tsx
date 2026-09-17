@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import Settings from './Settings';
 import * as garageService from '../services/apiServices/garageService';
 import * as userService from '../services/apiServices/userService';
 import * as authService from '../services/apiServices/authService';
 import type { Garage, User } from '../types/models';
+
+// The Plan card links to /pricing, so the page needs a router around it.
+const renderSettings = () => render(<MemoryRouter><Settings /></MemoryRouter>);
 
 vi.mock('../services/apiServices/garageService');
 vi.mock('../services/apiServices/userService');
@@ -99,7 +103,7 @@ describe('Settings forms', () => {
   describe('garage settings', () => {
     it('blocks the save and names the field when the garage name is cleared', async () => {
       const user = userEvent.setup();
-      render(<Settings />);
+      renderSettings();
       const name = await openGarageEditor(user);
 
       await user.clear(name);
@@ -116,7 +120,7 @@ describe('Settings forms', () => {
      */
     it('accepts a blank tax id but rejects a malformed one', async () => {
       const user = userEvent.setup();
-      render(<Settings />);
+      renderSettings();
       await openGarageEditor(user);
 
       const taxId = garagePanel().getByLabelText(/GSTIN/i);
@@ -141,7 +145,7 @@ describe('Settings forms', () => {
      */
     it('validates the postcode against the country selected in the picker', async () => {
       const user = userEvent.setup();
-      render(<Settings />);
+      renderSettings();
       await openGarageEditor(user);
 
       const pincode = garagePanel().getByLabelText(/Pincode/i);
@@ -157,7 +161,7 @@ describe('Settings forms', () => {
 
     it('sends the coerced numbers, not the strings the inputs hold', async () => {
       const user = userEvent.setup();
-      render(<Settings />);
+      renderSettings();
       await openGarageEditor(user);
 
       await user.click(garagePanel().getByRole('button', { name: /Save Garage Info/i }));
@@ -172,7 +176,7 @@ describe('Settings forms', () => {
   describe('profile', () => {
     it('rejects a malformed phone number before it reaches the API', async () => {
       const user = userEvent.setup();
-      render(<Settings />);
+      renderSettings();
       await waitFor(() => expect(screen.getByText('Edit My Profile')).toBeInTheDocument());
 
       const phone = screen.getByLabelText(/^Phone/i);
@@ -188,7 +192,7 @@ describe('Settings forms', () => {
   describe('change password', () => {
     it('reports a mismatch on the confirm field, where the user is looking', async () => {
       const user = userEvent.setup();
-      render(<Settings />);
+      renderSettings();
       await waitFor(() => expect(screen.getByText('Change Password')).toBeInTheDocument());
 
       await user.type(screen.getByLabelText(/Current Password/i), 'oldsecret');
@@ -202,7 +206,7 @@ describe('Settings forms', () => {
 
     it('submits once both match and clear the minimum', async () => {
       const user = userEvent.setup();
-      render(<Settings />);
+      renderSettings();
       await waitFor(() => expect(screen.getByText('Change Password')).toBeInTheDocument());
 
       await user.type(screen.getByLabelText(/Current Password/i), 'oldsecret');
@@ -220,7 +224,7 @@ describe('Settings forms', () => {
   describe('staff modal', () => {
     it('requires a password when adding, but not when editing', async () => {
       const user = userEvent.setup();
-      render(<Settings />);
+      renderSettings();
       await waitFor(() => expect(screen.getByText('Imran Shaikh')).toBeInTheDocument());
 
       await user.click(screen.getByRole('button', { name: /Add Staff/i }));
@@ -236,7 +240,7 @@ describe('Settings forms', () => {
 
     it('rejects a malformed email inline instead of round-tripping to the server', async () => {
       const user = userEvent.setup();
-      render(<Settings />);
+      renderSettings();
       await waitFor(() => expect(screen.getByText('Imran Shaikh')).toBeInTheDocument());
 
       await user.click(screen.getByRole('button', { name: /Add Staff/i }));

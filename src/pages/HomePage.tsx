@@ -51,23 +51,31 @@ function ProductImage({ src, alt, width, height, className = '' }: {
 
 /* ───── Market switcher ─────
    The page's one authored interaction, and the only honest way to demonstrate
-   the positioning: the same job total, re-printed through the real
-   `formatMoney` the product ships, in each market's own currency and tax
-   vocabulary. Nothing here is mocked — this is the function the invoices use. */
-const MARKETS = [
-  { code: 'IN', country: 'India',          locale: 'en-IN', currency: 'INR', taxLabel: 'GST',  taxRate: 18, taxId: 'GSTIN' },
-  { code: 'GB', country: 'United Kingdom', locale: 'en-GB', currency: 'GBP', taxLabel: 'VAT',  taxRate: 20, taxId: 'VAT No.' },
-  { code: 'AE', country: 'UAE',            locale: 'en-AE', currency: 'AED', taxLabel: 'VAT',  taxRate: 5,  taxId: 'TRN' },
-  { code: 'AU', country: 'Australia',      locale: 'en-AU', currency: 'AUD', taxLabel: 'GST',  taxRate: 10, taxId: 'ABN' },
-] as const;
+   the positioning: the same service, printed through the real `formatMoney`
+   the product ships, in each market's own currency and tax vocabulary.
+   Nothing here is mocked — this is the function the invoices use.
 
-const SUBTOTAL = 12500;
+   The markets are the countries the app is published in (the backend's
+   LAUNCH_COUNTRY_CODES); tax labels, rates and ID names mirror
+   backend/config/countries.ts. The subtotal is a comparable service priced
+   locally, not one number run through an exchange rate. */
+const MARKETS = [
+  { code: 'IN', country: 'India',        locale: 'en-IN', currency: 'INR', taxLabel: 'GST', taxRate: 18, taxId: 'GSTIN',                 subtotal: 12500 },
+  { code: 'AE', country: 'UAE',          locale: 'en-AE', currency: 'AED', taxLabel: 'VAT', taxRate: 5,  taxId: 'TRN',                   subtotal: 550 },
+  { code: 'SA', country: 'Saudi Arabia', locale: 'en-SA', currency: 'SAR', taxLabel: 'VAT', taxRate: 15, taxId: 'VAT Registration No.',  subtotal: 560 },
+  { code: 'LK', country: 'Sri Lanka',    locale: 'en-LK', currency: 'LKR', taxLabel: 'VAT', taxRate: 18, taxId: 'VAT No.',               subtotal: 45000 },
+  { code: 'QA', country: 'Qatar',        locale: 'en-QA', currency: 'QAR', taxLabel: 'VAT', taxRate: 0,  taxId: 'TIN',                   subtotal: 550 },
+  { code: 'BH', country: 'Bahrain',      locale: 'en-BH', currency: 'BHD', taxLabel: 'VAT', taxRate: 10, taxId: 'VAT Account No.',       subtotal: 57 },
+  { code: 'KW', country: 'Kuwait',       locale: 'en-KW', currency: 'KWD', taxLabel: 'VAT', taxRate: 0,  taxId: 'Commercial Licence No.', subtotal: 46 },
+  { code: 'NP', country: 'Nepal',        locale: 'en-NP', currency: 'NPR', taxLabel: 'VAT', taxRate: 13, taxId: 'PAN',                   subtotal: 20000 },
+] as const;
 
 function MarketSwitcher() {
   const [index, setIndex] = useState(0);
   const market = MARKETS[index];
-  const tax = Math.round(SUBTOTAL * (market.taxRate / 100) * 100) / 100;
-  const total = Math.round((SUBTOTAL + tax) * 100) / 100;
+  const subtotal = market.subtotal;
+  const tax = Math.round(subtotal * (market.taxRate / 100) * 100) / 100;
+  const total = Math.round((subtotal + tax) * 100) / 100;
 
   return (
     <div className="w-full max-w-md">
@@ -99,7 +107,7 @@ function MarketSwitcher() {
         <dl className="mt-4 flex flex-col gap-2.5 text-sm">
           <div className="flex items-baseline justify-between gap-4">
             <dt className="text-white/60">Parts and labour</dt>
-            <dd className="tabular font-semibold text-white">{formatMoney(SUBTOTAL, market)}</dd>
+            <dd className="tabular font-semibold text-white">{formatMoney(subtotal, market)}</dd>
           </div>
           <div className="flex items-baseline justify-between gap-4">
             <dt className="text-white/60">
@@ -113,7 +121,7 @@ function MarketSwitcher() {
           </div>
         </dl>
         <p className="mt-4 text-xs leading-relaxed text-white/60">
-          Same job card. The tax name, the rate, the currency and the number format all follow the
+          Same service. The tax name, the rate, the currency and the number format all follow the
           branch&rsquo;s country &mdash; and the PDF prints <span className="text-white/70">{market.taxId}</span> on it.
         </p>
       </div>
@@ -453,7 +461,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
           <div className="max-w-3xl">
             <h2 className="font-display text-3xl font-bold leading-[1.1] tracking-tight sm:text-4xl md:text-[2.75rem]">
-              One garage or nine. One country or four.
+              One garage or nine. One country or eight.
             </h2>
             <p className="mt-5 max-w-[68ch] text-lg leading-relaxed text-white/70">
               Most workshop software assumes one shop in one country. GaragePulse treats the branch as the
@@ -471,7 +479,7 @@ export default function HomePage() {
               {
                 icon: Receipt,
                 title: 'Local paperwork, automatically',
-                body: 'Currency, tax name, tax rate, tax-ID label and date format resolve from the branch’s country. A UK branch prints VAT and GBP while an Indian branch prints GST and INR.',
+                body: 'Currency, tax name, tax rate, tax-ID label and date format resolve from the branch’s country. A Dubai branch prints VAT and AED while an Indian branch prints GST and INR.',
               },
               {
                 icon: Users,

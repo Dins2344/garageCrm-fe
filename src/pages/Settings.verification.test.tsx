@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import Settings from './Settings';
 import * as garageService from '../services/apiServices/garageService';
 import * as userService from '../services/apiServices/userService';
 import * as authService from '../services/apiServices/authService';
 import type { Garage, User } from '../types/models';
+
+// The Plan card links to /pricing, so the page needs a router around it.
+const renderSettings = () => render(<MemoryRouter><Settings /></MemoryRouter>);
 
 vi.mock('../services/apiServices/garageService');
 vi.mock('../services/apiServices/userService');
@@ -83,7 +87,7 @@ const card = async () => {
 describe('Settings — owner verification card', () => {
   it('shows both channels as not verified for a fresh owner', async () => {
     authState.user = owner();
-    render(<Settings />);
+    renderSettings();
 
     const c = await card();
     expect(c.getAllByText('Not verified')).toHaveLength(2);
@@ -93,7 +97,7 @@ describe('Settings — owner verification card', () => {
 
   it('shows Verified and hides the button for a verified channel', async () => {
     authState.user = owner({ emailVerifiedAt: '2026-09-01T00:00:00Z' });
-    render(<Settings />);
+    renderSettings();
 
     const c = await card();
     expect(c.getByText('Verified')).toBeInTheDocument();
@@ -104,7 +108,7 @@ describe('Settings — owner verification card', () => {
 
   it('is not rendered for staff', async () => {
     authState.user = owner({ role: 'mechanic' });
-    render(<Settings />);
+    renderSettings();
 
     await screen.findByText('Edit My Profile');
     expect(screen.queryByText('Verification')).not.toBeInTheDocument();
@@ -113,7 +117,7 @@ describe('Settings — owner verification card', () => {
   it('sends the code on open, confirms what was typed, and refreshes the user', async () => {
     authState.user = owner();
     const user = userEvent.setup();
-    render(<Settings />);
+    renderSettings();
 
     await user.click((await card()).getByRole('button', { name: 'Verify email' }));
 
@@ -137,7 +141,7 @@ describe('Settings — owner verification card', () => {
       response: { data: { message: 'Incorrect code. 4 attempts remaining' } }
     });
     const user = userEvent.setup();
-    render(<Settings />);
+    renderSettings();
 
     await user.click((await card()).getByRole('button', { name: 'Verify phone' }));
     await screen.findByText('o***r@example.com');
@@ -154,7 +158,7 @@ describe('Settings — owner verification card', () => {
       response: { data: { message: 'Please wait a minute before requesting another code' } }
     });
     const user = userEvent.setup();
-    render(<Settings />);
+    renderSettings();
 
     await user.click((await card()).getByRole('button', { name: 'Verify email' }));
 

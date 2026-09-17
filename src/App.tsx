@@ -24,6 +24,7 @@ const JobCardDetail = lazy(() => import('./pages/JobCardDetail'));
 // const Inventory = lazy(() => import('./pages/Inventory'));
 const Invoices = lazy(() => import('./pages/Invoices'));
 const Settings = lazy(() => import('./pages/Settings'));
+const Pricing = lazy(() => import('./pages/Pricing'));
 const EstimationApproval = lazy(() => import('./pages/EstimationApproval'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
@@ -131,6 +132,11 @@ function App() {
               <Route path="settings" element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="pricing" element={
+                <ProtectedRoute roles={['owner', 'admin']}>
+                  <Pricing />
                 </ProtectedRoute>
               } />
             </Route>
