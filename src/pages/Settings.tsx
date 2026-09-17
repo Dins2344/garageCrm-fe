@@ -19,7 +19,6 @@ import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../com
 import { Input, Select } from '../components/Form';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
-import SampleDataBanner from '../components/SampleDataBanner';
 import Badge from '../components/Badge';
 import VerifyCodeModal from '../components/VerifyCodeModal';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
@@ -433,7 +432,7 @@ export default function Settings() {
   const { confirm, ConfirmModal } = useConfirm();
   const [verifying, setVerifying] = useState<VerificationChannel | null>(null);
   const { withLoader } = useGlobalLoader();
-  const { garages, activeGarageId, activeGarage, switchGarage, removeBranch, refreshGarage } = useGarage();
+  const { garages, activeGarageId, switchGarage, removeBranch, refreshGarage } = useGarage();
   const { countries } = useCountries();
 
   const isOwner = hasRole('owner');
@@ -764,15 +763,6 @@ export default function Settings() {
           </div>
         </div>
       </div>
-
-      {/* The durable entry point for the Dashboard banner's action. Shown only
-          while seeded rows exist, so it is never a dead control. */}
-      {canEditGarage && (
-        <SampleDataBanner
-          visible={activeGarage?.hasSampleData === true}
-          onRemoved={refreshGarage}
-        />
-      )}
 
       {/* ── GARAGE INFORMATION ── */}
       <SectionCard
