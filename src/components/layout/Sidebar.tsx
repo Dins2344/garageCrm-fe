@@ -19,6 +19,7 @@ import {
   HiOutlineDocumentText,
   HiOutlineCog,
   HiOutlineCreditCard,
+  HiOutlineCash,
   HiOutlineChevronRight,
   HiOutlineChevronDown,
   HiOutlineOfficeBuilding,
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
   // Inventory is disabled — users enter parts manually in estimations
   // { path: '/inventory', label: 'Inventory', icon: HiOutlineCube, roles: ['owner', 'admin', 'service_advisor'] },
   { path: '/invoices', label: 'Invoices', icon: HiOutlineDocumentText, roles: ['owner', 'admin', 'service_advisor'] },
+  { path: '/expenses', label: 'Expenses', icon: HiOutlineCash, roles: ['owner', 'admin'] },
   { path: '/settings', label: 'Settings', icon: HiOutlineCog, roles: ['owner', 'admin', 'service_advisor', 'mechanic', 'receptionist'] },
   { path: '/pricing', label: 'Plans', icon: HiOutlineCreditCard, roles: ['owner', 'admin'] },
 ];

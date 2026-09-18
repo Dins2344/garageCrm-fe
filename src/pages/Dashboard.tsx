@@ -26,6 +26,7 @@ import {
 import { Trophy } from 'lucide-react';
 import { useInvoiceViewer } from '../components/InvoiceViewerModal';
 import StatCard from '../components/StatCard';
+import MonthlyBusinessPanel from '../components/MonthlyBusinessPanel';
 import Badge from '../components/Badge';
 import EmptyState from '../components/EmptyState';
 import { Card, CardHeader, CardBody } from '../components/Card';
@@ -155,6 +156,9 @@ export default function Dashboard() {
         <StatCard title="Ready for Pickup" value={stats?.overview?.readyForPickup || 0} icon={HiOutlineCheckCircle} colorClass="teal" />
         <StatCard title={`Unpaid (${formatCurrency(stats?.unpaid?.total)})`} value={stats?.unpaid?.count || 0} icon={HiOutlineExclamation} colorClass="red" />
       </div>
+
+      {/* Monthly business figures — owner/admin, the only roles who see expenses */}
+      {hasRole('owner', 'admin') && <MonthlyBusinessPanel />}
 
       {/* Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
