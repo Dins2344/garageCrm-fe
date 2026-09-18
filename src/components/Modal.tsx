@@ -46,6 +46,8 @@ export function Modal({ children, className = '' }: ModalProps) {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       className={`bg-bone-50 border border-bone-300 w-full ${hasMaxWidth ? '' : 'max-w-[600px]'} ${hasOverflow ? '' : 'overflow-y-auto'} max-h-[85vh] animate-[slideUp_0.3s_ease] ${className}`}
       onClick={stopPropagation}
     >

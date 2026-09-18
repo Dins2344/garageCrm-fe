@@ -192,7 +192,7 @@ export default function Vehicles() {
           <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
           <Input
             type="text"
-            placeholder="Search by plate number, make, or model..."
+            placeholder="Search by plate, make, model or customer name..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-10"

@@ -377,7 +377,7 @@ export default function JobCards() {
           <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
           <Input
             type="text"
-            placeholder="Search by job card number..."
+            placeholder="Search by job card no., plate, make, model or customer..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-10"

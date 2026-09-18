@@ -21,6 +21,7 @@ import Button from '../components/Button';
 import Loader from '../components/Loader';
 import Badge from '../components/Badge';
 import VerifyCodeModal from '../components/VerifyCodeModal';
+import DeleteAccountModal from '../components/DeleteAccountModal';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useCountries } from '../hooks/useCountries';
 import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
@@ -428,9 +429,10 @@ const BLANK_GARAGE_FORM: GarageSettingsFormValues = {
 // ═══════════════ MAIN SETTINGS PAGE ═══════════════
 
 export default function Settings() {
-  const { user, hasRole, refreshUser } = useAuth();
+  const { user, hasRole, refreshUser, logout } = useAuth();
   const { confirm, ConfirmModal } = useConfirm();
   const [verifying, setVerifying] = useState<VerificationChannel | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const { withLoader } = useGlobalLoader();
   const { garages, activeGarageId, switchGarage, removeBranch, refreshGarage } = useGarage();
   const { countries } = useCountries();
@@ -1221,7 +1223,33 @@ export default function Settings() {
         </form>
       </SectionCard>
 
+      {/* ── DELETE ACCOUNT ── */}
+      <SectionCard id="delete-account" icon={Trash2} title="Delete Account">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-gray-500 max-w-[60ch]">
+            {isOwner
+              ? 'Permanently deletes your account and every branch you own, including all customers, vehicles, job cards and invoices.'
+              : 'Permanently deletes your login. The garage keeps its records, including job cards you worked on.'}
+          </p>
+          <Button type="button" variant="danger" icon={Trash2} onClick={() => setDeletingAccount(true)}>
+            Delete my account
+          </Button>
+        </div>
+      </SectionCard>
+
       {/* Modals */}
+      <DeleteAccountModal
+        open={deletingAccount}
+        isOwner={isOwner}
+        onClose={() => setDeletingAccount(false)}
+        onDeleted={async () => {
+          setDeletingAccount(false);
+          toast.success('Your account has been deleted');
+          // The user row is gone, so the logout call itself 401s; the local
+          // sign-out is what matters and logout() tolerates the failure.
+          await logout();
+        }}
+      />
       <StaffModal
         visible={staffModal}
         onClose={() => setStaffModal(false)}
