@@ -1,13 +1,14 @@
 import { useState, useEffect, type ComponentType } from 'react';
 import { useGarage } from '../context/GarageContext';
 import { formatMoney, formatNumber, formatDate as fmtDate } from '../utils/format';
-import { Check } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getVehicle, getVehicleHistory } from '../services/apiServices/vehicleService';
 
 import toast from 'react-hot-toast';
 import {
   ArrowLeft,
+  ArrowRight,
+  Check,
   Truck,
   User,
   Phone,
@@ -24,18 +25,10 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import Badge from '../components/Badge';
+import StatCard from '../components/StatCard';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
 import type { Vehicle, JobCard } from '../types/models';
-
-const FUEL_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  petrol:   { bg: '#fee2e2', text: '#dc2626', dot: '#ef4444' },
-  diesel:   { bg: '#dbeafe', text: '#1d4ed8', dot: '#3b82f6' },
-  cng:      { bg: '#fef3c7', text: '#b45309', dot: '#f59e0b' },
-  electric: { bg: '#d1fae5', text: '#065f46', dot: '#10b981' },
-  hybrid:   { bg: '#ede9fe', text: '#6d28d9', dot: '#8b5cf6' },
-  other:    { bg: '#f3f4f6', text: '#374151', dot: '#9ca3af' },
-};
 
 const SERVICE_TYPE_COLORS: Record<string, string> = {
   service:  'bg-blue-100 text-blue-700',
@@ -59,29 +52,6 @@ function InfoBlock({ icon: Icon, label, value }: InfoBlockProps) {
       <div>
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">{label}</p>
         <p className="text-sm font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-interface StatCardProps {
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-  value: string | number;
-  sub?: string;
-  color: string;
-}
-
-function StatCard({ icon: Icon, label, value, sub, color }: StatCardProps) {
-  return (
-    <div className="bg-bone-50 rounded-2xl border border-bone-200 shadow-sm p-5 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${color}`}>
-        <Icon className="w-[1em] h-[1em]" />
-      </div>
-      <div>
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-extrabold text-gray-900 mt-0.5 leading-none">{value}</p>
-        {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
       </div>
     </div>
   );
@@ -146,7 +116,6 @@ export default function VehicleDetail() {
 
   const customer = typeof vehicle.customer === 'string' ? null : vehicle.customer;
   const fuelType = vehicle.fuelType?.toLowerCase() || 'other';
-  const fuelStyle = FUEL_COLORS[fuelType] || FUEL_COLORS.other;
 
   // Stats derived from history
   const totalSpend = jobCards.reduce((sum, jc) => sum + (jc.estimation?.grandTotal || 0), 0);
@@ -163,86 +132,40 @@ export default function VehicleDetail() {
         <Button variant="ghost" size="icon" onClick={() => navigate('/vehicles')}>
           <ArrowLeft className="w-[1em] h-[1em]" />
         </Button>
-        <div>
-          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Vehicle</p>
-          <h1 className="text-lg font-extrabold text-gray-900 leading-tight tracking-tight">{vehicle.licensePlate}</h1>
-        </div>
+        <h1 className="font-display text-lg font-extrabold text-gray-900 leading-tight tracking-tight">{vehicle.licensePlate}</h1>
       </div>
 
-      {/* ── Hero Card ── */}
-      <div
-        className="relative overflow-hidden rounded-3xl p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6"
-        style={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #3b5ff8 50%, #6366f1 100%)',
-        }}
-      >
-        {/* Decorative circles */}
-        <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full opacity-10 bg-bone-50" />
-        <div className="absolute top-12 -right-4 w-24 h-24 rounded-full opacity-10 bg-bone-50" />
-        <div className="absolute -bottom-10 -left-6 w-40 h-40 rounded-full opacity-5 bg-bone-50" />
-
-        {/* Vehicle icon */}
-        <div className="w-20 h-20 rounded-2xl bg-bone-50 backdrop-blur flex items-center justify-center shrink-0 border border-white/20">
-          <Truck className="text-white w-9 h-9" />
+      {/* Identity band. Ink ground, no decoration: was a hex gradient with
+          blurred circles and a duplicate service count (the stats row below
+          already carries it). */}
+      <div className="on-ink bg-ink-900 p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+        <div className="w-16 h-16 border border-white/15 bg-white/5 flex items-center justify-center shrink-0">
+          <Truck className="text-white w-8 h-8" strokeWidth={1.75} />
         </div>
-
-        {/* Main info */}
-        <div className="flex-1 relative z-10">
+        <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-3 mb-2">
-            <span className="text-3xl font-black text-white tracking-widest">{vehicle.licensePlate}</span>
-            <span
-              className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
-              style={{ background: fuelStyle.bg, color: fuelStyle.text }}
-            >
+            <span className="font-display text-3xl font-extrabold text-white tracking-tight">{vehicle.licensePlate}</span>
+            <span className="px-2.5 py-1 text-xs font-bold uppercase tracking-wide bg-white/10 text-white border border-white/20">
               {fuelType}
             </span>
           </div>
-          <p className="text-white/80 text-lg font-semibold">
-            {vehicle.make} {vehicle.model}
-            {vehicle.year ? ` · ${vehicle.year}` : ''}
-            {vehicle.color ? ` · ${vehicle.color}` : ''}
+          <p className="text-white/70 text-lg font-semibold">
+            {[`${vehicle.make} ${vehicle.model}`, vehicle.year, vehicle.color].filter(Boolean).join(', ')}
           </p>
           {customer && (
             <p className="text-white/60 text-sm mt-1 flex items-center gap-1.5">
               <User className="w-4 h-4" />
-              {customer.name}
-              {customer.phone ? ` · ${customer.phone}` : ''}
+              {[customer.name, customer.phone].filter(Boolean).join(', ')}
             </p>
           )}
-        </div>
-
-        {/* Service count pill */}
-        <div className="relative z-10 bg-bone-50 backdrop-blur border border-white/20 rounded-2xl px-6 py-4 text-center shrink-0">
-          <p className="text-4xl font-black text-white">{total}</p>
-          <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mt-0.5">
-            {total === 1 ? 'Service' : 'Services'}
-          </p>
         </div>
       </div>
 
       {/* ── Stats Row ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard
-          icon={ClipboardList}
-          label="Total Services"
-          value={total}
-          sub={`${delivered.length} completed`}
-          color="bg-blue-50 text-blue-500"
-        />
-        <StatCard
-          icon={Receipt}
-          label="Total Spend"
-          value={money(totalSpend)}
-          sub="across all job cards"
-          color="bg-emerald-50 text-emerald-500"
-        />
-        <StatCard
-          icon={Calendar}
-          label="Last Service"
-          value={lastService}
-          sub={delivered.length > 0 ? 'delivered' : 'no completed services yet'}
-          color="bg-violet-50 text-violet-500"
-        />
+        <StatCard icon={ClipboardList} title="Total services" value={total} sub={`${delivered.length} completed`} colorClass="blue" />
+        <StatCard icon={Receipt} title="Total spend" value={money(totalSpend)} colorClass="green" />
+        <StatCard icon={Calendar} title="Last service" value={lastService} colorClass="purple" />
       </div>
 
       {/* ── Info Grid ── */}
@@ -334,7 +257,7 @@ export default function VehicleDetail() {
                 <Link
                   key={jc._id}
                   to={`/jobcards/${jc._id}`}
-                  className={`grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-blue-50/50 transition-all duration-150 group ${!isLast ? 'border-b border-gray-50' : ''}`}
+                  className={`grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-blue-50/50 transition-colors duration-150 group ${!isLast ? 'border-b border-gray-50' : ''}`}
                 >
                   {/* Job Card Number */}
                   <div className="col-span-3">
@@ -388,9 +311,7 @@ export default function VehicleDetail() {
 
                   {/* Arrow */}
                   <div className="col-span-1 flex justify-end">
-                    <div className="w-7 h-7 rounded-lg bg-bone-200 group-hover:bg-primary-100 group-hover:text-primary-600 flex items-center justify-center transition-all duration-150 text-gray-400 text-sm">
-                      →
-                    </div>
+                    <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-primary-600 transition-colors duration-150" />
                   </div>
                 </Link>
               );

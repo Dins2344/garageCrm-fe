@@ -544,7 +544,7 @@ export default function JobCards() {
                         <div>
                           <div className="font-bold text-gray-900">{selectedCustomer.name}</div>
                           <div className="text-sm text-gray-500">
-                            {selectedCustomer.phone}{selectedCustomer.email ? ` · ${selectedCustomer.email}` : ''}
+                            {[selectedCustomer.phone, selectedCustomer.email].filter(Boolean).join(', ')}
                           </div>
                         </div>
                       </div>
@@ -606,7 +606,7 @@ export default function JobCards() {
                               >
                                 <div>
                                   <div className="font-semibold text-gray-900">{c.name}</div>
-                                  <div className="text-sm text-gray-500">{c.phone}{c.vehicles?.length ? ` · ${c.vehicles.length} vehicle(s)` : ''}</div>
+                                  <div className="text-sm text-gray-500">{c.phone}{c.vehicles?.length ? `, ${c.vehicles.length} vehicle${c.vehicles.length === 1 ? '' : 's'}` : ''}</div>
                                 </div>
                                 <ChevronRight className="w-[1em] h-[1em] text-gray-400" />
                               </div>
@@ -685,8 +685,7 @@ export default function JobCards() {
                           <div className="font-bold text-gray-900">{selectedVehicle.licensePlate}</div>
                           <div className="text-sm text-gray-500">
                             {selectedVehicle.make} {selectedVehicle.model}
-                            {selectedVehicle.color ? ` · ${selectedVehicle.color}` : ''}
-                            {selectedVehicle.fuelType ? ` · ${selectedVehicle.fuelType}` : ''}
+                            {[selectedVehicle.color, selectedVehicle.fuelType].filter(Boolean).map(x => `, ${x}`).join('')}
                           </div>
                         </div>
                       </div>
@@ -753,7 +752,7 @@ export default function JobCards() {
                                   <div className="font-semibold text-gray-900">{v.licensePlate}</div>
                                   <div className="text-sm text-gray-500">
                                     {v.make} {v.model}
-                                    {typeof v.customer !== 'string' && v.customer?.name ? ` · ${v.customer.name}` : ''}
+                                    {typeof v.customer !== 'string' && v.customer?.name ? `, ${v.customer.name}` : ''}
                                   </div>
                                 </div>
                                 <ChevronRight className="w-[1em] h-[1em] text-gray-400" />

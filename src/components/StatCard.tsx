@@ -5,6 +5,8 @@ interface StatCardProps {
   value: string | number;
   icon: ComponentType<{ className?: string }>;
   colorClass?: 'blue' | 'green' | 'purple' | 'orange' | 'teal' | 'red';
+  /** One line under the title, e.g. "3 completed". */
+  sub?: string;
 }
 
 /**
@@ -19,7 +21,7 @@ interface StatCardProps {
  * real meaning (red for unpaid, green for revenue). It now tints the icon
  * instead of drawing a bar.
  */
-export default function StatCard({ title, value, icon: Icon, colorClass = 'blue' }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, colorClass = 'blue', sub }: StatCardProps) {
   const colorMap: Record<string, string> = {
     blue: 'text-primary-600',
     green: 'text-success-dark',
@@ -43,6 +45,7 @@ export default function StatCard({ title, value, icon: Icon, colorClass = 'blue'
           {value}
         </h3>
         <p className="mt-1 text-[13px] font-medium leading-snug text-gray-600">{title}</p>
+        {sub && <p className="mt-0.5 text-xs text-gray-500">{sub}</p>}
       </div>
     </div>
   );

@@ -39,7 +39,7 @@ export default function AppLayout() {
         <Header
           onMobileMenuOpen={() => setMobileOpen(true)}
         />
-        <main className="flex flex-col flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden w-full max-w-full animate-fade-in-up">
+        <main className="flex flex-col flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden w-full max-w-full">
           <Outlet key={activeGarageId ?? 'default'} />
         </main>
       </div>

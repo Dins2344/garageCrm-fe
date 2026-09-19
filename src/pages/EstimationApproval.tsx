@@ -272,9 +272,9 @@ export default function EstimationApproval() {
           <button
             onClick={handleApprove}
             disabled={approving}
-            className="w-full py-4 rounded-2xl font-bold text-white text-lg shadow-lg shadow-primary-200 transition-all
+            className="w-full py-4 font-bold text-lg transition-colors duration-200
               bg-accent-500 text-ink-900 hover:bg-accent-400
-              disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.99]"
+              disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {approving ? (
               <span className="flex items-center justify-center gap-3">

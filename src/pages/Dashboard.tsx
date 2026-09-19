@@ -164,7 +164,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
 
         {/* Recent Job Cards */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-75">
+        <Card>
           <CardHeader title="Recent Job Cards">
             <Button variant="ghost" size="sm" to="/jobcards">
               View All <ArrowRight className="w-[1em] h-[1em]" />
@@ -206,28 +206,28 @@ export default function Dashboard() {
         </Card>
 
         {/* Quick Stats Sidebar */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-150">
+        <Card>
           <CardHeader title="Quick Overview" />
           <CardBody className="flex flex-col gap-4">
-            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
                 <Users className="w-5 h-5 text-primary-500" /> Total Customers
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.totalCustomers || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
                 <Truck className="w-5 h-5 text-primary-500" /> Total Vehicles
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.totalVehicles || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
                 <ClipboardList className="w-5 h-5 text-primary-500" /> Today's New Jobs
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.todayJobCards || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
                 <Clock className="w-5 h-5 text-primary-500" /> In Progress
               </div>
@@ -237,7 +237,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Recent Invoices */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-200">
+        <Card>
           <CardHeader title="Recent Invoices">
             <Button variant="ghost" size="sm" to="/invoices">
               View All <ArrowRight className="w-[1em] h-[1em]" />
@@ -269,7 +269,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Service Reminders */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-300">
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between w-full">
               <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -306,7 +306,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Staff Achievement Leaderboard */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-350 xl:col-span-2">
+        <Card className="xl:col-span-2">
           <CardHeader>
             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <Trophy className="w-5 h-5 text-amber-500" strokeWidth={1.5} />
@@ -357,12 +357,12 @@ export default function Dashboard() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex flex-col items-end">
-                            <span className="text-[15px] font-bold text-gray-900 font-mono">
+                            <span className="tabular text-[15px] font-bold text-gray-900">
                               {formatCurrency(achievement.totalLabor)}
                             </span>
                             <div className="w-20 h-1.5 bg-bone-200 rounded-full mt-2 overflow-hidden">
                               <div
-                                className="h-full bg-primary-500 rounded-full shadow-[0_0_8px_rgba(59,95,248,0.3)] transition-all duration-1000"
+                                className="h-full bg-primary-500 rounded-full"
                                 style={{ width: `${Math.min(100, (achievement.totalLabor / (stats.staffAchievement[0]?.totalLabor || 1)) * 100)}%` }}
                               />
                             </div>
@@ -457,7 +457,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Revenue Trend */}
-          <Card className="lg:col-span-2 animate-[slideUp_0.4s_ease_both] delay-400">
+          <Card className="lg:col-span-2">
             <CardHeader title="Revenue Trend" />
             <CardBody>
               {chartLoading ? (
@@ -506,7 +506,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Job Status Breakdown */}
-          <Card className="animate-[slideUp_0.4s_ease_both] delay-450">
+          <Card>
             <CardHeader title="Job Status" />
             <CardBody>
               {chartLoading ? (
@@ -553,8 +553,8 @@ export default function Dashboard() {
 
           {/* Staff Performance Bar Chart (unchanged, from main stats) */}
           {stats?.staffAchievement && stats.staffAchievement.length > 0 && (
-            <Card className="lg:col-span-3 animate-[slideUp_0.4s_ease_both] delay-500">
-              <CardHeader title="Staff Performance — This Month" />
+            <Card className="lg:col-span-3">
+              <CardHeader title="Staff performance this month" />
               <CardBody>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart
