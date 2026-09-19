@@ -9,12 +9,12 @@ import { getInvoices, updateInvoicePayment, downloadInvoicePdf } from '../servic
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
-  HiOutlineSearch,
-  HiOutlineEye,
-  HiOutlineCheckCircle,
-  HiOutlineDownload,
-  HiOutlineDocumentText
-} from 'react-icons/hi';
+  Search,
+  Eye,
+  CircleCheck,
+  Download,
+  FileText
+} from 'lucide-react';
 import { useInvoiceViewer } from '../components/InvoiceViewerModal';
 import PageHeader from '../components/PageHeader';
 import { Input, Select } from '../components/Form';
@@ -109,7 +109,7 @@ export default function Invoices() {
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[250px]">
-          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-[18px] h-[18px]" />
           <Input
             type="text"
             placeholder="Search by invoice number..."
@@ -134,7 +134,7 @@ export default function Invoices() {
       <div className="flex flex-col flex-1">
       {loading ? <Loader /> : invoices.length === 0 ? (
         <EmptyState
-          icon={HiOutlineDocumentText}
+          icon={FileText}
           title="No invoices found"
           message="Invoices are generated from approved job card estimations"
         />
@@ -188,14 +188,14 @@ export default function Invoices() {
                 <Td>
                   <div className="flex gap-2">
                     <Button className='cursor-pointer' variant="ghost" size="icon" onClick={() => openInvoice(inv._id)} title="View Invoice">
-                      <HiOutlineEye />
+                      <Eye className="w-[1em] h-[1em]" />
                     </Button>
                     <Button className='cursor-pointer' variant="ghost" size="icon" onClick={() => handleDownload(inv._id, inv.invoiceNumber)} title="Download PDF">
-                      <HiOutlineDownload />
+                      <Download className="w-[1em] h-[1em]" />
                     </Button>
                     {inv.paymentStatus !== 'paid' && hasRole('owner', 'admin', 'service_advisor') && (
                       <Button className='cursor-pointer' variant="success" size="icon" onClick={() => markAsPaid(inv._id)} title="Mark as Paid">
-                        <HiOutlineCheckCircle />
+                        <CircleCheck className="w-[1em] h-[1em]" />
                       </Button>
                     )}
                   </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, forwardRef, type ReactNode, type ComponentType, type InputHTMLAttributes } from 'react';
+import { useState, useEffect, useMemo, type ComponentType } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -16,17 +16,22 @@ import { updateProfile, changePassword } from '../services/apiServices/authServi
 import { getGarage, updateGarage, getBranchStaff } from '../services/apiServices/garageService';
 import { useConfirm } from '../components/ConfirmModal';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
-import { Input, Select } from '../components/Form';
+import { Input, Select, FormField } from '../components/Form';
+import { Card } from '../components/Card';
+import PasswordInput from '../components/PasswordInput';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
+import Pagination from '../components/Pagination';
+import { SkeletonRows } from '../components/Skeleton';
 import Badge from '../components/Badge';
 import VerifyCodeModal from '../components/VerifyCodeModal';
+import DeleteAccountModal from '../components/DeleteAccountModal';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useCountries } from '../hooks/useCountries';
 import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
 import {
   Building2, Users, UserCircle, Lock,
-  Pencil, X, Plus, Save, Eye, EyeOff, Trash2, Check,
+  Pencil, X, Plus, Save, Trash2, Check,
   PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2, ShieldCheck, Mail, Phone, CreditCard,
 } from 'lucide-react';
 import type { User, Garage, Role, ResolvedLocale, VerificationChannel } from '../types/models';
@@ -43,30 +48,7 @@ const ROLE_CONFIG: Record<string, { label: string; classes: string }> = {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-interface SectionCardProps {
-  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
-  title: string;
-  children: ReactNode;
-  action?: ReactNode;
-  id?: string;
-}
-
-function SectionCard({ icon: Icon, title, children, action, id }: SectionCardProps) {
-  return (
-    <div id={id} className="bg-bone-50 rounded-2xl border border-bone-200/80 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-bone-200">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
-            <Icon className="w-5 h-5 text-primary-600" strokeWidth={1.5} />
-          </div>
-          <h3 className="font-bold text-gray-900 text-[15px]">{title}</h3>
-        </div>
-        {action}
-      </div>
-      <div className="p-6">{children}</div>
-    </div>
-  );
-}
+const STAFF_PAGE_SIZE = 5;
 
 function InfoRow({ label, value, last }: { label: string; value?: string | null; last?: boolean }) {
   return (
@@ -76,56 +58,6 @@ function InfoRow({ label, value, last }: { label: string; value?: string | null;
     </div>
   );
 }
-
-/**
- * The control is nested *inside* the `<label>` rather than linked by
- * `htmlFor`/`id`. That gives the implicit association for free — no id to
- * invent per field, none to collide when the same form renders twice — and it
- * is what makes `getByLabelText` work in the tests.
- */
-function FormField({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: ReactNode }) {
-  return (
-    <div>
-      <label className="block">
-        <span className="block text-sm font-semibold text-gray-700 mb-1.5">
-          {label}{required && <span className="text-danger ml-0.5">*</span>}
-        </span>
-        {children}
-      </label>
-      {error && <p role="alert" className="text-danger text-[13px] mt-1">{error}</p>}
-    </div>
-  );
-}
-
-/**
- * Forwards its ref: react-hook-form's `register()` returns a `ref` alongside
- * `name`/`onChange`/`onBlur`, and without forwarding it the field is
- * registered but never focusable — `setFocus` and the focus-first-error
- * behaviour both silently do nothing.
- */
-const PasswordInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { error?: boolean }>(
-  function PasswordInput({ placeholder, error, ...props }, ref) {
-  const [show, setShow] = useState(false);
-  return (
-    <div className="relative">
-      <Input
-        ref={ref}
-        type={show ? 'text' : 'password'}
-        placeholder={placeholder}
-        error={error}
-        {...props}
-      />
-      <button
-        type="button"
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-        onClick={() => setShow(s => !s)}
-        tabIndex={-1}
-      >
-        {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-      </button>
-    </div>
-  );
-});
 
 /**
  * One line of the Verification card: the address, its state, and the action.
@@ -428,9 +360,10 @@ const BLANK_GARAGE_FORM: GarageSettingsFormValues = {
 // ═══════════════ MAIN SETTINGS PAGE ═══════════════
 
 export default function Settings() {
-  const { user, hasRole, refreshUser } = useAuth();
+  const { user, hasRole, refreshUser, logout } = useAuth();
   const { confirm, ConfirmModal } = useConfirm();
   const [verifying, setVerifying] = useState<VerificationChannel | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const { withLoader } = useGlobalLoader();
   const { garages, activeGarageId, switchGarage, removeBranch, refreshGarage } = useGarage();
   const { countries } = useCountries();
@@ -545,6 +478,7 @@ export default function Settings() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [staffSearch, setStaffSearch] = useState('');
   const [staffRoleFilter, setStaffRoleFilter] = useState('all');
+  const [staffPage, setStaffPage] = useState(1);
 
   useEffect(() => {
     fetchGarage();
@@ -728,6 +662,13 @@ export default function Settings() {
     }
     return list;
   }, [staff, staffSearch, staffRoleFilter]);
+  // Paged on the client: the list is already loaded whole for the filters,
+  // and a garage's staff is dozens at most. Five per page because each row is
+  // a tall card, not a table line. Clamped so a filter that shrinks the list
+  // never leaves the page past the end.
+  const staffPages = Math.max(1, Math.ceil(filteredStaff.length / STAFF_PAGE_SIZE));
+  const staffPageClamped = Math.min(staffPage, staffPages);
+  const pagedStaff = filteredStaff.slice((staffPageClamped - 1) * STAFF_PAGE_SIZE, staffPageClamped * STAFF_PAGE_SIZE);
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto pb-12">
@@ -765,7 +706,7 @@ export default function Settings() {
       </div>
 
       {/* ── GARAGE INFORMATION ── */}
-      <SectionCard
+      <Card
         id="garage-info"
         icon={Building2}
         title="Garage Information"
@@ -782,7 +723,7 @@ export default function Settings() {
         )}
       >
         {garageLoading ? (
-          <Loader />
+          <SkeletonRows rows={8} />
         ) : editingGarage ? (
           <form className="flex flex-col gap-4" onSubmit={handleGarageSubmit(handleSaveGarage)} noValidate>
             <FormField label="Garage Name" required error={garageErrors.name?.message}>
@@ -895,11 +836,11 @@ export default function Settings() {
             <InfoRow label="Address" value={garageAddress || null} last />
           </div>
         )}
-      </SectionCard>
+      </Card>
 
       {/* ── MY BRANCHES (owners only) ── */}
       {isOwner && (
-        <SectionCard id="my-branches" icon={GitBranch} title="My Branches">
+        <Card id="my-branches" icon={GitBranch} title="My Branches">
           <div className="flex flex-col gap-2">
             {garages.map(g => {
               const isActive = g._id === activeGarageId;
@@ -943,11 +884,11 @@ export default function Settings() {
               </p>
             )}
           </div>
-        </SectionCard>
+        </Card>
       )}
 
       {/* ── STAFF MANAGEMENT ── */}
-      <SectionCard
+      <Card
         id="staff-management"
         icon={Users}
         title="Staff Management"
@@ -974,13 +915,13 @@ export default function Settings() {
                 <input
                   type="text"
                   value={staffSearch}
-                  onChange={e => setStaffSearch(e.target.value)}
+                  onChange={e => { setStaffSearch(e.target.value); setStaffPage(1); }}
                   placeholder="Search by name, email or phone..."
                   className="w-full pl-9 pr-8 py-2 text-sm bg-bone-100 border border-bone-200 rounded-xl outline-none focus:border-primary-400 focus:bg-bone-50 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.08)] transition-all"
                 />
                 {staffSearch && (
                   <button
-                    onClick={() => setStaffSearch('')}
+                    onClick={() => { setStaffSearch(''); setStaffPage(1); }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -991,7 +932,7 @@ export default function Settings() {
                 {['all', 'mechanic', 'service_advisor', 'receptionist', 'admin', 'owner'].map(role => (
                   <button
                     key={role}
-                    onClick={() => setStaffRoleFilter(role)}
+                    onClick={() => { setStaffRoleFilter(role); setStaffPage(1); }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
                       staffRoleFilter === role
                         ? 'bg-primary-600 text-white shadow-sm'
@@ -1008,7 +949,7 @@ export default function Settings() {
             <p className="text-xs text-gray-400 font-medium">
               {staffSearch || staffRoleFilter !== 'all'
                 ? `${filteredStaff.length} of ${staff.length} staff shown`
-                : `${staff.length} members · ${staff.filter(s => s.isActive).length} active`
+                : `${staff.length} members, ${staff.filter(s => s.isActive).length} active`
               }
             </p>
 
@@ -1029,14 +970,14 @@ export default function Settings() {
                 )}
               </div>
             ) : (
-              filteredStaff.map(u => {
+              pagedStaff.map(u => {
                 const isSelf = u._id === user?._id;
                 const isOwner = u.role === 'owner';
                 const cfg = ROLE_CONFIG[u.role] || { label: u.role, classes: 'bg-bone-200 text-gray-600' };
                 return (
                   <div
                     key={u._id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-bone-200 bg-bone-100/50 hover:bg-bone-50 hover:shadow-sm transition-all duration-200"
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-bone-200 bg-bone-100/50 hover:bg-bone-50 transition-colors duration-200"
                   >
                     {/* Avatar */}
                     <div
@@ -1095,12 +1036,13 @@ export default function Settings() {
                 );
               })
             )}
+            <Pagination page={staffPageClamped} pages={staffPages} onPageChange={setStaffPage} />
           </div>
         )}
-      </SectionCard>
+      </Card>
 
       {/* ── MY PROFILE ── */}
-      <SectionCard id="my-profile" icon={UserCircle} title="Edit My Profile">
+      <Card id="my-profile" icon={UserCircle} title="Edit My Profile">
         <form className="flex flex-col gap-4" onSubmit={handleProfileSubmit(handleSaveProfile)} noValidate>
           <FormField label="Full Name" required error={profileErrors.name?.message}>
             <Input
@@ -1130,11 +1072,11 @@ export default function Settings() {
             </Button>
           </div>
         </form>
-      </SectionCard>
+      </Card>
 
       {/* ── VERIFICATION (owners) ── */}
       {isOwner && (
-        <SectionCard id="verification" icon={ShieldCheck} title="Verification">
+        <Card id="verification" icon={ShieldCheck} title="Verification">
           <p className="text-sm text-gray-500 mb-2">
             A verified email and phone number will be required to upgrade your subscription.
           </p>
@@ -1153,12 +1095,12 @@ export default function Settings() {
             onVerify={() => setVerifying('phone')}
             last
           />
-        </SectionCard>
+        </Card>
       )}
 
       {/* ── PLAN (owners) ── */}
       {isOwner && (
-        <SectionCard
+        <Card
           id="plan"
           icon={CreditCard}
           title="Plan"
@@ -1173,11 +1115,11 @@ export default function Settings() {
             </div>
             <Badge intent="approved">Current</Badge>
           </div>
-        </SectionCard>
+        </Card>
       )}
 
       {/* ── CHANGE PASSWORD ── */}
-      <SectionCard id="change-password" icon={Lock} title="Change Password">
+      <Card id="change-password" icon={Lock} title="Change Password">
         <form className="flex flex-col gap-4" onSubmit={handlePwdSubmit(handleChangePassword)} noValidate>
           <FormField label="Current Password" required error={pwdErrors.currentPassword?.message}>
             <PasswordInput
@@ -1219,9 +1161,35 @@ export default function Settings() {
             </Button>
           </div>
         </form>
-      </SectionCard>
+      </Card>
+
+      {/* ── DELETE ACCOUNT ── */}
+      <Card id="delete-account" icon={Trash2} title="Delete Account">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-gray-500 max-w-[60ch]">
+            {isOwner
+              ? 'Permanently deletes your account and every branch you own, including all customers, vehicles, job cards and invoices.'
+              : 'Permanently deletes your login. The garage keeps its records, including job cards you worked on.'}
+          </p>
+          <Button type="button" variant="danger" icon={Trash2} onClick={() => setDeletingAccount(true)}>
+            Delete my account
+          </Button>
+        </div>
+      </Card>
 
       {/* Modals */}
+      <DeleteAccountModal
+        open={deletingAccount}
+        isOwner={isOwner}
+        onClose={() => setDeletingAccount(false)}
+        onDeleted={async () => {
+          setDeletingAccount(false);
+          toast.success('Your account has been deleted');
+          // The user row is gone, so the logout call itself 401s; the local
+          // sign-out is what matters and logout() tolerates the failure.
+          await logout();
+        }}
+      />
       <StaffModal
         visible={staffModal}
         onClose={() => setStaffModal(false)}

@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { HiOutlineMenuAlt2, HiOutlineOfficeBuilding } from 'react-icons/hi';
+import { Menu, Building2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useGarage } from '../../context/GarageContext';
 import { formatDate } from '../../utils/format';
@@ -49,7 +49,7 @@ export default function Header({ onMobileMenuOpen }: HeaderProps) {
           id="mobile-menu-toggle"
           title="Open menu"
         >
-          <HiOutlineMenuAlt2 className="text-2xl" />
+          <Menu className="w-6 h-6" />
         </button>
 
         <div className="flex flex-col">
@@ -64,7 +64,7 @@ export default function Header({ onMobileMenuOpen }: HeaderProps) {
 
       {activeGarageName && (
         <div className="hidden md:flex items-center gap-2 text-sm font-semibold text-gray-800 bg-bone-100 px-4 py-1.5 border border-bone-200 absolute left-1/2 -translate-x-1/2">
-          <HiOutlineOfficeBuilding className="text-primary-600" />
+          <Building2 className="w-[1em] h-[1em] text-primary-600" />
           {activeGarageName}
         </div>
       )}

@@ -50,7 +50,7 @@ export default function Button({
   if (to) {
     return (
       <Link to={to} className={classes}>
-        {Icon && <Icon className="text-lg" />}
+        {Icon && <Icon className="w-[18px] h-[18px]" />}
         {children}
       </Link>
     );
@@ -58,7 +58,7 @@ export default function Button({
 
   return (
     <button className={classes} {...props}>
-      {Icon && <Icon className="text-lg" />}
+      {Icon && <Icon className="w-[18px] h-[18px]" />}
       {children}
     </button>
   );

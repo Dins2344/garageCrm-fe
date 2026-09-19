@@ -17,6 +17,7 @@ const errorStyles = "border-danger focus:border-danger";
 
 interface FormFieldProps {
   label?: string;
+  required?: boolean;
   error?: string;
   children: ReactNode;
   className?: string;
@@ -27,15 +28,16 @@ interface FormFieldProps {
  * `htmlFor`/`id`. That gives the association for free — no id to invent per
  * field, none to collide when the same form renders twice — and it is what
  * makes `getByLabelText` work, which is how this repo's tests are told to
- * select inputs. The same shape is used by the local `FormField` in
- * `pages/Settings.tsx`.
+ * select inputs. No outer margin: forms space their fields with `gap-*`.
  */
-export function FormField({ label, error, children, className = '' }: FormFieldProps) {
+export function FormField({ label, required, error, children, className = '' }: FormFieldProps) {
   return (
-    <div className={`mb-5 ${className}`}>
+    <div className={className}>
       {label ? (
         <label className="block">
-          <span className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</span>
+          <span className="block text-sm font-semibold text-gray-700 mb-1.5">
+            {label}{required && <span className="text-danger ml-0.5">*</span>}
+          </span>
           {children}
         </label>
       ) : (

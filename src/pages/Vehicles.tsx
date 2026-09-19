@@ -12,13 +12,13 @@ import { getCustomers } from '../services/apiServices/customerService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
-  HiOutlinePlus,
-  HiOutlineSearch,
-  HiOutlinePencil,
-  HiOutlineTrash,
-  HiOutlineTruck,
-  HiOutlineEye
-} from 'react-icons/hi';
+  Plus,
+  Search,
+  Pencil,
+  Trash2,
+  Truck,
+  Eye
+} from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Button from '../components/Button';
 import { Input, Select } from '../components/Form';
@@ -181,7 +181,7 @@ export default function Vehicles() {
     <div className="flex flex-col gap-6 h-full">
       <PageHeader title="Vehicles">
         {hasRole('owner', 'admin', 'service_advisor', 'receptionist') && (
-          <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>
+          <Button variant="primary" onClick={openAdd} icon={Plus}>
             Add Vehicle
           </Button>
         )}
@@ -189,10 +189,10 @@ export default function Vehicles() {
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[250px]">
-          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-[18px] h-[18px]" />
           <Input
             type="text"
-            placeholder="Search by plate number, make, or model..."
+            placeholder="Search by plate, make, model or customer name..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-10"
@@ -206,7 +206,7 @@ export default function Vehicles() {
           <Loader />
         ) : vehicles.length === 0 ? (
           <EmptyState
-            icon={HiOutlineTruck}
+            icon={Truck}
             title="No vehicles found"
             message="Add your first vehicle to start tracking"
           />
@@ -247,14 +247,14 @@ export default function Vehicles() {
                   <Td>
                     <div className="flex gap-2">
                       <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); navigate(`/vehicles/${v._id}`); }} title="View History" className="cursor-pointer text-primary-500 hover:text-primary-600 hover:bg-primary-50">
-                        <HiOutlineEye />
+                        <Eye className="w-[1em] h-[1em]" />
                       </Button>
                       <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(v); }} title="Edit" className="cursor-pointer">
-                        <HiOutlinePencil />
+                        <Pencil className="w-[1em] h-[1em]" />
                       </Button>
                       {hasRole('owner', 'admin') && (
                         <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(v._id); }} className="cursor-pointer text-danger hover:text-danger hover:bg-danger-light" title="Delete">
-                          <HiOutlineTrash />
+                          <Trash2 className="w-[1em] h-[1em]" />
                         </Button>
                       )}
                     </div>

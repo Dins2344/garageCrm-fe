@@ -3,8 +3,10 @@ import type { ComponentType } from 'react';
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: ComponentType;
+  icon: ComponentType<{ className?: string }>;
   colorClass?: 'blue' | 'green' | 'purple' | 'orange' | 'teal' | 'red';
+  /** One line under the title, e.g. "3 completed". */
+  sub?: string;
 }
 
 /**
@@ -19,7 +21,7 @@ interface StatCardProps {
  * real meaning (red for unpaid, green for revenue). It now tints the icon
  * instead of drawing a bar.
  */
-export default function StatCard({ title, value, icon: Icon, colorClass = 'blue' }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, colorClass = 'blue', sub }: StatCardProps) {
   const colorMap: Record<string, string> = {
     blue: 'text-primary-600',
     green: 'text-success-dark',
@@ -34,7 +36,7 @@ export default function StatCard({ title, value, icon: Icon, colorClass = 'blue'
   return (
     <div className="flex flex-col gap-3 border border-bone-200 bg-bone-50 p-5">
       <div className={`flex items-center gap-2 ${iconColor}`}>
-        <Icon />
+        <Icon className="w-[1em] h-[1em]" />
       </div>
       {/* min-w-0 + break-words: a long money figure (an unpaid total in paise,
           say) used to overflow the tile and get clipped mid-number. */}
@@ -43,6 +45,7 @@ export default function StatCard({ title, value, icon: Icon, colorClass = 'blue'
           {value}
         </h3>
         <p className="mt-1 text-[13px] font-medium leading-snug text-gray-600">{title}</p>
+        {sub && <p className="mt-0.5 text-xs text-gray-500">{sub}</p>}
       </div>
     </div>
   );

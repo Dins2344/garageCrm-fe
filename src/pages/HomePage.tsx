@@ -19,7 +19,7 @@ function PlayStoreBadge({ className = '' }: { className?: string }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Download GaragePulse for Android on Google Play (opens in a new tab)"
-      className={`inline-block transition-transform duration-300 hover:scale-105 ${className}`}
+      className={`inline-block ${className}`}
     >
       <img src="/playstore.png" alt="" className="h-11 w-auto object-contain" />
     </a>

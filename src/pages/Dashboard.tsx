@@ -7,18 +7,18 @@ import type { DashboardStats, ChartData } from '../services/apiServices/dashboar
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
-  HiOutlineUsers,
-  HiOutlineTruck,
-  HiOutlineClipboardList,
-  HiOutlineReceiptTax,
-  HiOutlineClock,
-  HiOutlineExclamation,
-  HiOutlineCheckCircle,
-  HiOutlineArrowRight,
-  HiOutlineBell,
-  HiOutlineMail,
-  HiOutlineRefresh
-} from 'react-icons/hi';
+  Users,
+  Truck,
+  ClipboardList,
+  Receipt,
+  Clock,
+  TriangleAlert,
+  CircleCheck,
+  ArrowRight,
+  Bell,
+  Mail,
+  RefreshCw
+} from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -26,6 +26,7 @@ import {
 import { Trophy } from 'lucide-react';
 import { useInvoiceViewer } from '../components/InvoiceViewerModal';
 import StatCard from '../components/StatCard';
+import MonthlyBusinessPanel from '../components/MonthlyBusinessPanel';
 import Badge from '../components/Badge';
 import EmptyState from '../components/EmptyState';
 import { Card, CardHeader, CardBody } from '../components/Card';
@@ -140,7 +141,7 @@ export default function Dashboard() {
             fetchDashboard();
             fetchCharts();
           }}
-          icon={HiOutlineRefresh}
+          icon={RefreshCw}
         >
           Refresh Data
         </Button>
@@ -148,27 +149,30 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
-        <StatCard title="Active Job Cards" value={stats?.overview?.activeJobCards || 0} icon={HiOutlineClipboardList} colorClass="blue" />
-        <StatCard title="Today's Revenue" value={formatCurrency(stats?.revenue?.today)} icon={HiOutlineReceiptTax} colorClass="green" />
-        <StatCard title="Monthly Revenue" value={formatCurrency(stats?.revenue?.month)} icon={HiOutlineReceiptTax} colorClass="purple" />
-        <StatCard title="Pending Estimations" value={stats?.overview?.pendingEstimations || 0} icon={HiOutlineClock} colorClass="orange" />
-        <StatCard title="Ready for Pickup" value={stats?.overview?.readyForPickup || 0} icon={HiOutlineCheckCircle} colorClass="teal" />
-        <StatCard title={`Unpaid (${formatCurrency(stats?.unpaid?.total)})`} value={stats?.unpaid?.count || 0} icon={HiOutlineExclamation} colorClass="red" />
+        <StatCard title="Active Job Cards" value={stats?.overview?.activeJobCards || 0} icon={ClipboardList} colorClass="blue" />
+        <StatCard title="Today's Revenue" value={formatCurrency(stats?.revenue?.today)} icon={Receipt} colorClass="green" />
+        <StatCard title="Monthly Revenue" value={formatCurrency(stats?.revenue?.month)} icon={Receipt} colorClass="purple" />
+        <StatCard title="Pending Estimations" value={stats?.overview?.pendingEstimations || 0} icon={Clock} colorClass="orange" />
+        <StatCard title="Ready for Pickup" value={stats?.overview?.readyForPickup || 0} icon={CircleCheck} colorClass="teal" />
+        <StatCard title={`Unpaid (${formatCurrency(stats?.unpaid?.total)})`} value={stats?.unpaid?.count || 0} icon={TriangleAlert} colorClass="red" />
       </div>
+
+      {/* Monthly business figures — owner/admin, the only roles who see expenses */}
+      {hasRole('owner', 'admin') && <MonthlyBusinessPanel />}
 
       {/* Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
 
         {/* Recent Job Cards */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-75">
+        <Card>
           <CardHeader title="Recent Job Cards">
             <Button variant="ghost" size="sm" to="/jobcards">
-              View All <HiOutlineArrowRight />
+              View All <ArrowRight className="w-[1em] h-[1em]" />
             </Button>
           </CardHeader>
           <CardBody noPadding>
             {stats?.recentJobCards?.length === 0 ? (
-              <EmptyState icon={HiOutlineClipboardList} title="No job cards yet" />
+              <EmptyState icon={ClipboardList} title="No job cards yet" />
             ) : (
               <RecentList>
                 {stats?.recentJobCards?.map(jc => {
@@ -202,30 +206,30 @@ export default function Dashboard() {
         </Card>
 
         {/* Quick Stats Sidebar */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-150">
+        <Card>
           <CardHeader title="Quick Overview" />
           <CardBody className="flex flex-col gap-4">
-            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
-                <HiOutlineUsers className="text-xl text-primary-500" /> Total Customers
+                <Users className="w-5 h-5 text-primary-500" /> Total Customers
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.totalCustomers || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
-                <HiOutlineTruck className="text-xl text-primary-500" /> Total Vehicles
+                <Truck className="w-5 h-5 text-primary-500" /> Total Vehicles
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.totalVehicles || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
-                <HiOutlineClipboardList className="text-xl text-primary-500" /> Today's New Jobs
+                <ClipboardList className="w-5 h-5 text-primary-500" /> Today's New Jobs
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.todayJobCards || 0}</span>
             </div>
-            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg transition-transform duration-150 hover:bg-bone-200 hover:translate-x-1">
+            <div className="flex items-center justify-between p-3 px-4 bg-bone-100 rounded-lg">
               <div className="flex items-center gap-3 text-gray-600 font-medium">
-                <HiOutlineClock className="text-xl text-primary-500" /> In Progress
+                <Clock className="w-5 h-5 text-primary-500" /> In Progress
               </div>
               <span className="text-xl font-bold text-gray-900">{stats?.overview?.inProgressJobs || 0}</span>
             </div>
@@ -233,10 +237,10 @@ export default function Dashboard() {
         </Card>
 
         {/* Recent Invoices */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-200">
+        <Card>
           <CardHeader title="Recent Invoices">
             <Button variant="ghost" size="sm" to="/invoices">
-              View All <HiOutlineArrowRight />
+              View All <ArrowRight className="w-[1em] h-[1em]" />
             </Button>
           </CardHeader>
           <CardBody noPadding>
@@ -265,14 +269,14 @@ export default function Dashboard() {
         </Card>
 
         {/* Service Reminders */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-300">
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between w-full">
               <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <HiOutlineBell className="text-2xl" /> Reminders
+                <Bell className="w-6 h-6" /> Reminders
               </h3>
               {hasRole('owner', 'admin') && (
-                <Button variant="ghost" size="sm" onClick={triggerCron} disabled={cronRunning} icon={HiOutlineMail}>
+                <Button variant="ghost" size="sm" onClick={triggerCron} disabled={cronRunning} icon={Mail}>
                   {cronRunning ? '...' : 'Send'}
                 </Button>
               )}
@@ -280,7 +284,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardBody noPadding>
             {!stats?.upcomingReminders?.length ? (
-              <EmptyState icon={HiOutlineCheckCircle} title="No reminders" />
+              <EmptyState icon={CircleCheck} title="No reminders" />
             ) : (
               <RecentList>
                 {stats.upcomingReminders.slice(0, 5).map(r => {
@@ -302,7 +306,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Staff Achievement Leaderboard */}
-        <Card className="animate-[slideUp_0.4s_ease_both] delay-350 xl:col-span-2">
+        <Card className="xl:col-span-2">
           <CardHeader>
             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <Trophy className="w-5 h-5 text-amber-500" strokeWidth={1.5} />
@@ -311,7 +315,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardBody noPadding>
             {!stats?.staffAchievement?.length ? (
-              <EmptyState icon={HiOutlineUsers} title="No data yet for this month" />
+              <EmptyState icon={Users} title="No data yet for this month" />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -353,12 +357,12 @@ export default function Dashboard() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex flex-col items-end">
-                            <span className="text-[15px] font-bold text-gray-900 font-mono">
+                            <span className="tabular text-[15px] font-bold text-gray-900">
                               {formatCurrency(achievement.totalLabor)}
                             </span>
                             <div className="w-20 h-1.5 bg-bone-200 rounded-full mt-2 overflow-hidden">
                               <div
-                                className="h-full bg-primary-500 rounded-full shadow-[0_0_8px_rgba(59,95,248,0.3)] transition-all duration-1000"
+                                className="h-full bg-primary-500 rounded-full"
                                 style={{ width: `${Math.min(100, (achievement.totalLabor / (stats.staffAchievement[0]?.totalLabor || 1)) * 100)}%` }}
                               />
                             </div>
@@ -453,13 +457,13 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Revenue Trend */}
-          <Card className="lg:col-span-2 animate-[slideUp_0.4s_ease_both] delay-400">
+          <Card className="lg:col-span-2">
             <CardHeader title="Revenue Trend" />
             <CardBody>
               {chartLoading ? (
                 <Loader />
               ) : chartData?.revenueTrend?.every(d => d.revenue === 0) ? (
-                <EmptyState icon={HiOutlineReceiptTax} title="No revenue in this period" />
+                <EmptyState icon={Receipt} title="No revenue in this period" />
               ) : (
                 <ResponsiveContainer width="100%" height={220}>
                   <AreaChart data={chartData?.revenueTrend || []} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -502,7 +506,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Job Status Breakdown */}
-          <Card className="animate-[slideUp_0.4s_ease_both] delay-450">
+          <Card>
             <CardHeader title="Job Status" />
             <CardBody>
               {chartLoading ? (
@@ -515,7 +519,7 @@ export default function Dashboard() {
                   .map(([s, c]) => ({ name: STATUS_LABELS[s] || s, value: c, color: STATUS_COLORS[s] || '#9ca3af' }))
                   .filter(d => d.value > 0).sort((a, b) => b.value - a.value);
 
-                if (!pieData.length) return <EmptyState icon={HiOutlineClipboardList} title="No jobs in this period" />;
+                if (!pieData.length) return <EmptyState icon={ClipboardList} title="No jobs in this period" />;
 
                 const total = pieData.reduce((s, d) => s + d.value, 0);
                 return (
@@ -549,8 +553,8 @@ export default function Dashboard() {
 
           {/* Staff Performance Bar Chart (unchanged, from main stats) */}
           {stats?.staffAchievement && stats.staffAchievement.length > 0 && (
-            <Card className="lg:col-span-3 animate-[slideUp_0.4s_ease_both] delay-500">
-              <CardHeader title="Staff Performance — This Month" />
+            <Card className="lg:col-span-3">
+              <CardHeader title="Staff performance this month" />
               <CardBody>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart

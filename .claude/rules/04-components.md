@@ -81,7 +81,7 @@ stays free of them so a repo-wide scan finds zero hits.
 <p className="text-emerald-500">[glyph] Approved</p>
 <span className="text-red-400">[glyph]</span>
 
-// Use lucide-react (or react-icons/hi where a file already uses it)
+// Use lucide-react
 <p className="text-emerald-500 flex items-center gap-1">
   <Check className="w-3 h-3" strokeWidth={3} /> Approved
 </p>

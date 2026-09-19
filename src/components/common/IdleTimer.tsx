@@ -1,59 +1,33 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
 const IDLE_TIME_LIMIT = 10 * 60 * 1000; // 10 minutes in milliseconds
+const ACTIVITY_EVENTS = ['mousedown', 'keypress', 'scroll', 'touchstart', 'click'];
 
+/** Signs the user out after IDLE_TIME_LIMIT without any input. Renders nothing. */
 const IdleTimer = () => {
   const { user, logout } = useAuth();
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const resetTimer = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    if (user) {
-      timeoutRef.current = setTimeout(() => {
+  useEffect(() => {
+    if (!user) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
         logout();
         // Force refresh to clear any sensitive state and redirect to login
         window.location.href = '/login?reason=session_expired';
       }, IDLE_TIME_LIMIT);
-    }
+    };
+    reset();
+    ACTIVITY_EVENTS.forEach(e => window.addEventListener(e, reset));
+    return () => {
+      clearTimeout(timer);
+      ACTIVITY_EVENTS.forEach(e => window.removeEventListener(e, reset));
+    };
   }, [user, logout]);
 
-  useEffect(() => {
-    if (!user) return;
-
-    // Events to track user activity
-    const events = [
-      'mousedown',
-      // 'mousemove',
-      'keypress',
-      'scroll',
-      'touchstart',
-      'click'
-    ];
-
-    // Initialize timer
-    resetTimer();
-
-    // Add event listeners
-    events.forEach(event => {
-      window.addEventListener(event, resetTimer);
-    });
-
-    // Cleanup
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      events.forEach(event => {
-        window.removeEventListener(event, resetTimer);
-      });
-    };
-  }, [user, resetTimer]);
-
-  return null; // This component doesn't render anything
+  return null;
 };
 
 export default IdleTimer;

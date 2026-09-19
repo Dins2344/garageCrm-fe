@@ -8,12 +8,12 @@ import { formatMoney, formatNumber, formatDate as fmtDate } from '../utils/forma
 import toast from 'react-hot-toast';
 import {
   // Currency-neutral: a rupee glyph on a UK garage's invoice is just wrong.
-  HiOutlineReceiptTax,
-  HiOutlineCheckCircle,
-  HiOutlineDownload,
-  HiOutlineX,
-  HiOutlineTrash
-} from 'react-icons/hi';
+  Receipt,
+  CircleCheck,
+  Download,
+  X,
+  Trash2
+} from 'lucide-react';
 import { Phone, Mail, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 import { ModalOverlay, Modal } from './Modal';
 import Button from './Button';
@@ -139,7 +139,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
           {/* Custom Header to accommodate actions */}
           <div className="flex justify-between items-center p-4 sm:p-6 border-b border-bone-200 bg-bone-100/50">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <HiOutlineReceiptTax className="text-primary-600 text-2xl" />
+              <Receipt className="text-primary-600 w-6 h-6" />
               {inv?.invoiceNumber || 'Loading...'}
             </h2>
             <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                     size="sm"
                     onClick={() => downloadPDF(inv._id, inv.invoiceNumber)}
                     title="Download PDF"
-                    icon={HiOutlineDownload}
+                    icon={Download}
                   >
                     PDF
                   </Button>
@@ -159,7 +159,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                       variant="primary"
                       size="sm"
                       onClick={() => markAsPaid(inv._id)}
-                      icon={HiOutlineCheckCircle}
+                      icon={CircleCheck}
                       className="bg-green-600 hover:bg-green-700"
                     >
                       Mark Paid
@@ -170,7 +170,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleCancelInvoice(inv._id)}
-                      icon={HiOutlineTrash}
+                      icon={Trash2}
                       className="text-danger hover:bg-danger-light"
                     >
                       Cancel Bill
@@ -179,7 +179,7 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                 </>
               )}
               <Button variant="ghost" size="icon" onClick={closeViewer} className="ml-2">
-                <HiOutlineX />
+                <X className="w-[1em] h-[1em]" />
               </Button>
             </div>
           </div>

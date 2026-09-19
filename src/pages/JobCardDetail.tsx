@@ -12,17 +12,17 @@ import { useGarage } from '../context/GarageContext';
 import { formatMoney, formatNumber, formatDate as fmtDate } from '../utils/format';
 import toast from 'react-hot-toast';
 import {
-  HiOutlineArrowLeft,
-  HiOutlinePencil,
-  HiOutlinePlus,
-  HiOutlineTrash,
-  HiOutlineCheckCircle,
-  HiOutlineDocumentText,
-  HiOutlineReceiptTax,
-  HiOutlineDownload,
-  HiOutlineCheck,
-} from 'react-icons/hi';
-import { HiOutlineWrench } from 'react-icons/hi2';
+  ArrowLeft,
+  Pencil,
+  Plus,
+  Trash2,
+  CircleCheck,
+  FileText,
+  Receipt,
+  Download,
+  Check,
+} from 'lucide-react';
+import { Wrench } from 'lucide-react';
 import Button from '../components/Button';
 import { Input, Select } from '../components/Form';
 import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
@@ -324,7 +324,7 @@ export default function JobCardDetail() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-bone-50 p-6 rounded-2xl shadow-sm border border-bone-200">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/jobcards')}>
-            <HiOutlineArrowLeft />
+            <ArrowLeft className="w-[1em] h-[1em]" />
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">{jobCard.jobCardNumber}</h1>
@@ -381,7 +381,7 @@ export default function JobCardDetail() {
             return (
               <div key={status} className="flex flex-col items-center flex-1 z-10 relative">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${circleClass}`}>
-                  {isCompleted && !isCurrent ? <HiOutlineCheck className="text-lg" /> : index + 1}
+                  {isCompleted && !isCurrent ? <Check className="w-[18px] h-[18px]" /> : index + 1}
                 </div>
                 <span className={`mt-3 text-xs font-semibold uppercase tracking-wider text-center ${labelClass}`}>
                   {status.replace(/_/g, ' ')}
@@ -529,27 +529,27 @@ export default function JobCardDetail() {
           action={
             <div className="flex flex-wrap gap-2">
               {hasRole('owner', 'admin', 'service_advisor') && !jobCard.invoice && (
-                <Button variant="secondary" size="sm" onClick={() => setShowEstimation(true)} icon={HiOutlinePencil}>
+                <Button variant="secondary" size="sm" onClick={() => setShowEstimation(true)} icon={Pencil}>
                   Edit Estimation
                 </Button>
               )}
               {jobCard.estimation?.grandTotal > 0 && (
-                <Button variant="ghost" size="sm" onClick={downloadEstimation} icon={HiOutlineDownload}>
+                <Button variant="ghost" size="sm" onClick={downloadEstimation} icon={Download}>
                   Export Estimation
                 </Button>
               )}
               {jobCard.estimation?.grandTotal > 0 && !jobCard.estimation?.approvedByCustomer && (jobCard.status !== 'cancelled' && jobCard.status !== 'delivered') && hasRole('owner', 'admin', 'service_advisor') && (
-                <Button variant="primary" size="sm" onClick={approveEstimation} icon={HiOutlineCheckCircle} className="bg-green-600 hover:bg-green-700">
+                <Button variant="primary" size="sm" onClick={approveEstimation} icon={CircleCheck} className="bg-green-600 hover:bg-green-700">
                   Approve
                 </Button>
               )}
               {jobCard.estimation?.approvedByCustomer && !jobCard.invoice && (jobCard.status !== 'cancelled' && jobCard.status !== 'delivered') && hasRole('owner', 'admin', 'service_advisor') && (
-                <Button variant="accent" size="sm" onClick={createInvoice} icon={HiOutlineDocumentText}>
+                <Button variant="accent" size="sm" onClick={createInvoice} icon={FileText}>
                   Generate Invoice
                 </Button>
               )}
               {jobCard.invoice && (
-                <Button variant="primary" size="sm" onClick={() => openInvoice(invoiceId as string)} icon={HiOutlineReceiptTax}>
+                <Button variant="primary" size="sm" onClick={() => openInvoice(invoiceId as string)} icon={Receipt}>
                   View Invoice
                 </Button>
               )}
@@ -649,7 +649,7 @@ export default function JobCardDetail() {
 
                     {jobCard.estimation.approvedByCustomer && (
                       <div className="mt-6 flex items-center justify-center gap-2 bg-green-50 text-green-700 py-3 rounded-lg border border-green-200 font-semibold shadow-sm">
-                        <HiOutlineCheckCircle className="text-xl" /> Estimation Approved
+                        <CircleCheck className="w-5 h-5" /> Estimation Approved
                       </div>
                     )}
                   </div>
@@ -657,7 +657,7 @@ export default function JobCardDetail() {
               </div>
             ) : (
               <EmptyState
-                icon={HiOutlineWrench}
+                icon={Wrench}
                 title="No estimation"
                 message='Click "Edit Estimation" to add parts and labor.'
               />
@@ -702,12 +702,12 @@ export default function JobCardDetail() {
                       {money(part.quantity * part.unitPrice)}
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => removePart(i)} className="text-danger hover:text-danger hover:bg-danger-light">
-                      <HiOutlineTrash />
+                      <Trash2 className="w-[1em] h-[1em]" />
                     </Button>
                   </div>
                 ))}
                 <Button variant="ghost" size="sm" onClick={addPart} className="self-start mt-1">
-                  <HiOutlinePlus className="mr-1.5" /> Add Part
+                  <Plus className="w-[1em] h-[1em] mr-1.5" /> Add Part
                 </Button>
               </div>
 
@@ -741,12 +741,12 @@ export default function JobCardDetail() {
                       {money(labor.hours * labor.ratePerHour)}
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => removeLabor(i)} className="text-danger hover:text-danger hover:bg-danger-light">
-                      <HiOutlineTrash />
+                      <Trash2 className="w-[1em] h-[1em]" />
                     </Button>
                   </div>
                 ))}
                 <Button variant="ghost" size="sm" onClick={addLabor} className="self-start mt-1">
-                  <HiOutlinePlus className="mr-1.5" /> Add Labor
+                  <Plus className="w-[1em] h-[1em] mr-1.5" /> Add Labor
                 </Button>
               </div>
 
