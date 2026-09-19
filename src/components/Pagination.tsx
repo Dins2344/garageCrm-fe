@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { pageWindow } from '../utils/pageWindow';
 
 interface PaginationProps {
   page: number;
@@ -6,6 +7,9 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
   className?: string;
 }
+
+const BUTTON = 'min-w-[36px] h-9 font-medium text-sm transition-colors duration-150 border';
+const IDLE = 'bg-bone-50 text-gray-700 border-bone-400 hover:bg-bone-100 hover:border-ink-900 hover:text-gray-900';
 
 export default function Pagination({ page, pages, onPageChange, className = '' }: PaginationProps) {
   if (pages <= 1) return null;
@@ -15,31 +19,30 @@ export default function Pagination({ page, pages, onPageChange, className = '' }
       <button
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
-        className="min-w-[36px] h-9 font-medium text-sm text-gray-700 bg-bone-50 border border-bone-400 transition-colors duration-150 hover:bg-bone-100 hover:border-ink-900 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed"
+        aria-label="Previous page"
+        className={`${BUTTON} ${IDLE} disabled:opacity-40 disabled:cursor-not-allowed`}
       ><ChevronLeft className="w-4 h-4 mx-auto" strokeWidth={2} /></button>
 
-      {Array.from({ length: pages }, (_, i) => {
-        const pageNum = i + 1;
-        const isActive = page === pageNum;
-        return (
+      {pageWindow(page, pages).map((item, i) =>
+        item === 'gap' ? (
+          <span key={`gap-${i}`} className="min-w-[24px] text-center text-sm text-gray-500 select-none">&hellip;</span>
+        ) : (
           <button
-            key={pageNum}
-            onClick={() => onPageChange(pageNum)}
-            className={`min-w-[36px] h-9 font-medium text-sm transition-colors duration-150 border ${
-              isActive
-                ? 'bg-primary-600 text-white border-primary-600'
-                : 'bg-bone-50 text-gray-700 border-bone-400 hover:bg-bone-100 hover:border-ink-900 hover:text-gray-900'
-            }`}
+            key={item}
+            onClick={() => onPageChange(item)}
+            aria-current={page === item ? 'page' : undefined}
+            className={`${BUTTON} ${page === item ? 'bg-primary-600 text-white border-primary-600' : IDLE}`}
           >
-            {pageNum}
+            {item}
           </button>
-        );
-      })}
+        )
+      )}
 
       <button
         disabled={page >= pages}
         onClick={() => onPageChange(page + 1)}
-        className="min-w-[36px] h-9 font-medium text-sm text-gray-700 bg-bone-50 border border-bone-400 transition-colors duration-150 hover:bg-bone-100 hover:border-ink-900 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed"
+        aria-label="Next page"
+        className={`${BUTTON} ${IDLE} disabled:opacity-40 disabled:cursor-not-allowed`}
       ><ChevronRight className="w-4 h-4 mx-auto" strokeWidth={2} /></button>
     </div>
   );
