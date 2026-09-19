@@ -1,4 +1,4 @@
-import { HiOutlineChevronLeft, HiOutlineChevronRight } from 'react-icons/hi';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { currentMonthKey, monthLabel, shiftMonth } from '../utils/months';
 
@@ -27,7 +27,7 @@ export default function MonthPicker({ value, onChange, locale, max = currentMont
         aria-label="Previous month"
         className="h-10 w-10 flex items-center justify-center text-gray-600 hover:bg-bone-100 hover:text-gray-900"
       >
-        <HiOutlineChevronLeft className="w-4 h-4" />
+        <ChevronLeft className="w-4 h-4" />
       </button>
       <span className="min-w-[160px] px-2 text-center text-sm font-semibold text-gray-900" aria-live="polite">
         {monthLabel(value, locale)}
@@ -39,7 +39,7 @@ export default function MonthPicker({ value, onChange, locale, max = currentMont
         aria-label="Next month"
         className="h-10 w-10 flex items-center justify-center text-gray-600 hover:bg-bone-100 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        <HiOutlineChevronRight className="w-4 h-4" />
+        <ChevronRight className="w-4 h-4" />
       </button>
     </div>
   );

@@ -1,7 +1,7 @@
-import { useState, useCallback, useRef, type ComponentType } from 'react';
-import { createPortal } from 'react-dom';
-import { HiOutlineExclamation, HiOutlineTrash, HiOutlineBan } from 'react-icons/hi';
+import { useState, useCallback, useRef } from 'react';
+import { TriangleAlert, Trash2, Ban } from 'lucide-react';
 import Button from './Button';
+import { ModalOverlay, Modal } from './Modal';
 
 type ConfirmIntent = 'danger' | 'warning' | 'default';
 
@@ -19,13 +19,6 @@ interface ConfirmState {
   confirmLabel: string;
   cancelLabel: string;
   intent: ConfirmIntent;
-}
-
-interface IntentConfig {
-  icon: ComponentType<{ className?: string }>;
-  iconBg: string;
-  iconColor: string;
-  btnClass: string;
 }
 
 /**
@@ -74,72 +67,33 @@ export function useConfirm() {
     resolveRef.current?.(false);
   };
 
-  const intentConfig: Record<ConfirmIntent, IntentConfig> = {
-    danger: {
-      icon: HiOutlineTrash,
-      iconBg: 'bg-danger-light',
-      iconColor: 'text-danger',
-      btnClass: 'bg-danger hover:bg-red-700 text-white',
-    },
-    warning: {
-      icon: HiOutlineBan,
-      iconBg: 'bg-warning-light',
-      iconColor: 'text-warning-dark',
-      btnClass: 'bg-warning-dark hover:bg-warning text-white',
-    },
-    default: {
-      icon: HiOutlineExclamation,
-      iconBg: 'bg-primary-100',
-      iconColor: 'text-primary-600',
-      btnClass: 'bg-primary-600 hover:bg-primary-700 text-white',
-    },
+  // Every intent is a committing action, so the confirm button is always the
+  // danger variant; only the icon says what kind of commitment.
+  const intentIcon = {
+    danger: <Trash2 className="w-5 h-5 text-danger" />,
+    warning: <Ban className="w-5 h-5 text-warning-dark" />,
+    default: <TriangleAlert className="w-5 h-5 text-primary-600" />,
   };
 
   function ConfirmModal() {
     if (!state) return null;
-
-    const cfg = intentConfig[state.intent] ?? intentConfig.default;
-    const Icon = cfg.icon;
-    const modalRoot = document.body;
-    if (!modalRoot) return null;
-
-    return createPortal(
-      // Backdrop
-      <div
-        className="fixed inset-0 z-[2000] flex items-center justify-center p-5 bg-ink-900/70 animate-[fadeIn_0.15s_ease]"
-        onClick={handleCancel}
-      >
-        {/* Panel */}
-        <div
-          className="bg-bone-50 border border-bone-300 w-full max-w-[420px] p-7 animate-[slideUp_0.2s_ease] flex flex-col gap-5"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Icon + Text */}
+    // ponytail: sits above an already-open modal by portal order (it mounts later), not by z-index.
+    return (
+      <ModalOverlay onClose={handleCancel}>
+        <Modal className="max-w-[420px] p-7 flex flex-col gap-5">
           <div className="flex gap-4 items-start">
-            <div className={`shrink-0 w-11 h-11 ${cfg.iconBg} flex items-center justify-center`}>
-              <Icon className={`text-xl ${cfg.iconColor}`} />
-            </div>
+            <div className="shrink-0 w-11 h-11 bg-bone-100 flex items-center justify-center">{intentIcon[state.intent]}</div>
             <div className="flex-1 pt-0.5">
               <h3 className="font-display text-base font-bold tracking-tight text-gray-900 mb-1">{state.title}</h3>
               <p className="text-sm text-gray-600 leading-relaxed">{state.message}</p>
             </div>
           </div>
-
-          {/* Actions */}
           <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={handleCancel}>
-              {state.cancelLabel}
-            </Button>
-            <button
-              onClick={handleConfirm}
-              className={`inline-flex items-center gap-1.5 border border-transparent px-4 py-2 text-sm font-bold transition-colors ${cfg.btnClass}`}
-            >
-              {state.confirmLabel}
-            </button>
+            <Button variant="ghost" onClick={handleCancel}>{state.cancelLabel}</Button>
+            <Button variant="danger" onClick={handleConfirm}>{state.confirmLabel}</Button>
           </div>
-        </div>
-      </div>,
-      modalRoot
+        </Modal>
+      </ModalOverlay>
     );
   }
 

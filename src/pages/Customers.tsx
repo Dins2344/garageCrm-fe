@@ -13,13 +13,13 @@ import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '..
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
-  HiOutlinePlus,
-  HiOutlineSearch,
-  HiOutlinePencil,
-  HiOutlineTrash,
-  HiOutlinePhone,
-  HiOutlineMail
-} from 'react-icons/hi';
+  Plus,
+  Search,
+  Pencil,
+  Trash2,
+  Phone,
+  Mail
+} from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Button from '../components/Button';
 import { Input } from '../components/Form';
@@ -150,7 +150,7 @@ export default function Customers() {
     <div className="flex flex-col gap-6 h-full">
       <PageHeader title="Customers">
         {hasRole('owner', 'admin', 'service_advisor', 'receptionist') && (
-          <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>
+          <Button variant="primary" onClick={openAdd} icon={Plus}>
             Add Customer
           </Button>
         )}
@@ -159,7 +159,7 @@ export default function Customers() {
       {/* Search */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[250px]">
-          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-[18px] h-[18px]" />
           <Input
             type="text"
             placeholder="Search by name or phone..."
@@ -176,7 +176,7 @@ export default function Customers() {
           <Loader />
         ) : customers.length === 0 ? (
           <EmptyState
-            icon={HiOutlineSearch}
+            icon={Search}
             title="No customers found"
             message="Add your first customer to get started"
           />
@@ -199,14 +199,14 @@ export default function Customers() {
                   <Td className="font-semibold text-gray-900">{c.name}</Td>
                   <Td>
                     <span className="flex items-center gap-1.5 text-gray-800">
-                      <HiOutlinePhone className="text-gray-400" />
+                      <Phone className="w-[1em] h-[1em] text-gray-400" />
                       {c.phone}
                     </span>
                   </Td>
                   <Td>
                     {c.email ? (
                       <span className="flex items-center gap-1.5 text-gray-800">
-                        <HiOutlineMail className="text-gray-400" />
+                        <Mail className="w-[1em] h-[1em] text-gray-400" />
                         {c.email}
                       </span>
                     ) : (
@@ -223,11 +223,11 @@ export default function Customers() {
                   <Td>
                     <div className="flex gap-2">
                       <Button className='cursor-pointer' variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edit">
-                        <HiOutlinePencil />
+                        <Pencil className="w-[1em] h-[1em]" />
                       </Button>
                       {hasRole('owner', 'admin') && (
                         <Button variant="ghost" size="icon" onClick={() => handleDelete(c._id)} className="cursor-pointer text-danger hover:text-danger hover:bg-danger-light" title="Delete">
-                          <HiOutlineTrash />
+                          <Trash2 className="w-[1em] h-[1em]" />
                         </Button>
                       )}
                     </div>

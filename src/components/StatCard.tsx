@@ -3,7 +3,7 @@ import type { ComponentType } from 'react';
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: ComponentType;
+  icon: ComponentType<{ className?: string }>;
   colorClass?: 'blue' | 'green' | 'purple' | 'orange' | 'teal' | 'red';
 }
 
@@ -34,7 +34,7 @@ export default function StatCard({ title, value, icon: Icon, colorClass = 'blue'
   return (
     <div className="flex flex-col gap-3 border border-bone-200 bg-bone-50 p-5">
       <div className={`flex items-center gap-2 ${iconColor}`}>
-        <Icon />
+        <Icon className="w-[1em] h-[1em]" />
       </div>
       {/* min-w-0 + break-words: a long money figure (an unpaid total in paise,
           say) used to overflow the tile and get clipped mid-number. */}

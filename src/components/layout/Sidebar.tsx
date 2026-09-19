@@ -12,21 +12,21 @@ import { FormField, Input } from '../Form';
 import Button from '../Button';
 import type { Role } from '../../types/models';
 import {
-  HiOutlineViewGrid,
-  HiOutlineUsers,
-  HiOutlineTruck,
-  HiOutlineClipboardList,
-  HiOutlineDocumentText,
-  HiOutlineCog,
-  HiOutlineCreditCard,
-  HiOutlineCash,
-  HiOutlineChevronRight,
-  HiOutlineChevronDown,
-  HiOutlineOfficeBuilding,
-  HiOutlinePlus,
-  HiOutlineLogout,
-  HiOutlineX
-} from 'react-icons/hi';
+  LayoutGrid,
+  Users,
+  Truck,
+  ClipboardList,
+  FileText,
+  Settings,
+  CreditCard,
+  Banknote,
+  ChevronRight,
+  ChevronDown,
+  Building2,
+  Plus,
+  LogOut,
+  X
+} from 'lucide-react';
 
 interface NavItem {
   path: string;
@@ -36,16 +36,16 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { path: '/', label: 'Dashboard', icon: HiOutlineViewGrid, roles: ['owner', 'admin', 'service_advisor', 'mechanic', 'receptionist'] },
-  { path: '/jobcards', label: 'Job Cards', icon: HiOutlineClipboardList, roles: ['owner', 'admin', 'service_advisor', 'mechanic'] },
-  { path: '/customers', label: 'Customers', icon: HiOutlineUsers, roles: ['owner', 'admin', 'service_advisor', 'receptionist'] },
-  { path: '/vehicles', label: 'Vehicles', icon: HiOutlineTruck, roles: ['owner', 'admin', 'service_advisor', 'receptionist'] },
+  { path: '/', label: 'Dashboard', icon: LayoutGrid, roles: ['owner', 'admin', 'service_advisor', 'mechanic', 'receptionist'] },
+  { path: '/jobcards', label: 'Job Cards', icon: ClipboardList, roles: ['owner', 'admin', 'service_advisor', 'mechanic'] },
+  { path: '/customers', label: 'Customers', icon: Users, roles: ['owner', 'admin', 'service_advisor', 'receptionist'] },
+  { path: '/vehicles', label: 'Vehicles', icon: Truck, roles: ['owner', 'admin', 'service_advisor', 'receptionist'] },
   // Inventory is disabled — users enter parts manually in estimations
-  // { path: '/inventory', label: 'Inventory', icon: HiOutlineCube, roles: ['owner', 'admin', 'service_advisor'] },
-  { path: '/invoices', label: 'Invoices', icon: HiOutlineDocumentText, roles: ['owner', 'admin', 'service_advisor'] },
-  { path: '/expenses', label: 'Expenses', icon: HiOutlineCash, roles: ['owner', 'admin'] },
-  { path: '/settings', label: 'Settings', icon: HiOutlineCog, roles: ['owner', 'admin', 'service_advisor', 'mechanic', 'receptionist'] },
-  { path: '/pricing', label: 'Plans', icon: HiOutlineCreditCard, roles: ['owner', 'admin'] },
+  // { path: '/inventory', label: 'Inventory', icon: Box, roles: ['owner', 'admin', 'service_advisor'] },
+  { path: '/invoices', label: 'Invoices', icon: FileText, roles: ['owner', 'admin', 'service_advisor'] },
+  { path: '/expenses', label: 'Expenses', icon: Banknote, roles: ['owner', 'admin'] },
+  { path: '/settings', label: 'Settings', icon: Settings, roles: ['owner', 'admin', 'service_advisor', 'mechanic', 'receptionist'] },
+  { path: '/pricing', label: 'Plans', icon: CreditCard, roles: ['owner', 'admin'] },
 ];
 
 interface SidebarProps {
@@ -151,7 +151,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
             onClick={onToggle}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {collapsed ? <HiOutlineChevronRight /> : <HiOutlineX />}
+            {collapsed ? <ChevronRight className="w-[1em] h-[1em]" /> : <X className="w-[1em] h-[1em]" />}
           </button>
 
           {/* Mobile: close button */}
@@ -160,7 +160,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
             onClick={onMobileClose}
             title="Close sidebar"
           >
-            <HiOutlineX />
+            <X className="w-[1em] h-[1em]" />
           </button>
         </div>
 
@@ -172,11 +172,11 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
               onClick={() => setSwitcherOpen(o => !o)}
               title={collapsed ? activeGarage?.name : undefined}
             >
-              <HiOutlineOfficeBuilding className="text-xl shrink-0" />
+              <Building2 className="w-5 h-5 shrink-0" />
               {(!collapsed || mobileOpen) && (
                 <>
                   <span className="truncate flex-1">{activeGarage?.name || 'Select garage'}</span>
-                  <HiOutlineChevronDown className={`shrink-0 transition-transform ${switcherOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-[1em] h-[1em] shrink-0 transition-transform ${switcherOpen ? 'rotate-180' : ''}`} />
                 </>
               )}
             </button>
@@ -197,7 +197,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
                   className="flex items-center gap-2 w-full text-left px-3.5 py-2 text-sm text-accent-400 hover:bg-white/10 border-t border-white/15"
                   onClick={openAddBranch}
                 >
-                  <HiOutlinePlus /> Add Branch
+                  <Plus className="w-[1em] h-[1em]" /> Add Branch
                 </button>
               </div>
             )}
@@ -220,7 +220,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
               end={item.path === '/'}
               title={collapsed ? item.label : undefined}
             >
-              <item.icon className="text-xl shrink-0" />
+              <item.icon className="w-5 h-5 shrink-0" />
               {(!collapsed || mobileOpen) && <span>{item.label}</span>}
             </NavLink>
           ))}
@@ -247,7 +247,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
             onClick={handleLogout}
             title="Logout"
           >
-            <HiOutlineLogout className="text-xl shrink-0" />
+            <LogOut className="w-5 h-5 shrink-0" />
             {(!collapsed || mobileOpen) && <span>Logout</span>}
           </button>
         </div>
@@ -262,7 +262,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
           <Modal className="max-w-[420px]">
             <ModalHeader title="Add Branch" onClose={() => setAddBranchOpen(false)} />
             <form onSubmit={handleBranchSubmit(handleAddBranch)} noValidate>
-              <ModalBody>
+              <ModalBody className="flex flex-col gap-5">
                 <FormField label="Branch Name" error={branchErrors.name?.message}>
                   <Input
                     {...registerBranch('name')}
@@ -272,7 +272,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
                     aria-invalid={!!branchErrors.name}
                   />
                 </FormField>
-                <FormField label="Phone" className="mb-0" error={branchErrors.phone?.message}>
+                <FormField label="Phone" error={branchErrors.phone?.message}>
                   <Input
                     {...registerBranch('phone')}
                     placeholder={locale.phoneExample}

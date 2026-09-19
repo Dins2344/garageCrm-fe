@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { HiOutlineChevronDown, HiOutlineCheck } from 'react-icons/hi';
+import { ChevronDown, Check } from 'lucide-react';
 
 export interface MultiSelectOption {
   value: string;
@@ -69,7 +69,7 @@ export default function MultiSelect({ label, options, value, onChange, className
         <span className="truncate text-gray-900">
           <span className="text-gray-500">{label}: </span>{summary}
         </span>
-        <HiOutlineChevronDown className={`w-4 h-4 shrink-0 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 shrink-0 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
@@ -98,7 +98,7 @@ export default function MultiSelect({ label, options, value, onChange, className
                         selected ? 'bg-primary-600 border-primary-600 text-white' : 'border-bone-400 bg-transparent'
                       }`}
                     >
-                      {selected && <HiOutlineCheck className="w-3 h-3" strokeWidth={3} />}
+                      {selected && <Check className="w-3 h-3" strokeWidth={3} />}
                     </span>
                     <span>{option.label}</span>
                   </button>

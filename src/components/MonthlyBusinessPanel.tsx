@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { HiOutlineReceiptTax, HiOutlineClipboardCheck, HiOutlineCash, HiOutlineTrendingUp, HiOutlineTrendingDown } from 'react-icons/hi';
+import { Receipt, ClipboardCheck, Banknote, TrendingUp, TrendingDown } from 'lucide-react';
 import { getMonthlyMetrics } from '../services/apiServices/dashboardService';
 import { useGarage } from '../context/GarageContext';
 import { useDebounce } from '../hooks/useDebounce';
@@ -24,7 +24,7 @@ function Delta({ current, previous, invert = false }: { current: number; previou
   if (pct === null) return <span className="text-xs text-gray-500">No figure for last month</span>;
   // For expenses, going up is the bad direction.
   const good = invert ? pct <= 0 : pct >= 0;
-  const Icon = pct >= 0 ? HiOutlineTrendingUp : HiOutlineTrendingDown;
+  const Icon = pct >= 0 ? TrendingUp : TrendingDown;
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-semibold ${good ? 'text-success-dark' : 'text-danger'}`}>
       <Icon className="w-3.5 h-3.5" />
@@ -72,22 +72,22 @@ export default function MonthlyBusinessPanel() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <div className="flex flex-col gap-2">
-              <StatCard title="Total revenue" value={money(metrics.revenue)} icon={HiOutlineReceiptTax} colorClass="green" />
+              <StatCard title="Total revenue" value={money(metrics.revenue)} icon={Receipt} colorClass="green" />
               <Delta current={metrics.revenue} previous={metrics.previous.revenue} />
             </div>
             <div className="flex flex-col gap-2">
-              <StatCard title="Services completed" value={metrics.services} icon={HiOutlineClipboardCheck} colorClass="blue" />
+              <StatCard title="Services completed" value={metrics.services} icon={ClipboardCheck} colorClass="blue" />
               <Delta current={metrics.services} previous={metrics.previous.services} />
             </div>
             <div className="flex flex-col gap-2">
-              <StatCard title="Total expenses" value={money(metrics.expenses)} icon={HiOutlineCash} colorClass="red" />
+              <StatCard title="Total expenses" value={money(metrics.expenses)} icon={Banknote} colorClass="red" />
               <Delta current={metrics.expenses} previous={metrics.previous.expenses} invert />
             </div>
             <div className="flex flex-col gap-2">
               <StatCard
                 title={profitPositive ? 'Net profit' : 'Net loss'}
                 value={money(Math.abs(metrics.netProfit))}
-                icon={profitPositive ? HiOutlineTrendingUp : HiOutlineTrendingDown}
+                icon={profitPositive ? TrendingUp : TrendingDown}
                 colorClass={profitPositive ? 'teal' : 'red'}
               />
               <Delta current={metrics.netProfit} previous={metrics.previous.netProfit} />

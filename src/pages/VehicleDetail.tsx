@@ -7,22 +7,22 @@ import { getVehicle, getVehicleHistory } from '../services/apiServices/vehicleSe
 
 import toast from 'react-hot-toast';
 import {
-  HiOutlineArrowLeft,
-  HiOutlineTruck,
-  HiOutlineUser,
-  HiOutlinePhone,
-  HiOutlineMail,
-  HiOutlineLocationMarker,
-  HiOutlineClipboardList,
-  HiOutlineReceiptTax,
-  HiOutlineCalendar,
-  HiOutlineChip,
-  HiOutlineIdentification,
-  HiOutlineChartBar,
-  HiOutlineCog,
-  HiOutlineLightningBolt,
-  HiOutlineRefresh,
-} from 'react-icons/hi';
+  ArrowLeft,
+  Truck,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  ClipboardList,
+  Receipt,
+  Calendar,
+  Cpu,
+  IdCard,
+  ChartColumn,
+  Settings,
+  Zap,
+  RefreshCw,
+} from 'lucide-react';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
@@ -54,7 +54,7 @@ function InfoBlock({ icon: Icon, label, value }: InfoBlockProps) {
   return (
     <div className="flex items-start gap-3">
       <div className="w-9 h-9 rounded-xl bg-bone-100 border border-bone-200 flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="text-gray-400 text-base" />
+        <Icon className="text-gray-400 w-4 h-4" />
       </div>
       <div>
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">{label}</p>
@@ -65,7 +65,7 @@ function InfoBlock({ icon: Icon, label, value }: InfoBlockProps) {
 }
 
 interface StatCardProps {
-  icon: ComponentType;
+  icon: ComponentType<{ className?: string }>;
   label: string;
   value: string | number;
   sub?: string;
@@ -76,7 +76,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: StatCardProps) {
   return (
     <div className="bg-bone-50 rounded-2xl border border-bone-200 shadow-sm p-5 flex items-center gap-4">
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${color}`}>
-        <Icon />
+        <Icon className="w-[1em] h-[1em]" />
       </div>
       <div>
         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{label}</p>
@@ -161,7 +161,7 @@ export default function VehicleDetail() {
       {/* Top navigation bar */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate('/vehicles')}>
-          <HiOutlineArrowLeft />
+          <ArrowLeft className="w-[1em] h-[1em]" />
         </Button>
         <div>
           <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Vehicle</p>
@@ -183,7 +183,7 @@ export default function VehicleDetail() {
 
         {/* Vehicle icon */}
         <div className="w-20 h-20 rounded-2xl bg-bone-50 backdrop-blur flex items-center justify-center shrink-0 border border-white/20">
-          <HiOutlineTruck className="text-white text-4xl" />
+          <Truck className="text-white w-9 h-9" />
         </div>
 
         {/* Main info */}
@@ -204,7 +204,7 @@ export default function VehicleDetail() {
           </p>
           {customer && (
             <p className="text-white/60 text-sm mt-1 flex items-center gap-1.5">
-              <HiOutlineUser className="text-base" />
+              <User className="w-4 h-4" />
               {customer.name}
               {customer.phone ? ` · ${customer.phone}` : ''}
             </p>
@@ -223,21 +223,21 @@ export default function VehicleDetail() {
       {/* ── Stats Row ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          icon={HiOutlineClipboardList}
+          icon={ClipboardList}
           label="Total Services"
           value={total}
           sub={`${delivered.length} completed`}
           color="bg-blue-50 text-blue-500"
         />
         <StatCard
-          icon={HiOutlineReceiptTax}
+          icon={Receipt}
           label="Total Spend"
           value={money(totalSpend)}
           sub="across all job cards"
           color="bg-emerald-50 text-emerald-500"
         />
         <StatCard
-          icon={HiOutlineCalendar}
+          icon={Calendar}
           label="Last Service"
           value={lastService}
           sub={delivered.length > 0 ? 'delivered' : 'no completed services yet'}
@@ -251,15 +251,15 @@ export default function VehicleDetail() {
         {/* Vehicle Info */}
         <div className="bg-bone-50 rounded-2xl border border-bone-200 shadow-sm p-6">
           <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest mb-5 flex items-center gap-2">
-            <HiOutlineCog className="text-gray-400 text-base" /> Vehicle Information
+            <Settings className="text-gray-400 w-4 h-4" /> Vehicle Information
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <InfoBlock icon={HiOutlineTruck} label="Make & Model" value={`${vehicle.make} ${vehicle.model}`} />
-            <InfoBlock icon={HiOutlineCalendar} label="Year" value={vehicle.year?.toString()} />
-            <InfoBlock icon={HiOutlineChip} label="Engine Number" value={vehicle.engineNumber} />
-            <InfoBlock icon={HiOutlineIdentification} label="Chassis / VIN" value={vehicle.chassisNumber || vehicle.vin} />
-            <InfoBlock icon={HiOutlineChartBar} label="Current Mileage" value={vehicle.currentOdometerReading ? `${formatNumber(vehicle.currentOdometerReading, locale)} km` : null} />
-            <InfoBlock icon={HiOutlineLightningBolt} label="Fuel Type" value={fuelType.charAt(0).toUpperCase() + fuelType.slice(1)} />
+            <InfoBlock icon={Truck} label="Make & Model" value={`${vehicle.make} ${vehicle.model}`} />
+            <InfoBlock icon={Calendar} label="Year" value={vehicle.year?.toString()} />
+            <InfoBlock icon={Cpu} label="Engine Number" value={vehicle.engineNumber} />
+            <InfoBlock icon={IdCard} label="Chassis / VIN" value={vehicle.chassisNumber || vehicle.vin} />
+            <InfoBlock icon={ChartColumn} label="Current Mileage" value={vehicle.currentOdometerReading ? `${formatNumber(vehicle.currentOdometerReading, locale)} km` : null} />
+            <InfoBlock icon={Zap} label="Fuel Type" value={fuelType.charAt(0).toUpperCase() + fuelType.slice(1)} />
           </div>
         </div>
 
@@ -267,14 +267,14 @@ export default function VehicleDetail() {
         {customer && (
           <div className="bg-bone-50 rounded-2xl border border-bone-200 shadow-sm p-6">
             <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <HiOutlineUser className="text-gray-400 text-base" /> Owner Details
+              <User className="text-gray-400 w-4 h-4" /> Owner Details
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <InfoBlock icon={HiOutlineUser} label="Name" value={customer.name} />
-              <InfoBlock icon={HiOutlinePhone} label="Phone" value={customer.phone} />
-              <InfoBlock icon={HiOutlineMail} label="Email" value={customer.email} />
+              <InfoBlock icon={User} label="Name" value={customer.name} />
+              <InfoBlock icon={Phone} label="Phone" value={customer.phone} />
+              <InfoBlock icon={Mail} label="Email" value={customer.email} />
               <InfoBlock
-                icon={HiOutlineLocationMarker}
+                icon={MapPin}
                 label="City"
                 value={customer.address?.city}
               />
@@ -289,7 +289,7 @@ export default function VehicleDetail() {
         <div className="flex items-center justify-between px-6 py-5 border-b border-bone-200">
           <div>
             <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest flex items-center gap-2">
-              <HiOutlineClipboardList className="text-gray-400" /> Service History
+              <ClipboardList className="w-[1em] h-[1em] text-gray-400" /> Service History
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">{total} record{total !== 1 ? 's' : ''} found</p>
           </div>
@@ -298,14 +298,14 @@ export default function VehicleDetail() {
             disabled={historyLoading}
             className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-primary-500 transition-colors disabled:opacity-50"
           >
-            <HiOutlineRefresh className={historyLoading ? 'animate-spin' : ''} /> Refresh
+            <RefreshCw className={historyLoading ? 'animate-spin' : ''} /> Refresh
           </button>
         </div>
 
         {/* History list */}
         {jobCards.length === 0 && !historyLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-gray-300">
-            <HiOutlineClipboardList className="text-6xl" />
+            <ClipboardList className="w-[60px] h-[60px]" />
             <div className="text-center">
               <p className="font-bold text-gray-400 text-base">No service records yet</p>
               <p className="text-sm text-gray-300 mt-1">Job cards for this vehicle will appear here</p>

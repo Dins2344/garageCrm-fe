@@ -3,8 +3,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
 import {
-  HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlineCash
-} from 'react-icons/hi';
+  Plus, Search, Pencil, Trash2, Banknote
+} from 'lucide-react';
 import { expenseSchema, type ExpenseFormValues, type ExpenseFormOutput } from '../utils/validation';
 import { useGarage } from '../context/GarageContext';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
@@ -155,7 +155,7 @@ export default function Expenses() {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="Expenses">
-        <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>Add Expense</Button>
+        <Button variant="primary" onClick={openAdd} icon={Plus}>Add Expense</Button>
       </PageHeader>
 
       {/* Filters */}
@@ -166,7 +166,7 @@ export default function Expenses() {
           {EXPENSE_CATEGORY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </Select>
         <div className="relative flex-1 min-w-[220px]">
-          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-[18px] h-[18px]" />
           <Input
             type="text"
             placeholder="Search by title..."
@@ -180,7 +180,7 @@ export default function Expenses() {
       {/* Month total */}
       <div className="flex items-center justify-between border border-bone-200 bg-bone-50 px-5 py-4">
         <div className="flex items-center gap-3">
-          <HiOutlineCash className="w-6 h-6 text-danger" />
+          <Banknote className="w-6 h-6 text-danger" />
           <div>
             <p className="text-[13px] font-medium text-gray-600">{filtered ? 'Total of matching expenses' : 'Total spent this month'}</p>
             <p className="tabular font-display text-xl font-extrabold text-gray-900" data-testid="month-total">{money(totalAmount)}</p>
@@ -193,7 +193,7 @@ export default function Expenses() {
       <div className="flex flex-col flex-1">
         {loading ? <Loader /> : expenses.length === 0 ? (
           <EmptyState
-            icon={HiOutlineCash}
+            icon={Banknote}
             title="No expenses recorded"
             message={filtered ? 'Try a different filter' : 'Record rent, parts, salaries and the rest to see this month\'s profit on the dashboard.'}
           />
@@ -223,10 +223,10 @@ export default function Expenses() {
                   <Td className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(expense)} aria-label={`Edit ${expense.title}`}>
-                        <HiOutlinePencil className="w-4 h-4" />
+                        <Pencil className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => handleDelete(expense)} aria-label={`Delete ${expense.title}`}>
-                        <HiOutlineTrash className="w-4 h-4 text-danger" />
+                        <Trash2 className="w-4 h-4 text-danger" />
                       </Button>
                     </div>
                   </Td>

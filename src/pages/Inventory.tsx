@@ -13,13 +13,13 @@ import { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInve
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
-  HiOutlinePlus,
-  HiOutlineSearch,
-  HiOutlinePencil,
-  HiOutlineTrash,
-  HiOutlineExclamation,
-  HiOutlineTemplate
-} from 'react-icons/hi';
+  Plus,
+  Search,
+  Pencil,
+  Trash2,
+  TriangleAlert,
+  LayoutTemplate
+} from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Button from '../components/Button';
 import { Input, Select } from '../components/Form';
@@ -176,7 +176,7 @@ export default function Inventory() {
     <div className="flex flex-col gap-6 h-full">
       <PageHeader title="Inventory">
         {hasRole('owner', 'admin', 'service_advisor') && (
-          <Button variant="primary" onClick={openAdd} icon={HiOutlinePlus}>
+          <Button variant="primary" onClick={openAdd} icon={Plus}>
             Add Item
           </Button>
         )}
@@ -184,14 +184,14 @@ export default function Inventory() {
 
       {lowStockCount > 0 && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2 mb-2 shadow-sm animate-[fadeIn_0.3s_ease]">
-          <HiOutlineExclamation className="text-xl" />
+          <TriangleAlert className="w-5 h-5" />
           <span className="font-medium">You have {lowStockCount} items low on stock. Please restock soon.</span>
         </div>
       )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[250px]">
-          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-[18px] h-[18px]" />
           <Input
             type="text"
             placeholder="Search parts..."
@@ -215,7 +215,7 @@ export default function Inventory() {
       <div className="flex flex-col flex-1">
       {loading ? <Loader /> : items.length === 0 ? (
         <EmptyState
-          icon={HiOutlineTemplate}
+          icon={LayoutTemplate}
           title="No inventory items found"
           message="Start adding parts and materials"
         />
@@ -241,7 +241,7 @@ export default function Inventory() {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-gray-900">{item.partName}</span>
                     {item.isLowStock && (
-                      <HiOutlineExclamation className="text-danger shrink-0" title="Low Stock!" />
+                      <TriangleAlert className="w-[1em] h-[1em] text-danger shrink-0" aria-label="Low stock" />
                     )}
                   </div>
                 </Td>
@@ -262,12 +262,12 @@ export default function Inventory() {
                   <div className="flex gap-2">
                     {hasRole('owner', 'admin', 'service_advisor') && (
                       <Button variant="ghost" size="icon" onClick={() => openEdit(item)} title="Edit">
-                        <HiOutlinePencil />
+                        <Pencil className="w-[1em] h-[1em]" />
                       </Button>
                     )}
                     {hasRole('owner', 'admin') && (
                       <Button variant="ghost" size="icon" onClick={() => handleDelete(item._id)} className="text-danger hover:text-danger hover:bg-danger-light" title="Delete">
-                        <HiOutlineTrash />
+                        <Trash2 className="w-[1em] h-[1em]" />
                       </Button>
                     )}
                   </div>

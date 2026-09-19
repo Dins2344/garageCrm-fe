@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, forwardRef, type ReactNode, type ComponentType, type InputHTMLAttributes } from 'react';
+import { useState, useEffect, useMemo, type ComponentType } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -16,7 +16,9 @@ import { updateProfile, changePassword } from '../services/apiServices/authServi
 import { getGarage, updateGarage, getBranchStaff } from '../services/apiServices/garageService';
 import { useConfirm } from '../components/ConfirmModal';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
-import { Input, Select } from '../components/Form';
+import { Input, Select, FormField } from '../components/Form';
+import { Card } from '../components/Card';
+import PasswordInput from '../components/PasswordInput';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
 import Badge from '../components/Badge';
@@ -27,7 +29,7 @@ import { useCountries } from '../hooks/useCountries';
 import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
 import {
   Building2, Users, UserCircle, Lock,
-  Pencil, X, Plus, Save, Eye, EyeOff, Trash2, Check,
+  Pencil, X, Plus, Save, Trash2, Check,
   PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2, ShieldCheck, Mail, Phone, CreditCard,
 } from 'lucide-react';
 import type { User, Garage, Role, ResolvedLocale, VerificationChannel } from '../types/models';
@@ -44,31 +46,6 @@ const ROLE_CONFIG: Record<string, { label: string; classes: string }> = {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-interface SectionCardProps {
-  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
-  title: string;
-  children: ReactNode;
-  action?: ReactNode;
-  id?: string;
-}
-
-function SectionCard({ icon: Icon, title, children, action, id }: SectionCardProps) {
-  return (
-    <div id={id} className="bg-bone-50 rounded-2xl border border-bone-200/80 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-bone-200">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
-            <Icon className="w-5 h-5 text-primary-600" strokeWidth={1.5} />
-          </div>
-          <h3 className="font-bold text-gray-900 text-[15px]">{title}</h3>
-        </div>
-        {action}
-      </div>
-      <div className="p-6">{children}</div>
-    </div>
-  );
-}
-
 function InfoRow({ label, value, last }: { label: string; value?: string | null; last?: boolean }) {
   return (
     <div className={`flex items-center justify-between py-3 ${!last ? 'border-b border-gray-50' : ''}`}>
@@ -77,56 +54,6 @@ function InfoRow({ label, value, last }: { label: string; value?: string | null;
     </div>
   );
 }
-
-/**
- * The control is nested *inside* the `<label>` rather than linked by
- * `htmlFor`/`id`. That gives the implicit association for free — no id to
- * invent per field, none to collide when the same form renders twice — and it
- * is what makes `getByLabelText` work in the tests.
- */
-function FormField({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: ReactNode }) {
-  return (
-    <div>
-      <label className="block">
-        <span className="block text-sm font-semibold text-gray-700 mb-1.5">
-          {label}{required && <span className="text-danger ml-0.5">*</span>}
-        </span>
-        {children}
-      </label>
-      {error && <p role="alert" className="text-danger text-[13px] mt-1">{error}</p>}
-    </div>
-  );
-}
-
-/**
- * Forwards its ref: react-hook-form's `register()` returns a `ref` alongside
- * `name`/`onChange`/`onBlur`, and without forwarding it the field is
- * registered but never focusable — `setFocus` and the focus-first-error
- * behaviour both silently do nothing.
- */
-const PasswordInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { error?: boolean }>(
-  function PasswordInput({ placeholder, error, ...props }, ref) {
-  const [show, setShow] = useState(false);
-  return (
-    <div className="relative">
-      <Input
-        ref={ref}
-        type={show ? 'text' : 'password'}
-        placeholder={placeholder}
-        error={error}
-        {...props}
-      />
-      <button
-        type="button"
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-        onClick={() => setShow(s => !s)}
-        tabIndex={-1}
-      >
-        {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-      </button>
-    </div>
-  );
-});
 
 /**
  * One line of the Verification card: the address, its state, and the action.
@@ -767,7 +694,7 @@ export default function Settings() {
       </div>
 
       {/* ── GARAGE INFORMATION ── */}
-      <SectionCard
+      <Card
         id="garage-info"
         icon={Building2}
         title="Garage Information"
@@ -897,11 +824,11 @@ export default function Settings() {
             <InfoRow label="Address" value={garageAddress || null} last />
           </div>
         )}
-      </SectionCard>
+      </Card>
 
       {/* ── MY BRANCHES (owners only) ── */}
       {isOwner && (
-        <SectionCard id="my-branches" icon={GitBranch} title="My Branches">
+        <Card id="my-branches" icon={GitBranch} title="My Branches">
           <div className="flex flex-col gap-2">
             {garages.map(g => {
               const isActive = g._id === activeGarageId;
@@ -945,11 +872,11 @@ export default function Settings() {
               </p>
             )}
           </div>
-        </SectionCard>
+        </Card>
       )}
 
       {/* ── STAFF MANAGEMENT ── */}
-      <SectionCard
+      <Card
         id="staff-management"
         icon={Users}
         title="Staff Management"
@@ -1099,10 +1026,10 @@ export default function Settings() {
             )}
           </div>
         )}
-      </SectionCard>
+      </Card>
 
       {/* ── MY PROFILE ── */}
-      <SectionCard id="my-profile" icon={UserCircle} title="Edit My Profile">
+      <Card id="my-profile" icon={UserCircle} title="Edit My Profile">
         <form className="flex flex-col gap-4" onSubmit={handleProfileSubmit(handleSaveProfile)} noValidate>
           <FormField label="Full Name" required error={profileErrors.name?.message}>
             <Input
@@ -1132,11 +1059,11 @@ export default function Settings() {
             </Button>
           </div>
         </form>
-      </SectionCard>
+      </Card>
 
       {/* ── VERIFICATION (owners) ── */}
       {isOwner && (
-        <SectionCard id="verification" icon={ShieldCheck} title="Verification">
+        <Card id="verification" icon={ShieldCheck} title="Verification">
           <p className="text-sm text-gray-500 mb-2">
             A verified email and phone number will be required to upgrade your subscription.
           </p>
@@ -1155,12 +1082,12 @@ export default function Settings() {
             onVerify={() => setVerifying('phone')}
             last
           />
-        </SectionCard>
+        </Card>
       )}
 
       {/* ── PLAN (owners) ── */}
       {isOwner && (
-        <SectionCard
+        <Card
           id="plan"
           icon={CreditCard}
           title="Plan"
@@ -1175,11 +1102,11 @@ export default function Settings() {
             </div>
             <Badge intent="approved">Current</Badge>
           </div>
-        </SectionCard>
+        </Card>
       )}
 
       {/* ── CHANGE PASSWORD ── */}
-      <SectionCard id="change-password" icon={Lock} title="Change Password">
+      <Card id="change-password" icon={Lock} title="Change Password">
         <form className="flex flex-col gap-4" onSubmit={handlePwdSubmit(handleChangePassword)} noValidate>
           <FormField label="Current Password" required error={pwdErrors.currentPassword?.message}>
             <PasswordInput
@@ -1221,10 +1148,10 @@ export default function Settings() {
             </Button>
           </div>
         </form>
-      </SectionCard>
+      </Card>
 
       {/* ── DELETE ACCOUNT ── */}
-      <SectionCard id="delete-account" icon={Trash2} title="Delete Account">
+      <Card id="delete-account" icon={Trash2} title="Delete Account">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-gray-500 max-w-[60ch]">
             {isOwner
@@ -1235,7 +1162,7 @@ export default function Settings() {
             Delete my account
           </Button>
         </div>
-      </SectionCard>
+      </Card>
 
       {/* Modals */}
       <DeleteAccountModal

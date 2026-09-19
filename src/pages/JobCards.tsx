@@ -11,17 +11,17 @@ import { getMechanics, getAdvisors } from '../services/apiServices/userService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
-  HiOutlinePlus,
-  HiOutlineSearch,
-  HiOutlineEye,
-  HiOutlineX,
-  HiOutlineUser,
-  HiOutlineTruck,
-  HiOutlineChevronRight,
-  HiOutlineChevronLeft,
-  HiOutlineCheck,
-  HiOutlineClipboardList
-} from 'react-icons/hi';
+  Plus,
+  Search,
+  Eye,
+  X,
+  User as UserIcon,
+  Truck,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  ClipboardList
+} from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Button from '../components/Button';
 import { Input, Select } from '../components/Form';
@@ -365,7 +365,7 @@ export default function JobCards() {
       {/* Page Header */}
       <PageHeader title="Job Cards">
         {hasRole('owner', 'admin', 'service_advisor') && (
-          <Button variant="primary" onClick={openModal} icon={HiOutlinePlus}>
+          <Button variant="primary" onClick={openModal} icon={Plus}>
             New Job Card
           </Button>
         )}
@@ -374,7 +374,7 @@ export default function JobCards() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[250px]">
-          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-[18px] h-[18px]" />
           <Input
             type="text"
             placeholder="Search by job card no., plate, make, model or customer..."
@@ -396,7 +396,7 @@ export default function JobCards() {
       <div className="flex flex-col flex-1">
       {loading ? <Loader /> : jobCards.length === 0 ? (
         <EmptyState
-          icon={HiOutlineClipboardList}
+          icon={ClipboardList}
           title="No job cards found"
           message={statusFilter.length ? 'Try a different filter' : 'Create your first job card to get started'}
         />
@@ -467,7 +467,7 @@ export default function JobCards() {
                 </Td>
                 <Td>
                   <Button className='cursor-pointer' variant="ghost" size="sm" onClick={() => navigate(`/jobcards/${jc._id}`)}>
-                    <HiOutlineEye className="mr-1.5" /> View
+                    <Eye className="w-[1em] h-[1em] mr-1.5" /> View
                   </Button>
                 </Td>
               </Tr>
@@ -496,7 +496,7 @@ export default function JobCards() {
                 <div className="flex flex-col items-center flex-1">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${step === 1 ? 'bg-primary-500 text-white shadow-md' : 'bg-primary-100 text-primary-600'
                     }`}>
-                    {step > 1 ? <HiOutlineCheck className="text-xl" /> : <span className="font-bold">1</span>}
+                    {step > 1 ? <Check className="w-5 h-5" /> : <span className="font-bold">1</span>}
                   </div>
                   <span className={`text-sm font-semibold mt-2 ${step === 1 ? 'text-primary-700' : 'text-gray-500'}`}>
                     Customer & Vehicle
@@ -539,7 +539,7 @@ export default function JobCards() {
                     <div className="flex items-center justify-between p-4 bg-primary-50 border border-primary-100 rounded-xl mb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary-100 text-primary-600 rounded-lg flex items-center justify-center">
-                          <HiOutlineUser className="text-xl" />
+                          <UserIcon className="w-5 h-5" />
                         </div>
                         <div>
                           <div className="font-bold text-gray-900">{selectedCustomer.name}</div>
@@ -553,7 +553,7 @@ export default function JobCards() {
                         setSelectedVehicle(null);
                         setVehicleSearch('');
                       }} title="Change Customer">
-                        <HiOutlineX />
+                        <X className="w-[1em] h-[1em]" />
                       </Button>
                     </div>
                   ) : (
@@ -576,7 +576,7 @@ export default function JobCards() {
                       {customerMode === 'existing' ? (
                         <>
                           <div className="relative mb-3">
-                            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-[18px] h-[18px]" />
                             <Input
                               placeholder="Search by name or phone..."
                               value={customerSearch}
@@ -608,7 +608,7 @@ export default function JobCards() {
                                   <div className="font-semibold text-gray-900">{c.name}</div>
                                   <div className="text-sm text-gray-500">{c.phone}{c.vehicles?.length ? ` · ${c.vehicles.length} vehicle(s)` : ''}</div>
                                 </div>
-                                <HiOutlineChevronRight className="text-gray-400" />
+                                <ChevronRight className="w-[1em] h-[1em] text-gray-400" />
                               </div>
                             ))}
                           </div>
@@ -679,7 +679,7 @@ export default function JobCards() {
                     <div className="flex items-center justify-between p-4 bg-primary-50 border border-primary-100 rounded-xl mb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary-100 text-primary-600 rounded-lg flex items-center justify-center">
-                          <HiOutlineTruck className="text-xl" />
+                          <Truck className="w-5 h-5" />
                         </div>
                         <div>
                           <div className="font-bold text-gray-900">{selectedVehicle.licensePlate}</div>
@@ -691,7 +691,7 @@ export default function JobCards() {
                         </div>
                       </div>
                       <Button variant="ghost" size="icon" onClick={() => setSelectedVehicle(null)} title="Change Vehicle">
-                        <HiOutlineX />
+                        <X className="w-[1em] h-[1em]" />
                       </Button>
                     </div>
                   ) : (
@@ -714,7 +714,7 @@ export default function JobCards() {
                       {vehicleMode === 'existing' ? (
                         <>
                           <div className="relative mb-2">
-                            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-[18px] h-[18px]" />
                             <Input
                               placeholder="Search by plate, make, or model..."
                               value={vehicleSearch}
@@ -756,7 +756,7 @@ export default function JobCards() {
                                     {typeof v.customer !== 'string' && v.customer?.name ? ` · ${v.customer.name}` : ''}
                                   </div>
                                 </div>
-                                <HiOutlineChevronRight className="text-gray-400" />
+                                <ChevronRight className="w-[1em] h-[1em] text-gray-400" />
                               </div>
                             ))}
                           </div>
@@ -837,7 +837,7 @@ export default function JobCards() {
                   <div className="flex flex-wrap gap-4 mb-6">
                     <div className="flex-1 min-w-[220px] p-3 border border-bone-200 bg-bone-100 rounded-xl flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-bone-50 text-gray-500 flex items-center justify-center shadow-sm">
-                        <HiOutlineUser />
+                        <UserIcon className="w-[1em] h-[1em]" />
                       </div>
                       <div>
                         <div className="text-sm font-bold text-gray-900">
@@ -850,7 +850,7 @@ export default function JobCards() {
                     </div>
                     <div className="flex-1 min-w-[220px] p-3 border border-bone-200 bg-bone-100 rounded-xl flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-bone-50 text-gray-500 flex items-center justify-center shadow-sm">
-                        <HiOutlineTruck />
+                        <Truck className="w-[1em] h-[1em]" />
                       </div>
                       <div>
                         <div className="text-sm font-bold text-gray-900">
@@ -962,13 +962,13 @@ export default function JobCards() {
                             className="text-gray-400 hover:text-danger hover:bg-danger-light shrink-0"
                             title="Remove complaint"
                           >
-                            <HiOutlineX className="text-lg" />
+                            <X className="w-[18px] h-[18px]" />
                           </Button>
                         )}
                       </div>
                     ))}
                     <Button variant="ghost" size="sm" onClick={addComplaint} className="mt-1">
-                      <HiOutlinePlus className="mr-1.5" /> Add Another Issue
+                      <Plus className="w-[1em] h-[1em] mr-1.5" /> Add Another Issue
                     </Button>
                   </div>
 
@@ -999,7 +999,7 @@ export default function JobCards() {
                     </p>
                   )}
                   {step === 2 && (
-                    <Button variant="secondary" onClick={() => setStep(1)} icon={HiOutlineChevronLeft}>
+                    <Button variant="secondary" onClick={() => setStep(1)} icon={ChevronLeft}>
                       Back
                     </Button>
                   )}
@@ -1009,11 +1009,11 @@ export default function JobCards() {
                       disabled={!canProceedStep1()}
                       onClick={() => setStep(2)}
                     >
-                      Next <HiOutlineChevronRight className="ml-1.5" />
+                      Next <ChevronRight className="w-[1em] h-[1em] ml-1.5" />
                     </Button>
                   )}
                   {step === 2 && (
-                    <Button variant="primary" onClick={handleSubmit} icon={HiOutlineCheck} disabled={!canProceedStep2()}>
+                    <Button variant="primary" onClick={handleSubmit} icon={Check} disabled={!canProceedStep2()}>
                       Create Job Card
                     </Button>
                   )}

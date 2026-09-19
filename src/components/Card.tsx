@@ -13,17 +13,18 @@ interface IconProps {
 interface CardProps {
   children: ReactNode;
   className?: string;
+  id?: string;
   title?: string;
   icon?: ComponentType<IconProps>;
   action?: ReactNode;
   noPadding?: boolean;
 }
 
-export function Card({ children, className = '', title, icon: Icon, action, noPadding = false }: CardProps) {
+export function Card({ children, className = '', id, title, icon: Icon, action, noPadding = false }: CardProps) {
   // If shorthand props are used, we wrap in CardHeader and CardBody automatically
   if (title || Icon || action) {
     return (
-      <div className={`bg-bone-50 border border-bone-200 ${className}`}>
+      <div id={id} className={`bg-bone-50 border border-bone-200 ${className}`}>
         <CardHeader title={title} icon={Icon} action={action} />
         <CardBody noPadding={noPadding}>
           {children}
@@ -35,7 +36,7 @@ export function Card({ children, className = '', title, icon: Icon, action, noPa
   // If no shorthand props are used, we just render the bare container
   // (Assuming children already include CardHeader/CardBody if needed)
   return (
-    <div className={`bg-bone-50 border border-bone-200 ${className}`}>
+    <div id={id} className={`bg-bone-50 border border-bone-200 ${className}`}>
       {children}
     </div>
   );

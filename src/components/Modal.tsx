@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode, type MouseEventHandler } from 'react';
 import { createPortal } from 'react-dom';
-import { HiOutlineX } from 'react-icons/hi';
+import { X } from 'lucide-react';
 import Button from './Button';
 
 interface ModalOverlayProps {
@@ -8,13 +8,17 @@ interface ModalOverlayProps {
   onClose?: () => void;
 }
 
+// Overlays stack (a confirm over a viewer) and can remount out of order, so
+// the body unlocks when the last one leaves — not by restoring a captured value,
+// which re-locks it when an inner overlay captured 'hidden'.
+let openOverlays = 0;
+
 export function ModalOverlay({ children, onClose }: ModalOverlayProps) {
   useEffect(() => {
-    // Prevent scrolling on body when modal is open
-    const originalOverflow = document.body.style.overflow;
+    openOverlays++;
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = originalOverflow;
+      if (--openOverlays === 0) document.body.style.overflow = '';
     };
   }, []);
 
@@ -69,7 +73,7 @@ export function ModalHeader({ title, onClose }: ModalHeaderProps) {
       <h2 className="font-display text-lg font-bold tracking-tight text-gray-900">{title}</h2>
       {onClose && (
         <Button variant="ghost" size="icon" onClick={onClose}>
-          <HiOutlineX />
+          <X className="w-[1em] h-[1em]" />
         </Button>
       )}
     </div>
