@@ -10,7 +10,7 @@ import { EXPENSE_CATEGORY_LABEL } from '../utils/constants';
 import MonthPicker from './MonthPicker';
 import { currentMonthKey } from '../utils/months';
 import StatCard from './StatCard';
-import Loader from './Loader';
+import Skeleton from './Skeleton';
 import type { MonthlyMetrics } from '../types/models';
 
 /** "+12%" / "-8%" against last month; null when last month was zero. */
@@ -44,17 +44,26 @@ export default function MonthlyBusinessPanel() {
   const [month, setMonth] = useState(currentMonthKey());
   // Ten taps on the arrow are one request, for the month the taps end on.
   const debouncedMonth = useDebounce(month, 350);
-  const [metrics, setMetrics] = useState<MonthlyMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
+  // The figures are kept with the request they answer, so a month or branch
+  // change shows the skeleton until its own figures land instead of leaving
+  // last month's under the picker. `data: null` records a failed request.
+  const requestKey = `${activeGarageId}:${debouncedMonth}`;
+  const [result, setResult] = useState<{ key: string; data: MonthlyMetrics | null } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     getMonthlyMetrics(debouncedMonth)
-      .then(res => { if (!cancelled) setMetrics(res.data); })
-      .catch(() => { if (!cancelled) toast.error('Failed to load monthly figures'); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .then(res => { if (!cancelled) setResult({ key: requestKey, data: res.data }); })
+      .catch(() => {
+        if (cancelled) return;
+        toast.error('Failed to load monthly figures');
+        setResult({ key: requestKey, data: null });
+      });
     return () => { cancelled = true; };
-  }, [debouncedMonth, activeGarageId]);
+  }, [debouncedMonth, requestKey]);
+
+  const metrics = result?.key === requestKey ? result.data : null;
+  const loading = result?.key !== requestKey;
 
   const profitPositive = (metrics?.netProfit ?? 0) >= 0;
 
@@ -68,7 +77,22 @@ export default function MonthlyBusinessPanel() {
         </div>
       </div>
 
-      {loading && !metrics ? <Loader /> : metrics && (
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" data-testid="monthly-skeleton">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3 border border-bone-200 bg-bone-50 p-5">
+                <Skeleton className="w-4 h-4" />
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="w-28 h-6" />
+                  <Skeleton className="w-20 h-3.5" />
+                </div>
+              </div>
+              <Skeleton className="w-32 h-3.5" />
+            </div>
+          ))}
+        </div>
+      ) : metrics && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <div className="flex flex-col gap-2">
