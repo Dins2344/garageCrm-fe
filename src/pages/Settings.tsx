@@ -21,6 +21,8 @@ import { Card } from '../components/Card';
 import PasswordInput from '../components/PasswordInput';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
+import Pagination from '../components/Pagination';
+import { SkeletonRows } from '../components/Skeleton';
 import Badge from '../components/Badge';
 import VerifyCodeModal from '../components/VerifyCodeModal';
 import DeleteAccountModal from '../components/DeleteAccountModal';
@@ -45,6 +47,8 @@ const ROLE_CONFIG: Record<string, { label: string; classes: string }> = {
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+const STAFF_PAGE_SIZE = 5;
 
 function InfoRow({ label, value, last }: { label: string; value?: string | null; last?: boolean }) {
   return (
@@ -474,6 +478,7 @@ export default function Settings() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [staffSearch, setStaffSearch] = useState('');
   const [staffRoleFilter, setStaffRoleFilter] = useState('all');
+  const [staffPage, setStaffPage] = useState(1);
 
   useEffect(() => {
     fetchGarage();
@@ -657,6 +662,13 @@ export default function Settings() {
     }
     return list;
   }, [staff, staffSearch, staffRoleFilter]);
+  // Paged on the client: the list is already loaded whole for the filters,
+  // and a garage's staff is dozens at most. Five per page because each row is
+  // a tall card, not a table line. Clamped so a filter that shrinks the list
+  // never leaves the page past the end.
+  const staffPages = Math.max(1, Math.ceil(filteredStaff.length / STAFF_PAGE_SIZE));
+  const staffPageClamped = Math.min(staffPage, staffPages);
+  const pagedStaff = filteredStaff.slice((staffPageClamped - 1) * STAFF_PAGE_SIZE, staffPageClamped * STAFF_PAGE_SIZE);
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto pb-12">
@@ -711,7 +723,7 @@ export default function Settings() {
         )}
       >
         {garageLoading ? (
-          <Loader />
+          <SkeletonRows rows={8} />
         ) : editingGarage ? (
           <form className="flex flex-col gap-4" onSubmit={handleGarageSubmit(handleSaveGarage)} noValidate>
             <FormField label="Garage Name" required error={garageErrors.name?.message}>
@@ -903,13 +915,13 @@ export default function Settings() {
                 <input
                   type="text"
                   value={staffSearch}
-                  onChange={e => setStaffSearch(e.target.value)}
+                  onChange={e => { setStaffSearch(e.target.value); setStaffPage(1); }}
                   placeholder="Search by name, email or phone..."
                   className="w-full pl-9 pr-8 py-2 text-sm bg-bone-100 border border-bone-200 rounded-xl outline-none focus:border-primary-400 focus:bg-bone-50 focus:shadow-[0_0_0_3px_rgba(59,95,248,0.08)] transition-all"
                 />
                 {staffSearch && (
                   <button
-                    onClick={() => setStaffSearch('')}
+                    onClick={() => { setStaffSearch(''); setStaffPage(1); }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -920,7 +932,7 @@ export default function Settings() {
                 {['all', 'mechanic', 'service_advisor', 'receptionist', 'admin', 'owner'].map(role => (
                   <button
                     key={role}
-                    onClick={() => setStaffRoleFilter(role)}
+                    onClick={() => { setStaffRoleFilter(role); setStaffPage(1); }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
                       staffRoleFilter === role
                         ? 'bg-primary-600 text-white shadow-sm'
@@ -937,7 +949,7 @@ export default function Settings() {
             <p className="text-xs text-gray-400 font-medium">
               {staffSearch || staffRoleFilter !== 'all'
                 ? `${filteredStaff.length} of ${staff.length} staff shown`
-                : `${staff.length} members · ${staff.filter(s => s.isActive).length} active`
+                : `${staff.length} members, ${staff.filter(s => s.isActive).length} active`
               }
             </p>
 
@@ -958,14 +970,14 @@ export default function Settings() {
                 )}
               </div>
             ) : (
-              filteredStaff.map(u => {
+              pagedStaff.map(u => {
                 const isSelf = u._id === user?._id;
                 const isOwner = u.role === 'owner';
                 const cfg = ROLE_CONFIG[u.role] || { label: u.role, classes: 'bg-bone-200 text-gray-600' };
                 return (
                   <div
                     key={u._id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-bone-200 bg-bone-100/50 hover:bg-bone-50 hover:shadow-sm transition-all duration-200"
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-bone-200 bg-bone-100/50 hover:bg-bone-50 transition-colors duration-200"
                   >
                     {/* Avatar */}
                     <div
@@ -1024,6 +1036,7 @@ export default function Settings() {
                 );
               })
             )}
+            <Pagination page={staffPageClamped} pages={staffPages} onPageChange={setStaffPage} />
           </div>
         )}
       </Card>
