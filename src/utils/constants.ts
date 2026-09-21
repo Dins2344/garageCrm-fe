@@ -16,6 +16,14 @@ export const USER_KEY = 'garagepulse_user';
 export const ADMIN_TOKEN_KEY = 'garagepulse_admin_token';
 export const ADMIN_USER_KEY = 'garagepulse_admin_user';
 export const ACTIVE_GARAGE_KEY = 'garagepulse_active_garage';
+/** Epoch ms of the last user input in any tab; drives the shared idle timer. */
+export const LAST_ACTIVITY_KEY = 'garagepulse_last_activity';
+
+// ── Session ───────────────────────────────────────────────────
+/** Fired on `window` by the API layer when the server no longer accepts the session. */
+export const AUTH_EXPIRED_EVENT = 'garagepulse:auth-expired';
+/** Sign out after this long without input in any tab. */
+export const IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 
 // ── External links ────────────────────────────────────────────
 /**

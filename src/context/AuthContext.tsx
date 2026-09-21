@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { USER_KEY, ACTIVE_GARAGE_KEY } from '../utils/constants';
+import { USER_KEY, ACTIVE_GARAGE_KEY, LAST_ACTIVITY_KEY, AUTH_EXPIRED_EVENT } from '../utils/constants';
 import { login as authLogin, register as authRegister, getMe, logout as authLogout, type RegisterFormData } from '../services/apiServices/authService';
 import IdleTimer from '../components/common/IdleTimer';
 import type { User, Role } from '../types/models';
@@ -36,9 +36,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
+  // Session ended outside this component: the API layer saw a 401, or another
+  // tab signed out (removing USER_KEY fires `storage` everywhere else).
+  useEffect(() => {
+    const expired = () => setUser(null);
+    const storage = (e: StorageEvent) => {
+      if (e.key === USER_KEY && e.newValue === null) setUser(null);
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, expired);
+    window.addEventListener('storage', storage);
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, expired);
+      window.removeEventListener('storage', storage);
+    };
+  }, []);
+
   const login = async (email: string, password: string): Promise<User> => {
     const { data } = await authLogin(email, password);
     localStorage.setItem(USER_KEY, JSON.stringify(data));
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
     setUser(data);
     return data;
   };
@@ -46,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (formData: RegisterFormData): Promise<User> => {
     const { data } = await authRegister(formData);
     localStorage.setItem(USER_KEY, JSON.stringify(data));
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
     setUser(data);
     return data;
   };
@@ -58,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(ACTIVE_GARAGE_KEY);
+    localStorage.removeItem(LAST_ACTIVITY_KEY);
     setUser(null);
   };
 

@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuthProvider, useAuth } from './AuthContext';
 import * as authService from '../services/apiServices/authService';
-import { USER_KEY } from '../utils/constants';
+import { USER_KEY, LAST_ACTIVITY_KEY, AUTH_EXPIRED_EVENT } from '../utils/constants';
 import type { User } from '../types/models';
 
 vi.mock('../services/apiServices/authService');
@@ -103,3 +103,106 @@ describe('AuthContext', () => {
     expect(localStorage.getItem(USER_KEY)).toBeNull();
   });
 });
+
+const MIN = 60 * 1000;
+
+const renderSignedIn = async () => {
+  vi.mocked(authService.getMe).mockResolvedValue({ success: true, data: mockUser });
+  vi.mocked(authService.logout).mockResolvedValue({ success: true, data: {} });
+  render(
+    <AuthProvider>
+      <Consumer />
+    </AuthProvider>
+  );
+  await waitFor(() => expect(screen.getByTestId('user').textContent).toBe('owner@example.com'));
+};
+
+describe('AuthContext session sync', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('signs out when the API layer reports the session is gone', async () => {
+    await renderSignedIn();
+
+    act(() => window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT)));
+
+    await waitFor(() => expect(screen.getByTestId('user').textContent).toBe('none'));
+  });
+
+  it('signs out when another tab clears the stored user', async () => {
+    await renderSignedIn();
+
+    act(() => window.dispatchEvent(new StorageEvent('storage', { key: USER_KEY, newValue: null })));
+
+    await waitFor(() => expect(screen.getByTestId('user').textContent).toBe('none'));
+  });
+
+  it('signs out on mount when the last activity is older than the idle window', async () => {
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now() - 11 * MIN));
+    vi.mocked(authService.getMe).mockResolvedValue({ success: true, data: mockUser });
+    vi.mocked(authService.logout).mockResolvedValue({ success: true, data: {} });
+
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+
+    await waitFor(() => expect(authService.logout).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByTestId('user').textContent).toBe('none'));
+  });
+});
+
+describe('IdleTimer', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'setInterval', 'clearTimeout', 'clearInterval', 'Date'] });
+  });
+  afterEach(() => vi.useRealTimers());
+
+  const renderWithFakeTimers = async () => {
+    vi.mocked(authService.getMe).mockResolvedValue({ success: true, data: mockUser });
+    vi.mocked(authService.logout).mockResolvedValue({ success: true, data: {} });
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getByTestId('user').textContent).toBe('owner@example.com');
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
+  };
+
+  it('stays signed in while another tab is active', async () => {
+    await renderWithFakeTimers();
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(8 * MIN); });
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); // the other tab
+    await act(async () => { await vi.advanceTimersByTimeAsync(5 * MIN); });
+
+    expect(authService.logout).not.toHaveBeenCalled();
+  });
+
+  it('signs out after ten minutes without input in any tab', async () => {
+    await renderWithFakeTimers();
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(11 * MIN); });
+
+    expect(authService.logout).toHaveBeenCalled();
+  });
+
+  it('touches the server every five minutes while active so the session slides', async () => {
+    await renderWithFakeTimers();
+    vi.mocked(authService.getMe).mockClear();
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(4 * MIN); });
+    window.dispatchEvent(new Event('mousemove'));
+    await act(async () => { await vi.advanceTimersByTimeAsync(2 * MIN); });
+
+    expect(authService.getMe).toHaveBeenCalledTimes(1);
+  });
+});
+
