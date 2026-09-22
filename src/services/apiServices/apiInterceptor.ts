@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL, USER_KEY, ACTIVE_GARAGE_KEY } from '../../utils/constants';
+import { API_BASE_URL, USER_KEY, ACTIVE_GARAGE_KEY, AUTH_EXPIRED_EVENT } from '../../utils/constants';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -40,12 +40,13 @@ api.interceptors.response.use(
       requestUrl.includes('/auth/logout');
 
     if (status === 401 && !isAuthEndpoint) {
-      // Token is missing or expired — clear session and redirect to login
+      // Token is missing or expired. Clearing USER_KEY also fires the
+      // `storage` event in every other tab, so they sign out together;
+      // AuthContext handles this tab. No hard reload — ProtectedRoute
+      // navigates once the user is null.
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(ACTIVE_GARAGE_KEY);
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/home') {
-        window.location.href = '/login';
-      }
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
     }
 
     return Promise.reject(error);
