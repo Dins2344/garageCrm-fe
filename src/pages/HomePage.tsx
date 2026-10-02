@@ -11,7 +11,10 @@ import { PLAY_STORE_URL } from '../utils/constants';
 import { formatMoney } from '../utils/format';
 
 /* ───── Play Store badge ─────
-   The one piece of external proof this product genuinely has. */
+   The one piece of external proof this product genuinely has. Drawn in the
+   page's own language — square, ink ground, a one-pixel edge — rather than
+   Google's rounded raster, with the four-part mark painted from theme tokens.
+   Ink on ink needs the white edge to read in the hero; on bone it stands alone. */
 function PlayStoreBadge({ className = '' }: { className?: string }) {
   return (
     <a
@@ -19,9 +22,18 @@ function PlayStoreBadge({ className = '' }: { className?: string }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Download GaragePulse for Android on Google Play (opens in a new tab)"
-      className={`inline-block ${className}`}
+      className={`group inline-flex h-12 items-center gap-3 border border-white/25 bg-ink-900 pl-3.5 pr-5 text-white transition-colors duration-200 hover:border-white/50 hover:bg-ink-800 ${className}`}
     >
-      <img src="/playstore.png" alt="" className="h-11 w-auto object-contain" />
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7 shrink-0">
+        <polygon points="3,2 13.5,12 3,22" className="fill-primary-500" />
+        <polygon points="3,2 17,9.78 13.5,12" className="fill-success" />
+        <polygon points="17,9.78 21,12 17,14.22 13.5,12" className="fill-warning" />
+        <polygon points="3,22 13.5,12 17,14.22" className="fill-danger" />
+      </svg>
+      <span className="flex flex-col leading-none">
+        <span className="text-[13px] font-medium text-white/60">Get it on</span>
+        <span className="mt-0.5 font-display text-lg font-bold tracking-tight">Google Play</span>
+      </span>
     </a>
   );
 }
