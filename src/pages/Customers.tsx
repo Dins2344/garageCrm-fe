@@ -9,7 +9,8 @@ import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { useConfirm } from '../components/ConfirmModal';
-import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '../services/apiServices/customerService';
+import { getCustomers, createCustomer, updateCustomer, deleteCustomer, exportCustomers } from '../services/apiServices/customerService';
+import { saveBlob, exportFilename } from '../utils/download';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -18,7 +19,8 @@ import {
   Pencil,
   Trash2,
   Phone,
-  Mail
+  Mail,
+  Download
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Button from '../components/Button';
@@ -146,9 +148,22 @@ export default function Customers() {
     });
   };
 
+  const handleExport = () => withLoader(async () => {
+    try {
+      saveBlob(await exportCustomers(), exportFilename('customers'));
+    } catch {
+      toast.error('Failed to export customers');
+    }
+  });
+
   return (
     <div className="flex flex-col gap-6 h-full">
       <PageHeader title="Customers">
+        {hasRole('owner', 'admin') && (
+          <Button variant="secondary" onClick={handleExport} icon={Download}>
+            Export
+          </Button>
+        )}
         {hasRole('owner', 'admin', 'service_advisor', 'receptionist') && (
           <Button variant="primary" onClick={openAdd} icon={Plus}>
             Add Customer

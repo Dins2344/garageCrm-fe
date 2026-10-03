@@ -25,3 +25,7 @@ export const updateVehicle = (id: string, data: Partial<Vehicle>): Promise<ApiIt
 
 export const deleteVehicle = (id: string): Promise<ApiMessageResponse> =>
   api.delete(`/vehicles/${id}`).then(r => r.data);
+
+/** Every vehicle of the active garage as an .xlsx (owner/admin only). */
+export const exportVehicles = (): Promise<Blob> =>
+  api.get('/vehicles/export', { responseType: 'blob' }).then(r => r.data);

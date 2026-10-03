@@ -22,3 +22,7 @@ export const updateCustomer = (id: string, data: Partial<Customer>): Promise<Api
 
 export const deleteCustomer = (id: string): Promise<ApiMessageResponse> =>
   api.delete(`/customers/${id}`).then(r => r.data);
+
+/** Every customer of the active garage as an .xlsx (owner/admin only). */
+export const exportCustomers = (): Promise<Blob> =>
+  api.get('/customers/export', { responseType: 'blob' }).then(r => r.data);
