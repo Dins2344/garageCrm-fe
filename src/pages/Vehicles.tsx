@@ -7,7 +7,8 @@ import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '../hooks/useDebounce';
-import { getVehicles, createVehicle, updateVehicle, deleteVehicle } from '../services/apiServices/vehicleService';
+import { getVehicles, createVehicle, updateVehicle, deleteVehicle, exportVehicles } from '../services/apiServices/vehicleService';
+import { saveBlob, exportFilename } from '../utils/download';
 import { getCustomers } from '../services/apiServices/customerService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -17,7 +18,8 @@ import {
   Pencil,
   Trash2,
   Truck,
-  Eye
+  Eye,
+  Download
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Button from '../components/Button';
@@ -177,9 +179,22 @@ export default function Vehicles() {
     });
   };
 
+  const handleExport = () => withLoader(async () => {
+    try {
+      saveBlob(await exportVehicles(), exportFilename('vehicles'));
+    } catch {
+      toast.error('Failed to export vehicles');
+    }
+  });
+
   return (
     <div className="flex flex-col gap-6 h-full">
       <PageHeader title="Vehicles">
+        {hasRole('owner', 'admin') && (
+          <Button variant="secondary" onClick={handleExport} icon={Download}>
+            Export
+          </Button>
+        )}
         {hasRole('owner', 'admin', 'service_advisor', 'receptionist') && (
           <Button variant="primary" onClick={openAdd} icon={Plus}>
             Add Vehicle

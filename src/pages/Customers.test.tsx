@@ -4,11 +4,20 @@ import userEvent from '@testing-library/user-event';
 import Customers from './Customers';
 import * as customerService from '../services/apiServices/customerService';
 import type { Customer } from '../types/models';
+import { saveBlob } from '../utils/download';
 
 vi.mock('../services/apiServices/customerService');
+vi.mock('../utils/download', () => ({ saveBlob: vi.fn(), exportFilename: (e: string) => `${e}.xlsx` }));
+
+// Role-aware so a test can sign in as staff; every other test runs as owner.
+const { mockRole } = vi.hoisted(() => ({ mockRole: { current: 'owner' } }));
 
 vi.mock('../context/AuthContext', () => ({
-  useAuth: () => ({ hasRole: () => true, user: { _id: 'u1', role: 'owner' }, loading: false })
+  useAuth: () => ({
+    hasRole: (...roles: string[]) => roles.includes(mockRole.current),
+    user: { _id: 'u1', role: mockRole.current },
+    loading: false
+  })
 }));
 
 vi.mock('../context/GlobalLoaderContext', () => ({
@@ -43,6 +52,33 @@ const sampleCustomer: Customer = {
 describe('Customers page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRole.current = 'owner';
+  });
+
+  it('exports customers to an Excel file', async () => {
+    vi.mocked(customerService.getCustomers).mockResolvedValue({
+      success: true, count: 0, total: 0, pages: 1, currentPage: 1, data: []
+    });
+    const file = new Blob(['xlsx']);
+    vi.mocked(customerService.exportCustomers).mockResolvedValue(file);
+    const user = userEvent.setup();
+
+    render(<Customers />);
+    await user.click(await screen.findByRole('button', { name: 'Export' }));
+
+    await waitFor(() => expect(saveBlob).toHaveBeenCalledWith(file, 'customers.xlsx'));
+  });
+
+  it('hides Export from staff who cannot export', async () => {
+    mockRole.current = 'mechanic';
+    vi.mocked(customerService.getCustomers).mockResolvedValue({
+      success: true, count: 0, total: 0, pages: 1, currentPage: 1, data: []
+    });
+
+    render(<Customers />);
+
+    await waitFor(() => expect(screen.getByText('No customers found')).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: 'Export' })).not.toBeInTheDocument();
   });
 
   it('fetches and renders the customer list', async () => {
