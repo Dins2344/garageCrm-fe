@@ -3,10 +3,15 @@ import { render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 import * as authService from './services/apiServices/authService';
 import * as dashboardService from './services/apiServices/dashboardService';
+import * as garageService from './services/apiServices/garageService';
 import type { User } from './types/models';
 
 vi.mock('./services/apiServices/authService');
 vi.mock('./services/apiServices/dashboardService');
+// GarageContext calls getGarage() for every non-owner. Left unmocked it hit the
+// real API_BASE_URL, and with a dev backend running on localhost:5000 the 401
+// signed the mocked mechanic out — the test then landed on /home and failed.
+vi.mock('./services/apiServices/garageService');
 
 const mechanicUser: User = {
   _id: 'u1',
@@ -27,6 +32,8 @@ describe('App routing guards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    // GarageContext swallows a failure and falls back to the user's locale.
+    vi.mocked(garageService.getGarage).mockRejectedValue(new Error('not needed here'));
   });
 
   it('redirects an unauthenticated visitor from a protected route to /home', async () => {
