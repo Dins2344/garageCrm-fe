@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { estimationSchema, describeEstimationIssue } from '../utils/validation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  estimationSchema, describeEstimationIssue,
+  odometerCorrectionSchema, type OdometerCorrectionFormValues, type OdometerCorrectionFormOutput,
+} from '../utils/validation';
 import { useParams, useNavigate } from 'react-router-dom';
 import Loader from '../components/Loader';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
@@ -24,7 +29,7 @@ import {
 } from 'lucide-react';
 import { Wrench } from 'lucide-react';
 import Button from '../components/Button';
-import { Input, Select } from '../components/Form';
+import { Input, Select, Textarea } from '../components/Form';
 import { Table, Thead, Th, Tbody, Tr, Td } from '../components/Table';
 import EmptyState from '../components/EmptyState';
 import { ModalOverlay, Modal, ModalHeader, ModalBody, ModalFooter } from '../components/Modal';
@@ -38,6 +43,68 @@ const STATUS_FLOW: JobStatus[] = [
   'new', 'estimation_sent', 'approved', 'in_progress',
   'quality_check', 'ready_for_pickup', 'delivered'
 ];
+
+interface OdometerModalProps {
+  current: number;
+  onClose: () => void;
+  onSave: (values: OdometerCorrectionFormOutput) => Promise<void>;
+}
+
+/**
+ * Owner/admin correction of the recorded reading. New job cards cannot go
+ * below the last visit, so this is how a replaced meter or a mistyped visit
+ * gets fixed; the API records the remarks on the timeline.
+ */
+function OdometerModal({ current, onClose, onSave }: OdometerModalProps) {
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } =
+    useForm<OdometerCorrectionFormValues, unknown, OdometerCorrectionFormOutput>({
+      resolver: zodResolver(odometerCorrectionSchema),
+      defaultValues: { odometerAtIntake: String(current), odometerRemarks: '' },
+    });
+
+  const onValid = async (values: OdometerCorrectionFormOutput) => {
+    // The API treats an unchanged reading as no change and records nothing.
+    if (values.odometerAtIntake === current) {
+      setError('odometerAtIntake', { message: 'Enter a different reading' });
+      return;
+    }
+    try {
+      await onSave(values);
+      onClose();
+    } catch (e) {
+      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to update odometer');
+    }
+  };
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <Modal>
+        <form onSubmit={handleSubmit(onValid)} noValidate>
+          <ModalHeader title="Correct Odometer" onClose={onClose} />
+          <ModalBody>
+            <div className="mb-4">
+              <label htmlFor="odometer-reading" className="block text-sm font-semibold text-gray-700 mb-1.5">Odometer (km) *</label>
+              <Input id="odometer-reading" type="text" inputMode="numeric" {...register('odometerAtIntake')} error={!!errors.odometerAtIntake} aria-invalid={!!errors.odometerAtIntake} />
+              {errors.odometerAtIntake && <p role="alert" className="text-danger text-[13px] mt-1">{errors.odometerAtIntake.message}</p>}
+            </div>
+            <div>
+              <label htmlFor="odometer-remarks" className="block text-sm font-semibold text-gray-700 mb-1.5">Remarks *</label>
+              <Textarea id="odometer-remarks" rows={2} {...register('odometerRemarks')} placeholder="Why the reading is being changed" error={!!errors.odometerRemarks} aria-invalid={!!errors.odometerRemarks} />
+              {errors.odometerRemarks && <p role="alert" className="text-danger text-[13px] mt-1">{errors.odometerRemarks.message}</p>}
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button type="submit" variant="primary" disabled={isSubmitting}>
+              {isSubmitting && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
+              {isSubmitting ? 'Saving…' : 'Save Reading'}
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
+    </ModalOverlay>
+  );
+}
 
 interface EstimationForm {
   parts: EstimationPart[];
@@ -58,7 +125,7 @@ export default function JobCardDetail() {
   const [loading, setLoading] = useState(true);
   const [showEstimation, setShowEstimation] = useState(false);
   const [estimationError, setEstimationError] = useState<string | null>(null);
-  const [updatingMechanic, setUpdatingMechanic] = useState<string | false>(false);
+  const [showOdometer, setShowOdometer] = useState(false);
   const { confirm, ConfirmModal } = useConfirm();
 
   const [estimation, setEstimation] = useState<EstimationForm>({
@@ -117,18 +184,26 @@ export default function JobCardDetail() {
     } catch { /* ignore */ }
   };
 
-  const assignMechanic = async (mechanicId: string) => {
-    setUpdatingMechanic(mechanicId);
+  // Errors are left to the modal, which shows them and stays open.
+  const saveOdometer = async (values: OdometerCorrectionFormOutput) => {
+    await updateJobCard(id!, values);
+    // Re-fetch inside the save so the button spins until the timeline shows
+    // the correction entry.
+    await fetchJobCard();
+    toast.success('Odometer updated');
+  };
+
+  // Same app-wide loader as a status change. The refetch is inside it so the
+  // dropdown never shows the old mechanic and the timeline entry lands with it.
+  const assignMechanic = (mechanicId: string) => withLoader(async () => {
     try {
       await updateJobCard(id!, { assignedMechanic: mechanicId });
-      toast.success('Mechanic assigned');
-      fetchJobCard();
-    } catch {
-      toast.error('Failed to assign mechanic');
-    } finally {
-      setUpdatingMechanic(false);
+      await fetchJobCard();
+      toast.success(mechanicId ? 'Mechanic assigned' : 'Mechanic unassigned');
+    } catch (e) {
+      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to assign mechanic');
     }
-  };
+  });
 
   const updateStatus = async (newStatus: JobStatus) => {
     if (newStatus === 'estimation_sent') {
@@ -427,6 +502,17 @@ export default function JobCardDetail() {
             <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Odometer</span>
               <span className="font-medium text-gray-900">{jobCard.odometerAtIntake ? `${formatNumber(jobCard.odometerAtIntake, locale)} km` : '—'}</span>
+              {/* The API refuses every other role. */}
+              {hasRole('owner', 'admin') && (
+                <button
+                  type="button"
+                  onClick={() => setShowOdometer(true)}
+                  className="ml-2 text-xs font-bold text-primary-600 hover:text-primary-700"
+                  aria-label="Correct odometer reading"
+                >
+                  Correct
+                </button>
+              )}
             </div>
             <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Service Type</span>
@@ -440,9 +526,9 @@ export default function JobCardDetail() {
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Mechanic</span>
               {hasRole('owner', 'admin', 'service_advisor') ? (
                 <Select
+                  aria-label="Assigned mechanic"
                   value={assignedMechanic?._id || ''}
                   onChange={(e) => assignMechanic(e.target.value)}
-                  disabled={!!updatingMechanic}
                   className="h-8 py-0 px-2 text-sm bg-bone-100/50 border-bone-200"
                 >
                   <option value="">Unassigned</option>
@@ -490,7 +576,10 @@ export default function JobCardDetail() {
                     <span className="text-[10px] font-bold text-gray-400 uppercase">{fmtDate(history.changedAt, locale, { day: 'numeric', month: 'short' })}</span>
                   </div>
                   <div className="text-[10px] text-gray-400 font-medium mb-1.5 uppercase tracking-tighter">
-                    {new Date(history.changedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {changedBy?.name || 'Staff'}
+                    {fmtDate(history.changedAt, locale, { hour: '2-digit', minute: '2-digit' })}
+                    {/* The server names every entry (staff, "Former staff member",
+                        "Customer"); with no name there is no "by" — never a guess. */}
+                    {changedBy?.name ? ` by ${changedBy.name}` : ''}
                   </div>
                   {history.notes && (
                     <div className="text-xs text-gray-600 bg-bone-100 px-2 py-1.5 rounded-lg">
@@ -808,6 +897,13 @@ export default function JobCardDetail() {
       )}
       <InvoiceModal />
       <ConfirmModal />
+      {showOdometer && (
+        <OdometerModal
+          current={jobCard.odometerAtIntake ?? 0}
+          onClose={() => setShowOdometer(false)}
+          onSave={saveOdometer}
+        />
+      )}
     </div>
   );
 }
