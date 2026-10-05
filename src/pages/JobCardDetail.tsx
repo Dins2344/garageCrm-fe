@@ -95,7 +95,10 @@ function OdometerModal({ current, onClose, onSave }: OdometerModalProps) {
           </ModalBody>
           <ModalFooter>
             <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-            <Button type="submit" variant="primary" disabled={isSubmitting}>Save Reading</Button>
+            <Button type="submit" variant="primary" disabled={isSubmitting}>
+              {isSubmitting && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
+              {isSubmitting ? 'Saving…' : 'Save Reading'}
+            </Button>
           </ModalFooter>
         </form>
       </Modal>
@@ -122,7 +125,6 @@ export default function JobCardDetail() {
   const [loading, setLoading] = useState(true);
   const [showEstimation, setShowEstimation] = useState(false);
   const [estimationError, setEstimationError] = useState<string | null>(null);
-  const [updatingMechanic, setUpdatingMechanic] = useState<string | false>(false);
   const [showOdometer, setShowOdometer] = useState(false);
   const { confirm, ConfirmModal } = useConfirm();
 
@@ -185,23 +187,23 @@ export default function JobCardDetail() {
   // Errors are left to the modal, which shows them and stays open.
   const saveOdometer = async (values: OdometerCorrectionFormOutput) => {
     await updateJobCard(id!, values);
+    // Re-fetch inside the save so the button spins until the timeline shows
+    // the correction entry.
+    await fetchJobCard();
     toast.success('Odometer updated');
-    // Re-fetch: the timeline gains the correction entry.
-    fetchJobCard();
   };
 
-  const assignMechanic = async (mechanicId: string) => {
-    setUpdatingMechanic(mechanicId);
+  // Same app-wide loader as a status change. The refetch is inside it so the
+  // dropdown never shows the old mechanic and the timeline entry lands with it.
+  const assignMechanic = (mechanicId: string) => withLoader(async () => {
     try {
       await updateJobCard(id!, { assignedMechanic: mechanicId });
-      toast.success('Mechanic assigned');
-      fetchJobCard();
-    } catch {
-      toast.error('Failed to assign mechanic');
-    } finally {
-      setUpdatingMechanic(false);
+      await fetchJobCard();
+      toast.success(mechanicId ? 'Mechanic assigned' : 'Mechanic unassigned');
+    } catch (e) {
+      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to assign mechanic');
     }
-  };
+  });
 
   const updateStatus = async (newStatus: JobStatus) => {
     if (newStatus === 'estimation_sent') {
@@ -524,9 +526,9 @@ export default function JobCardDetail() {
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Mechanic</span>
               {hasRole('owner', 'admin', 'service_advisor') ? (
                 <Select
+                  aria-label="Assigned mechanic"
                   value={assignedMechanic?._id || ''}
                   onChange={(e) => assignMechanic(e.target.value)}
-                  disabled={!!updatingMechanic}
                   className="h-8 py-0 px-2 text-sm bg-bone-100/50 border-bone-200"
                 >
                   <option value="">Unassigned</option>
@@ -574,7 +576,10 @@ export default function JobCardDetail() {
                     <span className="text-[10px] font-bold text-gray-400 uppercase">{fmtDate(history.changedAt, locale, { day: 'numeric', month: 'short' })}</span>
                   </div>
                   <div className="text-[10px] text-gray-400 font-medium mb-1.5 uppercase tracking-tighter">
-                    {new Date(history.changedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {changedBy?.name || 'Staff'}
+                    {fmtDate(history.changedAt, locale, { hour: '2-digit', minute: '2-digit' })}
+                    {/* The server names every entry (staff, "Former staff member",
+                        "Customer"); with no name there is no "by" — never a guess. */}
+                    {changedBy?.name ? ` by ${changedBy.name}` : ''}
                   </div>
                   {history.notes && (
                     <div className="text-xs text-gray-600 bg-bone-100 px-2 py-1.5 rounded-lg">
