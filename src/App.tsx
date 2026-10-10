@@ -20,6 +20,7 @@ const Vehicles = lazy(() => import('./pages/Vehicles'));
 const VehicleDetail = lazy(() => import('./pages/VehicleDetail'));
 const JobCards = lazy(() => import('./pages/JobCards'));
 const JobCardDetail = lazy(() => import('./pages/JobCardDetail'));
+const Requests = lazy(() => import('./pages/Requests'));
 // Inventory disabled — users enter parts manually; re-enable by adding back to nav + route
 // const Inventory = lazy(() => import('./pages/Inventory'));
 const Invoices = lazy(() => import('./pages/Invoices'));
@@ -123,6 +124,7 @@ function App() {
               <Route path="vehicles/:id" element={<VehicleDetail />} />
               <Route path="jobcards" element={<JobCards />} />
               <Route path="jobcards/:id" element={<JobCardDetail />} />
+              <Route path="requests" element={<Requests />} />
               {/* Inventory is disabled — redirect to dashboard */}
               <Route path="inventory" element={<Navigate to="/" replace />} />
               <Route path="invoices" element={

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   estimationSchema, describeEstimationIssue,
-  odometerCorrectionSchema, type OdometerCorrectionFormValues, type OdometerCorrectionFormOutput,
+  odometerCorrectionSchema, odometerRequestSchema, type OdometerCorrectionFormValues, type OdometerCorrectionFormOutput,
 } from '../utils/validation';
 import { useParams, useNavigate } from 'react-router-dom';
 import Loader from '../components/Loader';
@@ -12,6 +12,7 @@ import { getJobCard, updateJobCard, saveJobCardEstimation, approveJobCardEstimat
 import { getMechanics } from '../services/apiServices/userService';
 import { getGarage } from '../services/apiServices/garageService';
 import { createInvoice as generateInvoice } from '../services/apiServices/invoiceService';
+import { getChangeRequests, raiseChangeRequest } from '../services/apiServices/changeRequestService';
 import { useAuth } from '../context/AuthContext';
 import { useGarage } from '../context/GarageContext';
 import { formatMoney, formatNumber, formatDate as fmtDate } from '../utils/format';
@@ -37,7 +38,8 @@ import Badge from '../components/Badge';
 import { Card } from '../components/Card';
 import { useInvoiceViewer } from '../components/InvoiceViewerModal';
 import { useConfirm } from '../components/ConfirmModal';
-import type { JobCard, User, EstimationPart, EstimationLabor, JobStatus, Vehicle, Customer, AssignedStaff } from '../types/models';
+import RequestReasonModal from '../components/RequestReasonModal';
+import type { JobCard, User, EstimationPart, EstimationLabor, JobStatus, Vehicle, Customer, AssignedStaff, ChangeRequestType } from '../types/models';
 
 const STATUS_FLOW: JobStatus[] = [
   'new', 'estimation_sent', 'approved', 'in_progress',
@@ -46,19 +48,24 @@ const STATUS_FLOW: JobStatus[] = [
 
 interface OdometerModalProps {
   current: number;
+  title: string;
+  submitLabel: string;
   onClose: () => void;
   onSave: (values: OdometerCorrectionFormOutput) => Promise<void>;
+  /** The staff request path passes the stricter remarks cap. */
+  schema?: typeof odometerCorrectionSchema;
 }
 
 /**
- * Owner/admin correction of the recorded reading. New job cards cannot go
- * below the last visit, so this is how a replaced meter or a mistyped visit
- * gets fixed; the API records the remarks on the timeline.
+ * Owner/admin correction of the recorded reading, or a staff member's request
+ * for one. New job cards cannot go below the last visit, so this is how a
+ * replaced meter or a mistyped visit gets fixed; the API records the remarks
+ * on the timeline.
  */
-function OdometerModal({ current, onClose, onSave }: OdometerModalProps) {
+function OdometerModal({ current, title, submitLabel, onClose, onSave, schema = odometerCorrectionSchema }: OdometerModalProps) {
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } =
     useForm<OdometerCorrectionFormValues, unknown, OdometerCorrectionFormOutput>({
-      resolver: zodResolver(odometerCorrectionSchema),
+      resolver: zodResolver(schema),
       defaultValues: { odometerAtIntake: String(current), odometerRemarks: '' },
     });
 
@@ -80,7 +87,7 @@ function OdometerModal({ current, onClose, onSave }: OdometerModalProps) {
     <ModalOverlay onClose={onClose}>
       <Modal>
         <form onSubmit={handleSubmit(onValid)} noValidate>
-          <ModalHeader title="Correct Odometer" onClose={onClose} />
+          <ModalHeader title={title} onClose={onClose} />
           <ModalBody>
             <div className="mb-4">
               <label htmlFor="odometer-reading" className="block text-sm font-semibold text-gray-700 mb-1.5">Odometer (km) *</label>
@@ -97,7 +104,7 @@ function OdometerModal({ current, onClose, onSave }: OdometerModalProps) {
             <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
             <Button type="submit" variant="primary" disabled={isSubmitting}>
               {isSubmitting && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
-              {isSubmitting ? 'Saving…' : 'Save Reading'}
+              {isSubmitting ? 'Saving…' : submitLabel}
             </Button>
           </ModalFooter>
         </form>
@@ -127,6 +134,29 @@ export default function JobCardDetail() {
   const [estimationError, setEstimationError] = useState<string | null>(null);
   const [showOdometer, setShowOdometer] = useState(false);
   const { confirm, ConfirmModal } = useConfirm();
+  const isApprover = hasRole('owner', 'admin');
+  const [pendingTypes, setPendingTypes] = useState<string[]>([]);
+  const [showCancelRequest, setShowCancelRequest] = useState(false);
+
+  // Staff see their own pending requests, so the button becomes a status line.
+  const fetchPendingRequests = useCallback(async () => {
+    if (isApprover || !id) return;
+    try {
+      const res = await getChangeRequests({ targetId: id, status: 'pending' });
+      setPendingTypes(res.data.map(r => r.type));
+    } catch {
+      setPendingTypes([]);
+    }
+  }, [id, isApprover]);
+
+  useEffect(() => { fetchPendingRequests(); }, [fetchPendingRequests]);
+
+  // Errors are left to the modal, which shows them and stays open.
+  const requestChange = async (type: ChangeRequestType, payload: Record<string, unknown>) => {
+    await raiseChangeRequest({ type, targetId: id!, payload });
+    await fetchPendingRequests();
+    toast.success('Request sent to the owner');
+  };
 
   const [estimation, setEstimation] = useState<EstimationForm>({
     parts: [],
@@ -434,6 +464,15 @@ export default function JobCardDetail() {
               Cancel
             </Button>
           )}
+          {jobCard.status !== 'cancelled' && jobCard.status !== 'delivered' && !isApprover && (
+            pendingTypes.includes('job_card_cancellation') ? (
+              <span className="self-center text-sm font-semibold text-warning-dark">Cancellation requested · awaiting approval</span>
+            ) : (
+              <Button variant="ghost" onClick={() => setShowCancelRequest(true)} className="text-danger hover:text-danger hover:bg-danger-light">
+                Request Cancellation
+              </Button>
+            )
+          )}
         </div>
       </div>
 
@@ -502,8 +541,8 @@ export default function JobCardDetail() {
             <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Odometer</span>
               <span className="font-medium text-gray-900">{jobCard.odometerAtIntake ? `${formatNumber(jobCard.odometerAtIntake, locale)} km` : '—'}</span>
-              {/* The API refuses every other role. */}
-              {hasRole('owner', 'admin') && (
+              {/* Owners and admins correct it; everyone else asks. */}
+              {isApprover ? (
                 <button
                   type="button"
                   onClick={() => setShowOdometer(true)}
@@ -511,6 +550,17 @@ export default function JobCardDetail() {
                   aria-label="Correct odometer reading"
                 >
                   Correct
+                </button>
+              ) : pendingTypes.includes('odometer_correction') ? (
+                <span className="ml-2 text-xs font-bold text-warning-dark">Correction requested</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowOdometer(true)}
+                  className="ml-2 text-xs font-bold text-primary-600 hover:text-primary-700"
+                  aria-label="Request odometer correction"
+                >
+                  Request correction
                 </button>
               )}
             </div>
@@ -900,8 +950,21 @@ export default function JobCardDetail() {
       {showOdometer && (
         <OdometerModal
           current={jobCard.odometerAtIntake ?? 0}
+          title={isApprover ? 'Correct Odometer' : 'Request Odometer Correction'}
+          submitLabel={isApprover ? 'Save Reading' : 'Send Request'}
           onClose={() => setShowOdometer(false)}
-          onSave={saveOdometer}
+          schema={isApprover ? odometerCorrectionSchema : odometerRequestSchema}
+          onSave={isApprover
+            ? saveOdometer
+            : values => requestChange('odometer_correction', { odometerAtIntake: values.odometerAtIntake, remarks: values.odometerRemarks })}
+        />
+      )}
+      {showCancelRequest && (
+        <RequestReasonModal
+          title="Request Cancellation"
+          description="The owner or an admin will be asked to cancel this job card. You will be notified when they decide."
+          onClose={() => setShowCancelRequest(false)}
+          onSubmit={reason => requestChange('job_card_cancellation', { reason })}
         />
       )}
     </div>
