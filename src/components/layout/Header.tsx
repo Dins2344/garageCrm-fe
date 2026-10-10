@@ -3,6 +3,7 @@ import { Menu, Building2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useGarage } from '../../context/GarageContext';
 import { formatDate } from '../../utils/format';
+import NotificationBell from './NotificationBell';
 
 const pageTitles: Record<string, string> = {
   '/': 'Dashboard',
@@ -11,6 +12,7 @@ const pageTitles: Record<string, string> = {
   '/jobcards': 'Job Cards',
   '/inventory': 'Inventory',
   '/invoices': 'Invoices',
+  '/requests': 'Requests',
   '/settings': 'Settings',
 };
 
@@ -70,6 +72,7 @@ export default function Header({ onMobileMenuOpen }: HeaderProps) {
       )}
 
       <div className="flex items-center gap-4">
+        <NotificationBell />
         <div className="tabular hidden sm:flex items-center text-sm font-medium text-gray-700 bg-bone-100 px-4 py-1.5 border border-bone-200">
           {formatDate(new Date(), locale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
         </div>

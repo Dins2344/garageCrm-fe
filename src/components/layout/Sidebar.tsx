@@ -16,6 +16,7 @@ import {
   Users,
   Truck,
   ClipboardList,
+  Inbox,
   FileText,
   Settings,
   CreditCard,
@@ -43,6 +44,7 @@ const navItems: NavItem[] = [
   // Inventory is disabled — users enter parts manually in estimations
   // { path: '/inventory', label: 'Inventory', icon: Box, roles: ['owner', 'admin', 'service_advisor'] },
   { path: '/invoices', label: 'Invoices', icon: FileText, roles: ['owner', 'admin', 'service_advisor'] },
+  { path: '/requests', label: 'Requests', icon: Inbox, roles: ['owner', 'admin', 'service_advisor', 'mechanic', 'receptionist'] },
   { path: '/expenses', label: 'Expenses', icon: Banknote, roles: ['owner', 'admin'] },
   { path: '/settings', label: 'Settings', icon: Settings, roles: ['owner', 'admin', 'service_advisor', 'mechanic', 'receptionist'] },
   { path: '/pricing', label: 'Plans', icon: CreditCard, roles: ['owner', 'admin'] },

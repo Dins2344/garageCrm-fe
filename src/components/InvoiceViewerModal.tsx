@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useConfirm } from './ConfirmModal';
 import { getInvoice, updateInvoicePayment, downloadInvoicePdf, deleteInvoice } from '../services/apiServices/invoiceService';
+import { getChangeRequests, raiseChangeRequest } from '../services/apiServices/changeRequestService';
 import { useAuth } from '../context/AuthContext';
 import { useGarage } from '../context/GarageContext';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
@@ -17,6 +18,7 @@ import {
 import { Phone, Mail, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 import { ModalOverlay, Modal } from './Modal';
 import Button from './Button';
+import RequestReasonModal from './RequestReasonModal';
 import { Table, Thead, Th, Tbody, Tr, Td } from './Table';
 import Loader from './Loader';
 import type { Invoice, Customer, Vehicle, Garage } from '../types/models';
@@ -38,13 +40,24 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
   const { locale } = useGarage();
   const { withLoader } = useGlobalLoader();
   const { confirm, ConfirmModal } = useConfirm();
+  const isApprover = hasRole('owner', 'admin');
+  const [cancelRequested, setCancelRequested] = useState(false);
+  const [showCancelRequest, setShowCancelRequest] = useState(false);
 
   const openInvoice = async (invoiceId?: string) => {
     if (!invoiceId) return;
     setViewerOpen(true);
     setViewerLoading(true);
+    setCancelRequested(false);
+    setShowCancelRequest(false);
     try {
       const { data } = await getInvoice(invoiceId);
+      // Known before the invoice shows, so a late answer can't remount the
+      // reason modal (InvoiceModal is a new component each render).
+      const pending = isApprover ? false : await getChangeRequests({ targetId: invoiceId, status: 'pending', type: 'invoice_cancellation' })
+        .then(res => res.data.length > 0)
+        .catch(() => false);
+      setCancelRequested(pending);
       setViewerInvoice(data);
     } catch {
       toast.error('Failed to load invoice details');
@@ -57,6 +70,8 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
   const closeViewer = () => {
     setViewerOpen(false);
     setViewerInvoice(null);
+    setCancelRequested(false);
+    setShowCancelRequest(false);
   };
 
   const markAsPaid = async (invoiceId: string) => {
@@ -94,6 +109,14 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
         toast.error('Failed to cancel invoice');
       }
     });
+  };
+
+  // Errors are left to the reason modal, which shows them and stays open.
+  const requestCancel = async (reason: string) => {
+    if (!viewerInvoice) return;
+    await raiseChangeRequest({ type: 'invoice_cancellation', targetId: viewerInvoice._id, payload: { reason } });
+    setCancelRequested(true);
+    toast.success('Request sent to the owner');
   };
 
   const downloadPDF = async (invoiceId: string, invoiceNumber?: string) => {
@@ -176,6 +199,13 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
                       Cancel Bill
                     </Button>
                   )}
+                  {!isApprover && (cancelRequested ? (
+                    <span className="self-center text-sm font-semibold text-warning-dark">Cancellation requested</span>
+                  ) : (
+                    <Button variant="ghost" size="sm" onClick={() => setShowCancelRequest(true)} icon={Trash2} className="text-danger hover:bg-danger-light">
+                      Request Cancellation
+                    </Button>
+                  ))}
                 </>
               )}
               <Button variant="ghost" size="icon" onClick={closeViewer} className="ml-2">
@@ -402,6 +432,14 @@ export function useInvoiceViewer(onPaymentUpdate?: () => void) {
         </Modal>
       </ModalOverlay>
       <ConfirmModal />
+      {showCancelRequest && (
+        <RequestReasonModal
+          title="Request Cancellation"
+          description="The owner or an admin will be asked to cancel this invoice. Cancelling reopens the job card."
+          onClose={() => setShowCancelRequest(false)}
+          onSubmit={requestCancel}
+        />
+      )}
       </>
     );
   };

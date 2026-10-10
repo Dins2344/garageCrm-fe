@@ -4,6 +4,7 @@ import App from './App';
 import * as authService from './services/apiServices/authService';
 import * as dashboardService from './services/apiServices/dashboardService';
 import * as garageService from './services/apiServices/garageService';
+import * as notificationService from './services/apiServices/notificationService';
 import type { User } from './types/models';
 
 vi.mock('./services/apiServices/authService');
@@ -12,6 +13,8 @@ vi.mock('./services/apiServices/dashboardService');
 // real API_BASE_URL, and with a dev backend running on localhost:5000 the 401
 // signed the mocked mechanic out — the test then landed on /home and failed.
 vi.mock('./services/apiServices/garageService');
+// The header bell polls the unread count; unmocked it would reach the real API.
+vi.mock('./services/apiServices/notificationService');
 
 const mechanicUser: User = {
   _id: 'u1',
@@ -34,6 +37,7 @@ describe('App routing guards', () => {
     localStorage.clear();
     // GarageContext swallows a failure and falls back to the user's locale.
     vi.mocked(garageService.getGarage).mockRejectedValue(new Error('not needed here'));
+    vi.mocked(notificationService.getUnreadCount).mockResolvedValue(0);
   });
 
   it('redirects an unauthenticated visitor from a protected route to /home', async () => {

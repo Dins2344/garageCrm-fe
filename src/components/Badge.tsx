@@ -28,6 +28,9 @@ export default function Badge({ intent, children, className = '' }: BadgeProps) 
     paid: 'bg-success-light text-success-dark border-success/30',
     partial: 'bg-warning-light text-warning-dark border-warning/30',
     unpaid: 'bg-danger-light text-danger border-danger/30',
+    pending: 'bg-warning-light text-warning-dark border-warning/30',
+    rejected: 'bg-danger-light text-danger border-danger/30',
+    withdrawn: 'bg-bone-100 text-gray-600 border-bone-200',
   };
 
   const style = styles[intent || ''] || 'bg-bone-100 text-gray-700 border-bone-200';

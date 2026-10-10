@@ -1,21 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import JobCardDetail from './JobCardDetail';
 import * as jobCardService from '../services/apiServices/jobCardService';
 import * as userService from '../services/apiServices/userService';
+import * as changeRequestService from '../services/apiServices/changeRequestService';
 import type { JobCard, User } from '../types/models';
 
 vi.mock('../services/apiServices/jobCardService');
 vi.mock('../services/apiServices/userService');
 vi.mock('../services/apiServices/garageService');
 vi.mock('../services/apiServices/invoiceService');
+vi.mock('../services/apiServices/changeRequestService');
 
+const auth = vi.hoisted(() => ({ role: 'owner' }));
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
-    user: { _id: 'u1', role: 'owner', name: 'Owner' },
-    hasRole: (...roles: string[]) => roles.includes('owner'),
+    user: { _id: 'u1', role: auth.role, name: 'Someone' },
+    hasRole: (...roles: string[]) => roles.includes(auth.role),
     loading: false
   })
 }));
@@ -63,6 +66,9 @@ const renderPage = async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  auth.role = 'owner';
+  vi.mocked(changeRequestService.getChangeRequests).mockResolvedValue({ success: true, count: 0, total: 0, pages: 0, currentPage: 1, data: [] });
+  vi.mocked(changeRequestService.raiseChangeRequest).mockResolvedValue({ success: true, data: {} as never });
   vi.mocked(jobCardService.getJobCard).mockResolvedValue({ success: true, data: jobCard });
   vi.mocked(userService.getMechanics).mockResolvedValue(MECHANICS);
 });
@@ -125,5 +131,81 @@ describe('JobCardDetail — timeline names', () => {
     expect(screen.getByText(/by Customer$/)).toBeInTheDocument();
     expect(screen.getByText(/by Former staff member$/)).toBeInTheDocument();
     expect(screen.queryByText(/by Staff/)).not.toBeInTheDocument();
+  });
+});
+
+describe('JobCardDetail — staff ask instead of doing', () => {
+  beforeEach(() => { auth.role = 'mechanic'; });
+
+  const renderAsStaff = async () => {
+    render(
+      <MemoryRouter initialEntries={['/jobcards/jc1']}>
+        <Routes><Route path="/jobcards/:id" element={<JobCardDetail />} /></Routes>
+      </MemoryRouter>
+    );
+    await screen.findByText('JC-261005-0001');
+  };
+
+  it('offers Request Cancellation instead of Cancel and sends the reason', async () => {
+    const user = userEvent.setup();
+    await renderAsStaff();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Request Cancellation' }));
+    await user.type(screen.getByLabelText('Reason *'), 'Customer declined');
+    await user.click(screen.getByRole('button', { name: 'Send Request' }));
+
+    await waitFor(() => expect(changeRequestService.raiseChangeRequest).toHaveBeenCalledWith({
+      type: 'job_card_cancellation', targetId: 'jc1', payload: { reason: 'Customer declined' }
+    }));
+  });
+
+  it('shows that a cancellation is already awaiting approval', async () => {
+    vi.mocked(changeRequestService.getChangeRequests).mockResolvedValue({
+      success: true, count: 1, total: 1, pages: 1, currentPage: 1,
+      data: [{ type: 'job_card_cancellation' } as never]
+    });
+    await renderAsStaff();
+    expect(await screen.findByText('Cancellation requested · awaiting approval')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Request Cancellation' })).toBeNull();
+  });
+
+  it('asks for an odometer correction rather than making one', async () => {
+    const user = userEvent.setup();
+    await renderAsStaff();
+
+    await user.click(screen.getByRole('button', { name: 'Request odometer correction' }));
+    const reading = screen.getByLabelText('Odometer (km) *');
+    await user.clear(reading);
+    await user.type(reading, '12000');
+    await user.type(screen.getByLabelText('Remarks *'), 'Meter replaced');
+    await user.click(screen.getByRole('button', { name: 'Send Request' }));
+
+    await waitFor(() => expect(changeRequestService.raiseChangeRequest).toHaveBeenCalledWith({
+      type: 'odometer_correction', targetId: 'jc1', payload: { odometerAtIntake: 12000, remarks: 'Meter replaced' }
+    }));
+    expect(jobCardService.updateJobCard).not.toHaveBeenCalled();
+  });
+
+  it('refuses request remarks over the 400 characters the API accepts', async () => {
+    const user = userEvent.setup();
+    await renderAsStaff();
+
+    await user.click(screen.getByRole('button', { name: 'Request odometer correction' }));
+    const reading = screen.getByLabelText('Odometer (km) *');
+    await user.clear(reading);
+    await user.type(reading, '12000');
+    fireEvent.change(screen.getByLabelText('Remarks *'), { target: { value: 'x'.repeat(401) } });
+    await user.click(screen.getByRole('button', { name: 'Send Request' }));
+
+    expect(await screen.findByText('Remarks cannot exceed 400 characters')).toBeInTheDocument();
+    expect(changeRequestService.raiseChangeRequest).not.toHaveBeenCalled();
+  });
+
+  it('never asks owners for pending requests', async () => {
+    auth.role = 'owner';
+    await renderAsStaff();
+    expect(changeRequestService.getChangeRequests).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Request Cancellation' })).toBeNull();
   });
 });
