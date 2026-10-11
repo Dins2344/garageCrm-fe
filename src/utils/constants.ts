@@ -170,7 +170,7 @@ export const EXPENSE_PAYMENT_METHOD_OPTIONS: { value: PaymentMethod; label: stri
 ];
 
 // ── Notifications ─────────────────────────────────────────────
-/** How often the bell re-reads the unread count while the tab is visible. */
+/** After the live stream fails, how long the bell waits to re-read the count and retry it. */
 export const NOTIFICATION_POLL_MS = 60 * 1000;
 /** Fired after this tab changes something that moves the unread count. */
 export const NOTIFICATIONS_CHANGED_EVENT = 'garagepulse:notifications-changed';
