@@ -38,6 +38,10 @@ describe('App routing guards', () => {
     // GarageContext swallows a failure and falls back to the user's locale.
     vi.mocked(garageService.getGarage).mockRejectedValue(new Error('not needed here'));
     vi.mocked(notificationService.getUnreadCount).mockResolvedValue(0);
+    // jsdom has no EventSource; the header bell only needs something to listen on and close.
+    vi.mocked(notificationService.openNotificationStream).mockImplementation(
+      () => Object.assign(new EventTarget(), { close: vi.fn(), readyState: 0, CLOSED: 2 }) as unknown as EventSource
+    );
   });
 
   it('redirects an unauthenticated visitor from a protected route to /home', async () => {

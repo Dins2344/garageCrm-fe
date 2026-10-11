@@ -6,7 +6,7 @@ import Loader from '../Loader';
 import { useAuth } from '../../context/AuthContext';
 import { useGarage } from '../../context/GarageContext';
 import {
-  getNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead,
+  getNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead, openNotificationStream,
 } from '../../services/apiServices/notificationService';
 import { ACTIVE_GARAGE_KEY, NOTIFICATION_POLL_MS, NOTIFICATIONS_CHANGED_EVENT } from '../../utils/constants';
 import type { AppNotification } from '../../types/models';
@@ -14,8 +14,10 @@ import type { AppNotification } from '../../types/models';
 const LIST_SIZE = 20;
 
 /**
- * The header bell. Polls the unread count while the tab is visible — web has
- * no push — and re-reads it on focus and whenever this tab changes something.
+ * The header bell. While the tab is visible it holds a live stream from the
+ * server and re-reads the unread count whenever that says it changed; if the
+ * stream cannot open, it re-reads once a minute and keeps retrying the stream.
+ * Also re-reads on focus and whenever this tab changes something.
  */
 export default function NotificationBell() {
   const { user } = useAuth();
@@ -32,15 +34,49 @@ export default function NotificationBell() {
   }, []);
 
   useEffect(() => {
+    let stream: EventSource | null = null;
+    // Bare setTimeout, not window.setTimeout: it is what the tests' fake timers patch.
+    let retry: ReturnType<typeof setTimeout> | undefined;
+
+    const stop = () => {
+      stream?.close();
+      stream = null;
+      clearTimeout(retry);
+      retry = undefined;
+    };
+    const start = () => {
+      if (stream || retry !== undefined || document.visibilityState !== 'visible') return;
+      const es = openNotificationStream();
+      // Re-reading on open covers anything missed while (re)connecting.
+      es.addEventListener('open', refreshCount);
+      es.addEventListener('changed', refreshCount);
+      es.addEventListener('error', () => {
+        // CONNECTING: the browser is already retrying. CLOSED: it gave up (an
+        // older API's 404, a 502 mid-deploy) - read once, then try again.
+        if (es.readyState !== es.CLOSED) return;
+        stream = null;
+        retry = setTimeout(() => {
+          retry = undefined;
+          refreshCount();
+          start();
+        }, NOTIFICATION_POLL_MS);
+      });
+      stream = es;
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') start();
+      else stop();
+    };
+
     refreshCount();
-    const timer = window.setInterval(refreshCount, NOTIFICATION_POLL_MS);
+    start();
     window.addEventListener('focus', refreshCount);
-    document.addEventListener('visibilitychange', refreshCount);
+    document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, refreshCount);
     return () => {
-      window.clearInterval(timer);
+      stop();
       window.removeEventListener('focus', refreshCount);
-      document.removeEventListener('visibilitychange', refreshCount);
+      document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, refreshCount);
     };
   }, [refreshCount]);
