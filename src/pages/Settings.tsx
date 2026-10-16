@@ -26,13 +26,14 @@ import { SkeletonRows } from '../components/Skeleton';
 import Badge from '../components/Badge';
 import VerifyCodeModal from '../components/VerifyCodeModal';
 import DeleteAccountModal from '../components/DeleteAccountModal';
+import PlayStoreBadge from '../components/PlayStoreBadge';
 import { useGlobalLoader } from '../context/GlobalLoaderContext';
 import { useCountries } from '../hooks/useCountries';
 import { DEFAULT_LOCALE, timezoneChoicesFor } from '../utils/locale';
 import {
   Building2, Users, UserCircle, Lock,
   Pencil, X, Plus, Save, Trash2, Check,
-  PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2, ShieldCheck, Mail, Phone, CreditCard,
+  PauseCircle, PlayCircle, Search, GitBranch, CheckCircle2, ShieldCheck, Mail, Phone, CreditCard, Smartphone,
 } from 'lucide-react';
 import type { User, Garage, Role, ResolvedLocale, VerificationChannel } from '../types/models';
 
@@ -1161,6 +1162,17 @@ export default function Settings() {
             </Button>
           </div>
         </form>
+      </Card>
+
+      {/* ── MOBILE APP ── */}
+      <Card id="mobile-app" icon={Smartphone} title="Mobile App">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-gray-500 max-w-[60ch]">
+            GaragePulse is available on Android. Download the app from Google Play and sign in
+            with this same account to work from your phone.
+          </p>
+          <PlayStoreBadge className="shrink-0" />
+        </div>
       </Card>
 
       {/* ── DELETE ACCOUNT ── */}
