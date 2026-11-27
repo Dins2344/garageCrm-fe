@@ -149,4 +149,30 @@ export const updateAppRelease = async (body: AppReleasePolicy): Promise<ApiItemR
   return res.data;
 };
 
+/** MyGarage (the consumer app). Counts only: its records are encrypted on the phone. `connected` is false when MyGarage is off on the server. */
+export type MyGarageStats = { connected: false } | {
+  connected: true;
+  settings: { purchases: boolean; requirePlus: boolean; referrals: boolean; minVersionCode: number; blockedVersionCodes: number[] };
+  accounts: {
+    total: number; new1: number; new7: number; new30: number;
+    signedIn: number; active1: number; active7: number; active30: number;
+    deleted: number; deleted30: number;
+  };
+  daily: { day: string; signups: number; deletions: number }[];
+  plus: { paying: number; granted: number; plans: { plan: string; state: string; count: number; autoRenew: number }[] };
+  referrals: { codes: number; total: number; rewarded: number; pending: number; viaLink: number; typed: number; capped: number; grants: number; grantedDays: number };
+  sync: {
+    backupUsers: number; backupGarages: number;
+    tables: { tbl: string; live: number; deleted: number }[];
+    files: { uploaded: number; bytes: number; pending: number; owners: number };
+  };
+  sharing: { garages: number; members: Record<string, number>; invites: Record<string, number> };
+  recentUsers: { email: string; name: string | null; createdAt: string; lastSeen: string | null; paid: boolean; granted: boolean; backup: boolean; bytes: number }[];
+};
+
+export const getMyGarageStats = async (): Promise<ApiItemResponse<MyGarageStats>> => {
+  const res = await adminApi.get('/mygarage');
+  return res.data;
+};
+
 export default adminApi;

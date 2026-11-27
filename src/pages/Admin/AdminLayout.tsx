@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { verifyAdmin } from '../../services/apiServices/adminService';
 import { ADMIN_TOKEN_KEY } from '../../utils/constants';
-import { BarChart3, Building2, Users, Zap, LogOut, Smartphone } from 'lucide-react';
+import { BarChart3, Building2, Users, Zap, LogOut, Smartphone, Car } from 'lucide-react';
 
 export default function AdminLayout() {
   const [loading, setLoading] = useState(true);
@@ -32,6 +32,7 @@ export default function AdminLayout() {
     { label: 'Users', path: '/admin/users', icon: Users },
     { label: 'System Health', path: '/admin/health', icon: Zap },
     { label: 'App Release', path: '/admin/app-release', icon: Smartphone },
+    { label: 'MyGarage', path: '/admin/mygarage', icon: Car },
   ];
 
   if (loading) return null;
